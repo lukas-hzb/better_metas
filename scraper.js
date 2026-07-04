@@ -228,7 +228,7 @@ async function main() {
                 const result = await scrapeCountry(browser, link);
                 if (result) results.push(result);
             }
-            fs.writeFileSync('data/plonkit_data.json', JSON.stringify(results, null, 2));
+            fs.writeFileSync('data/plonkit_metas.json', JSON.stringify(results, null, 2));
             console.log(`Saved data for ${results.length} countries.`);
         }
     } catch (e) {

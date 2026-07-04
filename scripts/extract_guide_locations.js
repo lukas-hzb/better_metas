@@ -4,8 +4,8 @@ const path = require('path');
 const puppeteer = require('puppeteer');
 const https = require('https');
 
-const PLONKIT_DATA_PATH = path.join(__dirname, '../data/plonkit_data.json');
-const LOCATIONS_DATA_PATH = path.join(__dirname, '../data/locations.json');
+const PLONKIT_DATA_PATH = path.join(__dirname, '../data/plonkit_metas.json');
+const LOCATIONS_DATA_PATH = path.join(__dirname, '../data/plonkit_locations.json');
 
 // --- Configuration ---
 const NOMINATIM_RATE_LIMIT_MS = 1200; // Limit to 1 request per 1.2s to be safe
@@ -21,7 +21,7 @@ async function main() {
         try {
             locationsData = JSON.parse(fs.readFileSync(LOCATIONS_DATA_PATH, 'utf8'));
         } catch (e) {
-            console.error('Error parsing locations.json, starting fresh.', e);
+            console.error('Error parsing plonkit_locations.json, starting fresh.', e);
         }
     }
 

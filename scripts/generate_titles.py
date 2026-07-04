@@ -10,7 +10,7 @@ import json
 import re
 from pathlib import Path
 
-JSON_FILE_PATH = Path(__file__).parent.parent / "data" / "plonkit_data.json"
+JSON_FILE_PATH = Path(__file__).parent.parent / "data" / "plonkit_metas.json"
 
 
 def generate_title(desc: str, country: str) -> str:
@@ -417,7 +417,7 @@ def generate_title(desc: str, country: str) -> str:
 
 
 def main():
-    print("Loading plonkit_data.json...")
+    print("Loading plonkit_metas.json...")
     with open(JSON_FILE_PATH, 'r', encoding='utf-8') as f:
         data = json.load(f)
     
@@ -437,7 +437,7 @@ def main():
     
     print(f"\nGenerated {count} titles")
     
-    print("Saving to plonkit_data.json...")
+    print("Saving to plonkit_metas.json...")
     with open(JSON_FILE_PATH, 'w', encoding='utf-8') as f:
         json.dump(data, f, indent=2, ensure_ascii=False)
     

@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Generate tags for all metas in plonkit_data.json.
+Generate tags for all metas in plonkit_metas.json.
 
 Available tags:
 - plants: vegetation, trees, forests, grass, etc.
@@ -20,7 +20,7 @@ import json
 import re
 from pathlib import Path
 
-JSON_FILE_PATH = Path(__file__).parent.parent / "data" / "plonkit_data.json"
+JSON_FILE_PATH = Path(__file__).parent.parent / "data" / "plonkit_metas.json"
 
 # Tag detection patterns
 TAG_PATTERNS = {
@@ -172,7 +172,7 @@ def determine_tags(title: str, desc: str, note: str) -> list:
 
 
 def main():
-    print("Loading plonkit_data.json...")
+    print("Loading plonkit_metas.json...")
     with open(JSON_FILE_PATH, 'r', encoding='utf-8') as f:
         data = json.load(f)
     
@@ -210,7 +210,7 @@ def main():
     print(f"{'='*50}")
     print(f"Total: {count} metas processed\n")
     
-    print("Saving to plonkit_data.json...")
+    print("Saving to plonkit_metas.json...")
     with open(JSON_FILE_PATH, 'w', encoding='utf-8') as f:
         json.dump(data, f, indent=2, ensure_ascii=False)
     

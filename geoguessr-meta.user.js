@@ -25,15 +25,18 @@
     const REPO_BRANCH = 'main_v3';
     
     // Data Sources
-    const LOCATIONS_FILE = 'data/locations.json';
-    const USER_METAS_FILE = 'data/metas.json';
-    const SYSTEM_METAS_FILE = 'data/plonkit_data.json';
+    const USER_LOCATIONS_FILE = 'data/user_locations.json';
+    const USER_METAS_FILE = 'data/user_metas.json';
+    const SYSTEM_METAS_FILE = 'data/plonkit_metas.json';
+    const SYSTEM_LOCATIONS_FILE = 'data/plonkit_locations.json';
     
-    const getRawLocationsUrl = () => `https://raw.githubusercontent.com/${REPO_OWNER}/${REPO_NAME}/${REPO_BRANCH}/${LOCATIONS_FILE}?t=${Date.now()}`;
+    const getRawUserLocationsUrl = () => `https://raw.githubusercontent.com/${REPO_OWNER}/${REPO_NAME}/${REPO_BRANCH}/${USER_LOCATIONS_FILE}?t=${Date.now()}`;
     const getRawUserMetasUrl = () => `https://raw.githubusercontent.com/${REPO_OWNER}/${REPO_NAME}/${REPO_BRANCH}/${USER_METAS_FILE}?t=${Date.now()}`;
     const getRawSystemMetasUrl = () => `https://raw.githubusercontent.com/${REPO_OWNER}/${REPO_NAME}/${REPO_BRANCH}/${SYSTEM_METAS_FILE}?t=${Date.now()}`;
+    const getRawSystemLocationsUrl = () => `https://raw.githubusercontent.com/${REPO_OWNER}/${REPO_NAME}/${REPO_BRANCH}/${SYSTEM_LOCATIONS_FILE}?t=${Date.now()}`;
     
-    const API_LOCATIONS_URL = `https://api.github.com/repos/${REPO_OWNER}/${REPO_NAME}/contents/${LOCATIONS_FILE}`;
+    const API_USER_LOCATIONS_URL = `https://api.github.com/repos/${REPO_OWNER}/${REPO_NAME}/contents/${USER_LOCATIONS_FILE}`;
+    const API_SYSTEM_LOCATIONS_URL = `https://api.github.com/repos/${REPO_OWNER}/${REPO_NAME}/contents/${SYSTEM_LOCATIONS_FILE}`;
     const API_USER_METAS_URL = `https://api.github.com/repos/${REPO_OWNER}/${REPO_NAME}/contents/${USER_METAS_FILE}`;
     const API_METAS_URL = `https://api.github.com/repos/${REPO_OWNER}/${REPO_NAME}/contents/${USER_METAS_FILE}`; // Alias for reset
     const getApiUrlForBranch = (apiUrl) => `${apiUrl}?ref=${encodeURIComponent(REPO_BRANCH)}`;
@@ -55,11 +58,83 @@
      * @property {number} [lng]
      */
 
-    /** @type {Object.<string, string[]|{metas:string[]}>} Mapping of Panoid to Meta IDs */
+    /** @type {Object.<string, string[]|{metas:string[]}>} Combined mapping of Panoid to Meta IDs */
     let locationMap = {};
+    let userLocationMap = {};
+    let systemLocationMap = {};
     
     /** @type {Meta[]} Loaded meta definitions */
     let metasData = [];
+    let userMetaIds = new Set();
+    let systemMetaIds = new Set();
+
+    function getLocationMetaIds(entry) {
+        if (!entry) return [];
+        if (Array.isArray(entry)) return entry;
+        return Array.isArray(entry.metas) ? entry.metas : [];
+    }
+
+    function mergeLocationEntries(systemEntry, userEntry) {
+        if (!systemEntry) return userEntry;
+        if (!userEntry) return systemEntry;
+
+        const systemEntryMetaIds = getLocationMetaIds(systemEntry);
+        const userEntryMetaIds = getLocationMetaIds(userEntry);
+        const mergedMetaIds = Array.from(new Set([...systemEntryMetaIds, ...userEntryMetaIds]));
+
+        if (Array.isArray(systemEntry) && Array.isArray(userEntry)) {
+            return mergedMetaIds;
+        }
+
+        const systemData = Array.isArray(systemEntry) ? { metas: systemEntryMetaIds } : { ...systemEntry };
+        const userData = Array.isArray(userEntry) ? { metas: userEntryMetaIds } : { ...userEntry };
+        return { ...systemData, ...userData, metas: mergedMetaIds };
+    }
+
+    function mergeLocationMaps(systemMap, userMap) {
+        const merged = { ...(systemMap || {}) };
+        Object.keys(userMap || {}).forEach(panoid => {
+            merged[panoid] = mergeLocationEntries(merged[panoid], userMap[panoid]);
+        });
+        return merged;
+    }
+
+    function ensureLocationEntry(locations, panoid) {
+        if (!locations[panoid]) {
+            locations[panoid] = {
+                metas: [],
+                lat: currentLocationData.lat,
+                lng: currentLocationData.lng,
+                country: currentLocationData.country,
+                nominatimCountry: currentLocationData.nominatimCountry,
+                region: currentLocationData.region,
+                city: currentLocationData.city,
+                road: currentLocationData.road
+            };
+        } else if (Array.isArray(locations[panoid])) {
+            locations[panoid] = {
+                metas: locations[panoid],
+                lat: currentLocationData.lat,
+                lng: currentLocationData.lng,
+                country: currentLocationData.country,
+                nominatimCountry: currentLocationData.nominatimCountry,
+                region: currentLocationData.region,
+                city: currentLocationData.city,
+                road: currentLocationData.road
+            };
+        }
+
+        return locations[panoid];
+    }
+
+    function addMetaIdsToLocationMap(locations, panoid, metaIds) {
+        const entry = ensureLocationEntry(locations, panoid);
+        metaIds.forEach(id => {
+            if (!entry.metas.includes(id)) {
+                entry.metas.push(id);
+            }
+        });
+    }
     
     let currentPanoid = null;
     let selectedMetaIds = new Set();
@@ -152,7 +227,31 @@
             min-height: 220px;
             max-width: calc(100vw - 1rem);
             max-height: calc(100vh - 1rem);
-            box-shadow: 0 0 0 2px rgba(140, 212, 90, 0.55), 0 8px 32px rgba(0, 0, 0, 0.5);
+            background: rgba(5, 18, 34, 0.9);
+            outline: 1px dashed rgba(191, 219, 254, 0.7);
+            outline-offset: -6px;
+            box-shadow: 0 0 0 2px rgba(96, 165, 250, 0.95), 0 0 0 5px rgba(96, 165, 250, 0.2), 0 8px 32px rgba(0, 0, 0, 0.55);
+        }
+
+        #gg-meta-hud.gg-resize-mode::after {
+            content: "";
+            position: absolute;
+            right: 10px;
+            bottom: 10px;
+            width: 18px;
+            height: 18px;
+            border-right: 3px solid rgba(147, 197, 253, 0.95);
+            border-bottom: 3px solid rgba(147, 197, 253, 0.95);
+            box-shadow: 4px 4px 0 rgba(147, 197, 253, 0.35);
+            pointer-events: none;
+        }
+
+        #gg-meta-hud.gg-resize-mode .gg-meta-content,
+        #gg-meta-hud.gg-resize-mode #gg-location-info,
+        #gg-meta-hud.gg-resize-mode #gg-status {
+            opacity: 0.32;
+            pointer-events: none;
+            user-select: none;
         }
 
         .gg-resize-controls {
@@ -164,18 +263,51 @@
             z-index: 2;
         }
 
+        .gg-resize-mode-title {
+            position: absolute;
+            top: 10px;
+            left: 16px;
+            display: none;
+            align-items: center;
+            gap: 8px;
+            color: #bfdbfe;
+            font-size: 0.72rem;
+            font-weight: 900;
+            letter-spacing: 0.08em;
+            text-transform: uppercase;
+            z-index: 2;
+        }
+
+        .gg-resize-mode-title::before {
+            content: "";
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: #60a5fa;
+            box-shadow: 0 0 10px rgba(96, 165, 250, 0.9);
+        }
+
         #gg-meta-hud.gg-resize-mode .gg-resize-controls {
             display: flex;
         }
 
+        #gg-meta-hud.gg-resize-mode .gg-resize-mode-title {
+            display: flex;
+        }
+
+        #gg-meta-hud.gg-resize-mode .gg-meta-title > span,
         #gg-meta-hud.gg-resize-mode .gg-meta-title > div {
             visibility: hidden;
         }
 
+        #gg-meta-hud.gg-resize-mode .gg-meta-title {
+            border-bottom-color: rgba(96, 165, 250, 0.45);
+        }
+
         .gg-resize-control-btn {
-            background: rgba(0, 0, 0, 0.55);
-            color: rgba(255, 255, 255, 0.9);
-            border: 1px solid rgba(255, 255, 255, 0.24);
+            background: rgba(15, 23, 42, 0.85);
+            color: rgba(219, 234, 254, 0.95);
+            border: 1px solid rgba(147, 197, 253, 0.35);
             border-radius: 14px;
             cursor: pointer;
             font-size: 0.65rem;
@@ -187,13 +319,13 @@
         }
 
         .gg-resize-control-btn:hover {
-            background: rgba(255, 255, 255, 0.18);
+            background: rgba(30, 64, 175, 0.45);
             color: #fff;
         }
 
         .gg-resize-control-btn.gg-save-size {
-            background: rgba(140, 212, 90, 0.85);
-            border-color: rgba(140, 212, 90, 0.95);
+            background: rgba(37, 99, 235, 0.9);
+            border-color: rgba(147, 197, 253, 0.95);
             color: #fff;
         }
 
@@ -881,6 +1013,7 @@
         hud.id = 'gg-meta-hud';
         applyHudSize(hud, getSavedHudSize());
         hud.innerHTML = `
+            <div class="gg-resize-mode-title">Resize Window</div>
             <div class="gg-resize-controls">
                 <button class="gg-resize-control-btn gg-save-size" id="gg-resize-save">Save</button>
                 <button class="gg-resize-control-btn" id="gg-resize-reset">Reset</button>
@@ -955,7 +1088,7 @@
                 
                 <hr class="gg-modal-divider">
                 
-                <button class="gg-btn-danger" id="gg-reset-db">Reset Database (Clear All)</button>
+                <button class="gg-btn-danger" id="gg-reset-db">Reset User Database</button>
                 
                 <button class="gg-btn-primary" id="gg-save-settings" style="margin-top: 16px;">Save Changes</button>
                 
@@ -1289,8 +1422,8 @@
         });
 
         document.getElementById('gg-reset-db').addEventListener('click', async () => {
-             if (confirm("ARE YOU SURE? This will DELETE ALL metas and locations from your GitHub repository. This cannot be undone.")) {
-                 if (confirm("Really sure? All date will be lost.")) {
+             if (confirm("ARE YOU SURE? This will DELETE your own metas and own location links from GitHub. Plonkit data will stay untouched.")) {
+                 if (confirm("Really sure? Your own data will be lost.")) {
                      await resetDatabase();
                  }
              }
@@ -1538,11 +1671,18 @@
 
         const token = localStorage.getItem('gg_gh_token');
         if (!token) {
+            const plonkitMetaIds = metaIds.filter(id => systemMetaIds.has(id));
+            const ownMetaIds = metaIds.filter(id => userMetaIds.has(id));
+
             // Mode: Community (No Token) - Submit via GitHub Issue
             const submission = { 
                 action: "link_metas",
                 panoid: panoid, 
                 metaIds: metaIds,
+                targetFiles: {
+                    plonkitLocations: plonkitMetaIds,
+                    userLocations: ownMetaIds
+                },
                 lat: currentLocationData.lat,
                 lng: currentLocationData.lng,
                 country: currentLocationData.country,
@@ -1596,45 +1736,32 @@
                 });
             };
 
-            const data = await ghAPI(getApiUrlForBranch(API_LOCATIONS_URL));
-            let locations = JSON.parse(decodeURIComponent(escape(window.atob(data.content.replace(/\n/g, "")))));
+            const plonkitMetaIds = metaIds.filter(id => systemMetaIds.has(id));
+            const ownMetaIds = metaIds.filter(id => userMetaIds.has(id));
+            const unknownMetaIds = metaIds.filter(id => !systemMetaIds.has(id) && !userMetaIds.has(id));
 
-            if (!locations[panoid]) {
-                locations[panoid] = {
-                    metas: [],
-                    lat: currentLocationData.lat,
-                    lng: currentLocationData.lng,
-                    country: currentLocationData.country,
-                    nominatimCountry: currentLocationData.nominatimCountry,
-                    region: currentLocationData.region,
-                    road: currentLocationData.road
-                };
-            } else if (Array.isArray(locations[panoid])) {
-                const oldMetas = locations[panoid];
-                locations[panoid] = {
-                    metas: oldMetas,
-                    lat: currentLocationData.lat,
-                    lng: currentLocationData.lng,
-                    country: currentLocationData.country,
-                    nominatimCountry: currentLocationData.nominatimCountry,
-                    region: currentLocationData.region,
-                    road: currentLocationData.road
-                };
+            if (unknownMetaIds.length > 0) {
+                throw new Error(`Unknown meta IDs: ${unknownMetaIds.join(', ')}`);
             }
-            
-            metaIds.forEach(id => {
-                if (!locations[panoid].metas.includes(id)) {
-                    locations[panoid].metas.push(id);
-                }
-            });
 
-            const contentBase64 = window.btoa(unescape(encodeURIComponent(JSON.stringify(locations, null, 2))));
-            await ghAPI(API_LOCATIONS_URL, 'PUT', { 
-                message: `Link ${metaIds.length} metas to ${panoid} via BetterMetas`, 
-                content: contentBase64, 
-                sha: data.sha,
-                branch: REPO_BRANCH
-            });
+            const updateLocationFile = async (apiUrl, idsForFile, label) => {
+                if (idsForFile.length === 0) return;
+
+                const data = await ghAPI(getApiUrlForBranch(apiUrl));
+                const locations = JSON.parse(decodeURIComponent(escape(window.atob(data.content.replace(/\n/g, "")))));
+                addMetaIdsToLocationMap(locations, panoid, idsForFile);
+
+                const contentBase64 = window.btoa(unescape(encodeURIComponent(JSON.stringify(locations, null, 2))));
+                await ghAPI(apiUrl, 'PUT', {
+                    message: `Link ${idsForFile.length} ${label} metas to ${panoid} via BetterMetas`,
+                    content: contentBase64,
+                    sha: data.sha,
+                    branch: REPO_BRANCH
+                });
+            };
+
+            await updateLocationFile(API_SYSTEM_LOCATIONS_URL, plonkitMetaIds, 'Plonkit');
+            await updateLocationFile(API_USER_LOCATIONS_URL, ownMetaIds, 'user');
 
             updateStatus('Linked!');
             selectedMetaIds.clear();
@@ -1772,53 +1899,26 @@
                 return await ghAPI(apiUrl, 'PUT', { message, content: contentBase64, sha, branch: REPO_BRANCH });
             };
 
-            // 1. Fetch both files
-            updateStatus('Fetching metas.json...');
+            // 1. Fetch both user files
+            updateStatus('Fetching user_metas.json...');
             const metasFile = await getFile(API_USER_METAS_URL);
             
-            updateStatus('Fetching locations.json...');
-            const locsFile = await getFile(API_LOCATIONS_URL);
+            updateStatus('Fetching user_locations.json...');
+            const locsFile = await getFile(API_USER_LOCATIONS_URL);
 
-            // 2. Add meta to metas.json
+            // 2. Add meta to user_metas.json
             metasFile.content.push(newMeta);
 
-            // 3. Link panoid in locations.json
-            if (!locsFile.content[panoid]) {
-                locsFile.content[panoid] = {
-                    metas: [],
-                    lat: currentLocationData.lat,
-                    lng: currentLocationData.lng,
-                    country: currentLocationData.country,
-                    nominatimCountry: currentLocationData.nominatimCountry,
-                    region: currentLocationData.region,
-                    city: currentLocationData.city,
-                    road: currentLocationData.road
-                };
-            } else if (Array.isArray(locsFile.content[panoid])) {
-                 const oldMetas = locsFile.content[panoid];
-                 locsFile.content[panoid] = {
-                    metas: oldMetas,
-                    lat: currentLocationData.lat,
-                    lng: currentLocationData.lng,
-                    country: currentLocationData.country,
-                    nominatimCountry: currentLocationData.nominatimCountry,
-                    region: currentLocationData.region,
-                    city: currentLocationData.city,
-                    road: currentLocationData.road
-                };
-            }
+            // 3. Link panoid in user_locations.json
+            addMetaIdsToLocationMap(locsFile.content, panoid, [newMeta.id]);
 
-            if (!locsFile.content[panoid].metas.includes(newMeta.id)) {
-                locsFile.content[panoid].metas.push(newMeta.id);
-            }
-
-            // 4. Commit metas.json
-            updateStatus('Saving metas.json...');
+            // 4. Commit user_metas.json
+            updateStatus('Saving user_metas.json...');
             await putFile(API_USER_METAS_URL, metasFile.sha, metasFile.content, `Add meta ${newMeta.id} via BetterMetas`);
 
-            // 5. Commit locations.json
-            updateStatus('Saving locations.json...');
-            await putFile(API_LOCATIONS_URL, locsFile.sha, locsFile.content, `Link ${panoid} to ${newMeta.id} via BetterMetas`);
+            // 5. Commit user_locations.json
+            updateStatus('Saving user_locations.json...');
+            await putFile(API_USER_LOCATIONS_URL, locsFile.sha, locsFile.content, `Link ${panoid} to ${newMeta.id} via BetterMetas`);
 
             updateStatus('Saved!');
             btn.innerHTML = 'Saved!';
@@ -1897,13 +1997,13 @@
 
             // 1. Get SHAs
             const metasSha = await getSha(API_METAS_URL);
-            const locsSha = await getSha(API_LOCATIONS_URL);
+            const locsSha = await getSha(API_USER_LOCATIONS_URL);
 
             // 2. Overwrite with empty
-            await putFile(API_METAS_URL, metasSha, [], "Reset Database (Metas)");
-            await putFile(API_LOCATIONS_URL, locsSha, {}, "Reset Database (Locations)");
+            await putFile(API_METAS_URL, metasSha, [], "Reset User Database (Metas)");
+            await putFile(API_USER_LOCATIONS_URL, locsSha, {}, "Reset User Database (Locations)");
 
-            alert("Database Cleared!");
+            alert("User database cleared!");
             location.reload();
 
         } catch (e) {
@@ -1982,14 +2082,7 @@
 
         // Check for exact match in locationMap (might be empty if no pins yet)
         const entry = locationMap[currentPanoid];
-        let metaIds = [];
-        if (entry) {
-            if (Array.isArray(entry)) {
-                metaIds = entry;
-            } else if (entry.metas) {
-                metaIds = entry.metas;
-            }
-        }
+        const metaIds = getLocationMetaIds(entry);
 
         // Helper to check scope
         const isScopeActive = (m) => {
@@ -2193,11 +2286,11 @@
              return false;
         };
 
-        // Phase 1: Check Linked Locations (saved in locations.json)
+        // Phase 1: Check linked locations from plonkit_locations.json and user_locations.json
         // locationMap maps Panoid -> Data
         for (const panoId in locationMap) {
             const entry = locationMap[panoId];
-            const metaIds = Array.isArray(entry) ? entry : (entry.metas || []);
+            const metaIds = getLocationMetaIds(entry);
             
             // Normalize Entry Data
             const eLat = entry.lat ? parseFloat(entry.lat) : null;
@@ -2593,36 +2686,67 @@
         console.log('[BetterMetas] Fetching data...');
         updateStatus('Loading DB...');
 
-        let locLoaded = false;
+        let userLocLoaded = false;
+        let systemLocLoaded = false;
         let userMetasLoaded = false;
         let systemMetasLoaded = false;
 
         let tempUserMetas = [];
         let tempSystemMetas = [];
 
-        // Fetch Locations Map
+        // Fetch User Locations Map
         GM_xmlhttpRequest({
             method: "GET",
-            url: getRawLocationsUrl(),
+            url: getRawUserLocationsUrl(),
             onload: function(response) {
                 if (response.status === 200) {
                     try {
-                        locationMap = JSON.parse(response.responseText);
-                        console.log(`[BetterMetas] Loaded ${Object.keys(locationMap).length} location mappings.`);
-                        locLoaded = true;
+                        userLocationMap = JSON.parse(response.responseText);
+                        console.log(`[BetterMetas] Loaded ${Object.keys(userLocationMap).length} user location mappings.`);
+                        userLocLoaded = true;
                         checkAllLoaded();
                     } catch (e) {
-                        console.error('[BetterMetas] Error parsing locations.json:', e);
-                        useFallback("Locations Parse Error");
+                        console.error('[BetterMetas] Error parsing user_locations.json:', e);
+                        useFallback("User Locations Parse Error");
                     }
                 } else {
-                    console.error('[BetterMetas] Failed to fetch locations:', response.statusText);
-                    useFallback("Locations 404");
+                    console.log('[BetterMetas] User locations file empty or 404, proceeding...');
+                    userLocationMap = {};
+                    userLocLoaded = true;
+                    checkAllLoaded();
                 }
             },
             onerror: function(err) {
-                console.error('[BetterMetas] Locations request error:', err);
-                useFallback("Network Error (Locations)");
+                console.error('[BetterMetas] User locations request error:', err);
+                useFallback("Network Error (User Locations)");
+            }
+        });
+
+        // Fetch System Locations Map (Plonkit links)
+        GM_xmlhttpRequest({
+            method: "GET",
+            url: getRawSystemLocationsUrl(),
+            onload: function(response) {
+                if (response.status === 200) {
+                    try {
+                        systemLocationMap = JSON.parse(response.responseText);
+                        console.log(`[BetterMetas] Loaded ${Object.keys(systemLocationMap).length} system location mappings.`);
+                        systemLocLoaded = true;
+                        checkAllLoaded();
+                    } catch (e) {
+                        console.error('[BetterMetas] Error parsing plonkit_locations.json:', e);
+                        useFallback("System Locations Parse Error");
+                    }
+                } else {
+                    console.warn('[BetterMetas] System locations file missing, continuing without Plonkit location links.');
+                    systemLocationMap = {};
+                    systemLocLoaded = true;
+                    checkAllLoaded();
+                }
+            },
+            onerror: function(err) {
+                console.error('[BetterMetas] System locations request error:', err);
+                useFallback("Network Error (System Locations)");
             }
         });
 
@@ -2638,7 +2762,7 @@
                         userMetasLoaded = true;
                         checkAllLoaded();
                     } catch (e) {
-                        console.error('[BetterMetas] Error parsing metas.json:', e);
+                        console.error('[BetterMetas] Error parsing user_metas.json:', e);
                         useFallback("User Metas Parse Error");
                     }
                 } else {
@@ -2667,7 +2791,7 @@
                         systemMetasLoaded = true;
                         checkAllLoaded();
                     } catch (e) {
-                        console.error('[BetterMetas] Error parsing plonkit_data.json:', e);
+                        console.error('[BetterMetas] Error parsing plonkit_metas.json:', e);
                         useFallback("System Metas Parse Error");
                     }
                 } else {
@@ -2678,7 +2802,11 @@
         });
 
         function checkAllLoaded() {
-            if (locLoaded && userMetasLoaded && systemMetasLoaded) {
+            if (userLocLoaded && systemLocLoaded && userMetasLoaded && systemMetasLoaded) {
+                locationMap = mergeLocationMaps(systemLocationMap, userLocationMap);
+                userMetaIds = new Set(tempUserMetas.map(m => m.id).filter(Boolean));
+                systemMetaIds = new Set(tempSystemMetas.map(m => m.id).filter(Boolean));
+
                 const combined = [...tempUserMetas, ...tempSystemMetas];
                 const seen = new Set();
                 metasData = combined.filter(m => {
@@ -2688,7 +2816,9 @@
                 });
 
                 const locCount = Object.keys(locationMap).length;
-                console.log(`[BetterMetas] DB Ready: ${locCount} locs, ${metasData.length} unique metas (${tempUserMetas.length} user, ${tempSystemMetas.length} system).`);
+                const userLocCount = Object.keys(userLocationMap).length;
+                const systemLocCount = Object.keys(systemLocationMap).length;
+                console.log(`[BetterMetas] DB Ready: ${locCount} locs (${userLocCount} user, ${systemLocCount} system), ${metasData.length} unique metas (${tempUserMetas.length} user, ${tempSystemMetas.length} system).`);
                 
                 if (currentPanoid) {
                      updateStatus(`ID: ${currentPanoid.substring(0,12)}...`);
