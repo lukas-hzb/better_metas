@@ -31408,5 +31408,15 @@
     "country": "Brazil",
     "region": "Paraná",
     "road": "PRC-280"
+  },
+  "CB0cRYxi5QF0GXaFJWIHtw": {
+    "metas": [
+      "meta_1769520991585_yijd0"
+    ],
+    "lat": "8.77741",
+    "lng": "-82.62821",
+    "country": "Panama",
+    "region": "Provincia de Chiriquí",
+    "road": "Manzana 040512"
   }
 }
