@@ -34,5 +34,17 @@
     "region": "Sonora",
     "city": "Santa Cecilia",
     "road": "Caborca - El Desemboque"
+  },
+  "SkoR5OQxRJ0PACc9VNa-SA": {
+    "metas": [
+      "meta_1769520990434_lsdi2"
+    ],
+    "lat": "18.63931",
+    "lng": "-87.72938",
+    "country": "Mexico",
+    "nominatimCountry": "Mexico",
+    "region": "Quintana Roo",
+    "city": "Mahahual",
+    "road": "Camino Mahahual"
   }
 }
