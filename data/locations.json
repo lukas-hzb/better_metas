@@ -31428,5 +31428,15 @@
     "country": "South Africa",
     "region": "Eastern Cape",
     "road": "Ngwekazi Road"
+  },
+  "H_CKCOu1d82P0J0BatD0OA": {
+    "metas": [
+      "meta_1769520939792_7s9ad"
+    ],
+    "lat": "43.86853",
+    "lng": "6.08954",
+    "country": "France",
+    "region": "Provence-Alpes-Côte d'Azur",
+    "road": "Route de Valensole"
   }
 }
