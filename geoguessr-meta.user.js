@@ -4,8 +4,8 @@
 // @version      0.2
 // @description  Displays crowdsourced metas and hints for Geoguessr locations.
 // @author       Lukas Hzb
-// @updateURL    https://raw.githubusercontent.com/lukas-hzb/better_metas/main_v2/geoguessr-meta.user.js
-// @downloadURL  https://raw.githubusercontent.com/lukas-hzb/better_metas/main_v2/geoguessr-meta.user.js
+// @updateURL    https://raw.githubusercontent.com/lukas-hzb/better_metas/main_v3/geoguessr-meta.user.js
+// @downloadURL  https://raw.githubusercontent.com/lukas-hzb/better_metas/main_v3/geoguessr-meta.user.js
 // @match        https://www.geoguessr.com/*
 // @icon         https://www.google.com/s2/favicons?sz=64&domain=geoguessr.com
 // @run-at       document-start
@@ -22,21 +22,26 @@
     const SHOW_LOCATION_HUD = false;
     const REPO_OWNER = 'lukas-hzb';
     const REPO_NAME = 'better_metas';
+    const REPO_BRANCH = 'main_v3';
     
     // Data Sources
     const LOCATIONS_FILE = 'data/locations.json';
     const USER_METAS_FILE = 'data/metas.json';
     const SYSTEM_METAS_FILE = 'data/plonkit_data.json';
     
-    const getRawLocationsUrl = () => `https://raw.githubusercontent.com/${REPO_OWNER}/${REPO_NAME}/main_v2/${LOCATIONS_FILE}?t=${Date.now()}`;
-    const getRawUserMetasUrl = () => `https://raw.githubusercontent.com/${REPO_OWNER}/${REPO_NAME}/main_v2/${USER_METAS_FILE}?t=${Date.now()}`;
-    const getRawSystemMetasUrl = () => `https://raw.githubusercontent.com/${REPO_OWNER}/${REPO_NAME}/main_v2/${SYSTEM_METAS_FILE}?t=${Date.now()}`;
+    const getRawLocationsUrl = () => `https://raw.githubusercontent.com/${REPO_OWNER}/${REPO_NAME}/${REPO_BRANCH}/${LOCATIONS_FILE}?t=${Date.now()}`;
+    const getRawUserMetasUrl = () => `https://raw.githubusercontent.com/${REPO_OWNER}/${REPO_NAME}/${REPO_BRANCH}/${USER_METAS_FILE}?t=${Date.now()}`;
+    const getRawSystemMetasUrl = () => `https://raw.githubusercontent.com/${REPO_OWNER}/${REPO_NAME}/${REPO_BRANCH}/${SYSTEM_METAS_FILE}?t=${Date.now()}`;
     
     const API_LOCATIONS_URL = `https://api.github.com/repos/${REPO_OWNER}/${REPO_NAME}/contents/${LOCATIONS_FILE}`;
     const API_USER_METAS_URL = `https://api.github.com/repos/${REPO_OWNER}/${REPO_NAME}/contents/${USER_METAS_FILE}`;
     const API_METAS_URL = `https://api.github.com/repos/${REPO_OWNER}/${REPO_NAME}/contents/${USER_METAS_FILE}`; // Alias for reset
+    const getApiUrlForBranch = (apiUrl) => `${apiUrl}?ref=${encodeURIComponent(REPO_BRANCH)}`;
     
     const win = (typeof unsafeWindow !== 'undefined') ? unsafeWindow : window;
+    const HUD_SIZE_STORAGE_KEY = 'gg_hud_size';
+    const DEFAULT_HUD_WIDTH = '320px';
+    const DEFAULT_HUD_HEIGHT = '75.6vh';
 
     /** 
      * @typedef {Object} Meta
@@ -61,6 +66,7 @@
     
     const ALL_SCOPES = ['countrywide', 'region', 'longitude', '1000km', '100km', '10km', '1km', 'road', 'unique'];
     let activeScopes = new Set(JSON.parse(localStorage.getItem('gg_active_scopes') || JSON.stringify(ALL_SCOPES)));
+    let resizeModePreviousSize = null;
     
     // Locking & Visibility State
     let lastResultSeenTime = 0;
@@ -93,10 +99,10 @@
             right: auto;
             transform: none;
 
-            width: 320px;
+            width: ${DEFAULT_HUD_WIDTH};
             
             /* Window Dimensions */
-            height: 75.6vh;
+            height: ${DEFAULT_HUD_HEIGHT};
             max-height: 80vh;
             display: flex;
             flex-direction: column;
@@ -134,6 +140,61 @@
             opacity: 1;
             pointer-events: auto;
             transform: translateY(0);
+        }
+
+        #gg-meta-hud.gg-resize-mode {
+            opacity: 1;
+            pointer-events: auto;
+            transform: translateY(0);
+            resize: both;
+            overflow: hidden;
+            min-width: 260px;
+            min-height: 220px;
+            max-width: calc(100vw - 1rem);
+            max-height: calc(100vh - 1rem);
+            box-shadow: 0 0 0 2px rgba(140, 212, 90, 0.55), 0 8px 32px rgba(0, 0, 0, 0.5);
+        }
+
+        .gg-resize-controls {
+            position: absolute;
+            top: 10px;
+            right: 12px;
+            display: none;
+            gap: 6px;
+            z-index: 2;
+        }
+
+        #gg-meta-hud.gg-resize-mode .gg-resize-controls {
+            display: flex;
+        }
+
+        #gg-meta-hud.gg-resize-mode .gg-meta-title > div {
+            visibility: hidden;
+        }
+
+        .gg-resize-control-btn {
+            background: rgba(0, 0, 0, 0.55);
+            color: rgba(255, 255, 255, 0.9);
+            border: 1px solid rgba(255, 255, 255, 0.24);
+            border-radius: 14px;
+            cursor: pointer;
+            font-size: 0.65rem;
+            font-weight: 800;
+            height: 26px;
+            padding: 0 9px;
+            text-transform: uppercase;
+            transition: background 0.2s, color 0.2s;
+        }
+
+        .gg-resize-control-btn:hover {
+            background: rgba(255, 255, 255, 0.18);
+            color: #fff;
+        }
+
+        .gg-resize-control-btn.gg-save-size {
+            background: rgba(140, 212, 90, 0.85);
+            border-color: rgba(140, 212, 90, 0.95);
+            color: #fff;
         }
 
 
@@ -752,6 +813,65 @@
         document.head.appendChild(style);
     }
 
+    function getSavedHudSize() {
+        try {
+            const savedSize = JSON.parse(localStorage.getItem(HUD_SIZE_STORAGE_KEY) || 'null');
+            if (
+                savedSize &&
+                Number.isFinite(savedSize.width) &&
+                Number.isFinite(savedSize.height) &&
+                savedSize.width >= 260 &&
+                savedSize.height >= 220
+            ) {
+                return savedSize;
+            }
+        } catch (err) {
+            console.warn('[Geoguessr Meta] Invalid saved HUD size:', err);
+        }
+
+        return null;
+    }
+
+    function applyHudSize(hud, size) {
+        if (size) {
+            hud.style.width = `${size.width}px`;
+            hud.style.height = `${size.height}px`;
+            hud.style.maxWidth = 'calc(100vw - 1rem)';
+            hud.style.maxHeight = 'calc(100vh - 1rem)';
+        } else {
+            hud.style.width = '';
+            hud.style.height = '';
+            hud.style.maxWidth = '';
+            hud.style.maxHeight = '';
+        }
+    }
+
+    function getCurrentHudSize(hud) {
+        const rect = hud.getBoundingClientRect();
+        const computed = window.getComputedStyle(hud);
+        return {
+            width: Math.round(parseFloat(computed.width) || rect.width),
+            height: Math.round(parseFloat(computed.height) || rect.height)
+        };
+    }
+
+    function resetHudSize(hud) {
+        localStorage.removeItem(HUD_SIZE_STORAGE_KEY);
+        applyHudSize(hud, null);
+    }
+
+    function getSettingsTokenValue() {
+        const tokenInput = document.getElementById('gg-gh-token');
+        return (tokenInput?.value || localStorage.getItem('gg_gh_token') || '').trim();
+    }
+
+    function updateResetDatabaseButtonVisibility() {
+        const resetButton = document.getElementById('gg-reset-db');
+        if (!resetButton) return;
+
+        resetButton.style.display = getSettingsTokenValue() ? 'flex' : 'none';
+    }
+
     // --- UI Construction ---
     function createHUD() {
         if (document.getElementById('gg-meta-hud')) return;
@@ -759,7 +879,13 @@
         // HUD
         const hud = document.createElement('div');
         hud.id = 'gg-meta-hud';
+        applyHudSize(hud, getSavedHudSize());
         hud.innerHTML = `
+            <div class="gg-resize-controls">
+                <button class="gg-resize-control-btn gg-save-size" id="gg-resize-save">Save</button>
+                <button class="gg-resize-control-btn" id="gg-resize-reset">Reset</button>
+                <button class="gg-resize-control-btn" id="gg-resize-close">Close</button>
+            </div>
             <div class="gg-meta-title">
                 <span>BetterMetas</span>
                 <div style="display:flex; align-items:center;">
@@ -819,6 +945,13 @@
                     <input type="password" id="gg-gh-token" class="gg-form-input" placeholder="ghp_...">
                     <div class="gg-form-hint">Required to save new metas directly.</div>
                 </div>
+
+                <hr class="gg-modal-divider">
+
+                <div class="gg-form-group">
+                    <label class="gg-form-label">Additional Settings</label>
+                    <button class="gg-btn-secondary" id="gg-resize-window" style="margin-top: 8px;">Resize Window</button>
+                </div>
                 
                 <hr class="gg-modal-divider">
                 
@@ -838,6 +971,7 @@
             input.addEventListener('keypress', (e) => e.stopPropagation());
             input.addEventListener('keyup', (e) => e.stopPropagation());
         });
+        settingsModal.querySelector('#gg-gh-token').addEventListener('input', updateResetDatabaseButtonVisibility);
 
         // MODAL
         const modal = document.createElement('div');
@@ -1027,6 +1161,7 @@
         document.getElementById('gg-settings-btn').addEventListener('click', () => {
             const token = localStorage.getItem('gg_gh_token') || '';
             document.getElementById('gg-gh-token').value = token;
+            updateResetDatabaseButtonVisibility();
             
             // Render Scope Filter
             const scopeContainer = document.getElementById('gg-settings-scope-filter');
@@ -1085,6 +1220,72 @@
         document.getElementById('gg-close-settings').addEventListener('click', () => {
              document.getElementById('gg-settings-modal').style.display = 'none';
             document.getElementById('gg-modal-backdrop').classList.remove('gg-visible');
+        });
+
+        function enterHudResizeMode() {
+            const hud = document.getElementById('gg-meta-hud');
+            if (!hud) return;
+
+            resizeModePreviousSize = {
+                width: hud.style.width,
+                height: hud.style.height,
+                maxWidth: hud.style.maxWidth,
+                maxHeight: hud.style.maxHeight,
+                wasVisible: hud.classList.contains('gg-visible')
+            };
+
+            document.getElementById('gg-settings-modal').style.display = 'none';
+            document.getElementById('gg-meta-modal').style.display = 'none';
+            document.getElementById('gg-modal-backdrop').classList.remove('gg-visible');
+
+            const previewPopup = document.getElementById('gg-meta-preview-popup');
+            if (previewPopup) previewPopup.classList.remove('gg-visible');
+
+            hud.classList.add('gg-visible', 'gg-resize-mode');
+        }
+
+        function exitHudResizeMode(restorePrevious = false) {
+            const hud = document.getElementById('gg-meta-hud');
+            if (!hud) return;
+
+            hud.classList.remove('gg-resize-mode');
+
+            if (restorePrevious && resizeModePreviousSize) {
+                hud.style.width = resizeModePreviousSize.width;
+                hud.style.height = resizeModePreviousSize.height;
+                hud.style.maxWidth = resizeModePreviousSize.maxWidth;
+                hud.style.maxHeight = resizeModePreviousSize.maxHeight;
+            }
+
+            if (resizeModePreviousSize && !resizeModePreviousSize.wasVisible) {
+                hud.classList.remove('gg-visible');
+            }
+
+            resizeModePreviousSize = null;
+        }
+
+        document.getElementById('gg-resize-window').addEventListener('click', enterHudResizeMode);
+
+        document.getElementById('gg-resize-save').addEventListener('click', () => {
+            const hud = document.getElementById('gg-meta-hud');
+            if (!hud) return;
+
+            const size = getCurrentHudSize(hud);
+            localStorage.setItem(HUD_SIZE_STORAGE_KEY, JSON.stringify(size));
+            applyHudSize(hud, size);
+            exitHudResizeMode(false);
+        });
+
+        document.getElementById('gg-resize-reset').addEventListener('click', () => {
+            const hud = document.getElementById('gg-meta-hud');
+            if (!hud) return;
+
+            resetHudSize(hud);
+            exitHudResizeMode(false);
+        });
+
+        document.getElementById('gg-resize-close').addEventListener('click', () => {
+            exitHudResizeMode(true);
         });
 
         document.getElementById('gg-reset-db').addEventListener('click', async () => {
@@ -1395,7 +1596,7 @@
                 });
             };
 
-            const data = await ghAPI(API_LOCATIONS_URL);
+            const data = await ghAPI(getApiUrlForBranch(API_LOCATIONS_URL));
             let locations = JSON.parse(decodeURIComponent(escape(window.atob(data.content.replace(/\n/g, "")))));
 
             if (!locations[panoid]) {
@@ -1431,7 +1632,8 @@
             await ghAPI(API_LOCATIONS_URL, 'PUT', { 
                 message: `Link ${metaIds.length} metas to ${panoid} via BetterMetas`, 
                 content: contentBase64, 
-                sha: data.sha 
+                sha: data.sha,
+                branch: REPO_BRANCH
             });
 
             updateStatus('Linked!');
@@ -1560,14 +1762,14 @@
             };
 
             const getFile = async (apiUrl) => {
-                const data = await ghAPI(apiUrl);
+                const data = await ghAPI(getApiUrlForBranch(apiUrl));
                 const content = decodeURIComponent(escape(window.atob(data.content.replace(/\n/g, ""))));
                 return { sha: data.sha, content: JSON.parse(content) };
             };
 
             const putFile = async (apiUrl, sha, content, message) => {
                 const contentBase64 = window.btoa(unescape(encodeURIComponent(JSON.stringify(content, null, 2))));
-                return await ghAPI(apiUrl, 'PUT', { message, content: contentBase64, sha });
+                return await ghAPI(apiUrl, 'PUT', { message, content: contentBase64, sha, branch: REPO_BRANCH });
             };
 
             // 1. Fetch both files
@@ -1587,6 +1789,7 @@
                     lat: currentLocationData.lat,
                     lng: currentLocationData.lng,
                     country: currentLocationData.country,
+                    nominatimCountry: currentLocationData.nominatimCountry,
                     region: currentLocationData.region,
                     city: currentLocationData.city,
                     road: currentLocationData.road
@@ -1598,6 +1801,7 @@
                     lat: currentLocationData.lat,
                     lng: currentLocationData.lng,
                     country: currentLocationData.country,
+                    nominatimCountry: currentLocationData.nominatimCountry,
                     region: currentLocationData.region,
                     city: currentLocationData.city,
                     road: currentLocationData.road
@@ -1637,7 +1841,7 @@
     }
 
     async function resetDatabase() {
-        const token = localStorage.getItem('gg_gh_token');
+        const token = getSettingsTokenValue();
         if (!token) {
             alert("No token saved. Cannot reset DB.");
             return;
@@ -1679,14 +1883,14 @@
 
             const getSha = async (apiUrl) => {
                 try {
-                    const data = await ghAPI(apiUrl);
+                    const data = await ghAPI(getApiUrlForBranch(apiUrl));
                     return data.sha;
                 } catch (e) { return null; }
             };
 
             const putFile = async (apiUrl, sha, content, message) => {
                 const contentBase64 = window.btoa(unescape(encodeURIComponent(JSON.stringify(content, null, 2))));
-                const body = { message, content: contentBase64 };
+                const body = { message, content: contentBase64, branch: REPO_BRANCH };
                 if (sha) body.sha = sha;
                 return await ghAPI(apiUrl, 'PUT', body);
             };
