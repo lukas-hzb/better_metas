@@ -22,5 +22,17 @@
     "region": "Davao Region",
     "city": "Panabo",
     "road": "San Nicolas"
+  },
+  "z8Xc0B7QB3yR1rT6ToCiKQ": {
+    "metas": [
+      "meta_1769520990434_0igv0"
+    ],
+    "lat": "30.75810",
+    "lng": "-112.49378",
+    "country": "Mexico",
+    "nominatimCountry": "Mexico",
+    "region": "Sonora",
+    "city": "Santa Cecilia",
+    "road": "Caborca - El Desemboque"
   }
 }
