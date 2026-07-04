@@ -31418,5 +31418,15 @@
     "country": "Panama",
     "region": "Provincia de Chiriquí",
     "road": "Manzana 040512"
+  },
+  "VgQhqpBYBifuQDiWI4TBSA": {
+    "metas": [
+      "meta_1769520882131_8um6v"
+    ],
+    "lat": "-32.84453",
+    "lng": "27.45700",
+    "country": "South Africa",
+    "region": "Eastern Cape",
+    "road": "Ngwekazi Road"
   }
 }
