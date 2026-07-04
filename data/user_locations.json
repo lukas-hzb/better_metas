@@ -106,5 +106,17 @@
     "region": "Lambayeque",
     "city": "Ciudad de Dios",
     "road": "San José - Carretera Chiclayo"
+  },
+  "SajzOxi5-Pa6gjZ3X1oNQA": {
+    "metas": [
+      "meta_1769520990434_lsdi2"
+    ],
+    "lat": "18.34517",
+    "lng": "-87.80877",
+    "country": "Mexico",
+    "nominatimCountry": "Mexico",
+    "region": "Quintana Roo",
+    "city": "Xcalak",
+    "road": "Xcalak"
   }
 }
