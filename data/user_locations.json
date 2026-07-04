@@ -82,5 +82,17 @@
     "region": "Chaco Province",
     "city": "Puerto Vilelas",
     "road": "Municipio de Puerto Vilelas"
+  },
+  "iSGmZeT0PIxZc5pk-H-_0w": {
+    "metas": [
+      "meta_1769520890252_hwae6"
+    ],
+    "lat": "25.11486",
+    "lng": "88.58729",
+    "country": "Bangladesh",
+    "nominatimCountry": "Bangladesh",
+    "region": "Rajshahi Division",
+    "city": "Sapahar",
+    "road": "Shapahar - Baluca Danga"
   }
 }
