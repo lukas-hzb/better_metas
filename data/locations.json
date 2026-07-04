@@ -31398,5 +31398,15 @@
     "country": "Norway",
     "region": "Innlandet",
     "road": "Sørsåsvegen"
+  },
+  "iGh3PJRHagjmG_8Fv3wAbw": {
+    "metas": [
+      "meta_1769521010977_e97yt"
+    ],
+    "lat": "-26.48536",
+    "lng": "-52.02508",
+    "country": "Brazil",
+    "region": "Paraná",
+    "road": "PRC-280"
   }
 }
