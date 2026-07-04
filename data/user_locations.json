@@ -58,5 +58,17 @@
     "region": "Sylhet Division",
     "city": "Sribaur",
     "road": "Lalchand Bagan-Deundi Bagan Road"
+  },
+  "o3BfUvCBFQkkkKsPvwQQbg": {
+    "metas": [
+      "meta_1769521017889_majdc"
+    ],
+    "lat": "-7.72241",
+    "lng": "-79.21619",
+    "country": "Peru",
+    "nominatimCountry": "Peru",
+    "region": "La Libertad",
+    "city": "Ascope",
+    "road": "LI-619 / Paiján"
   }
 }
