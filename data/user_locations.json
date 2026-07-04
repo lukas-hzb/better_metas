@@ -70,5 +70,17 @@
     "region": "La Libertad",
     "city": "Ascope",
     "road": "LI-619 / Paiján"
+  },
+  "iK1sv4OtRh90_XAUjQgwLA": {
+    "metas": [
+      "meta_1769521008671_t2nc1"
+    ],
+    "lat": "-27.58540",
+    "lng": "-58.90689",
+    "country": "Argentina",
+    "nominatimCountry": "Argentina",
+    "region": "Chaco Province",
+    "city": "Puerto Vilelas",
+    "road": "Municipio de Puerto Vilelas"
   }
 }
