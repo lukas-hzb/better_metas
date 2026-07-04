@@ -46,5 +46,17 @@
     "region": "Quintana Roo",
     "city": "Mahahual",
     "road": "Camino Mahahual"
+  },
+  "suGXMAMIf0IeUqIEzGI7NA": {
+    "metas": [
+      "meta_1769520890252_lindo"
+    ],
+    "lat": "24.20462",
+    "lng": "91.43099",
+    "country": "Bangladesh",
+    "nominatimCountry": "Bangladesh",
+    "region": "Sylhet Division",
+    "city": "Sribaur",
+    "road": "Lalchand Bagan-Deundi Bagan Road"
   }
 }
