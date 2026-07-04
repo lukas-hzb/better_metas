@@ -94,5 +94,17 @@
     "region": "Rajshahi Division",
     "city": "Sapahar",
     "road": "Shapahar - Baluca Danga"
+  },
+  "BegUjvrACscXLV3Ns5v88g": {
+    "metas": [
+      "meta_1769521017889_ofq4x"
+    ],
+    "lat": "-6.76720",
+    "lng": "-79.90027",
+    "country": "Peru",
+    "nominatimCountry": "Peru",
+    "region": "Lambayeque",
+    "city": "Ciudad de Dios",
+    "road": "San José - Carretera Chiclayo"
   }
 }
