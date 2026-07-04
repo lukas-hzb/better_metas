@@ -31378,5 +31378,15 @@
     "country": "Peru",
     "region": "Lambayeque",
     "road": "Carretera callanca-monsefu"
+  },
+  "dd-L8HrLle4OIu2-YM1UDw": {
+    "metas": [
+      "meta_1769520901497_roz1p"
+    ],
+    "lat": "31.36193",
+    "lng": "130.79835",
+    "country": "Japan",
+    "region": "Kagoshima",
+    "road": null
   }
 }
