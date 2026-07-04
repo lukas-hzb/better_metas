@@ -10,5 +10,17 @@
     "region": "Krasnodarskiy kray",
     "city": "Sochi",
     "road": "Kubanskaya Street"
+  },
+  "MNUo0WygqjMDL1pzfOo5zQ": {
+    "metas": [
+      "meta_1769520914473_bn9l5"
+    ],
+    "lat": "7.26303",
+    "lng": "125.61377",
+    "country": "Philippines",
+    "nominatimCountry": "Philippines",
+    "region": "Davao Region",
+    "city": "Panabo",
+    "road": "San Nicolas"
   }
 }
