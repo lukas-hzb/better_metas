@@ -31368,5 +31368,15 @@
     "country": "Qatar",
     "region": "Al Wakrah",
     "road": null
+  },
+  "U9oUuPZBG8S46fzRjifddQ": {
+    "metas": [
+      "meta_1769521017889_ofq4x"
+    ],
+    "lat": "-6.84911",
+    "lng": "-79.82598",
+    "country": "Peru",
+    "region": "Lambayeque",
+    "road": "Carretera callanca-monsefu"
   }
 }
