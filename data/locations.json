@@ -31388,5 +31388,15 @@
     "country": "Japan",
     "region": "Kagoshima",
     "road": null
+  },
+  "Vk0dWnC0SchNfHVF0nlBFA": {
+    "metas": [
+      "meta_1769520963039_wop15"
+    ],
+    "lat": "60.76637",
+    "lng": "11.82904",
+    "country": "Norway",
+    "region": "Innlandet",
+    "road": "Sørsåsvegen"
   }
 }
