@@ -118,5 +118,17 @@
     "region": "Quintana Roo",
     "city": "Xcalak",
     "road": "Xcalak"
+  },
+  "F-bGqXvJ6SDxF72cVUd_6A": {
+    "metas": [
+      "meta_1769521010977_fnkax"
+    ],
+    "lat": "-5.31197",
+    "lng": "-61.98620",
+    "country": "Brazil",
+    "nominatimCountry": "Brazil",
+    "region": "Amazonas",
+    "city": "Beruri",
+    "road": "Estrada Manaus–Porto Velho"
   }
 }
