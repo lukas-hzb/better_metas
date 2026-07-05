@@ -166,5 +166,17 @@
     "region": "Sonora",
     "city": "La Puerca",
     "road": null
+  },
+  "yg_C0Mji4kRpPWU6RpbyCg": {
+    "metas": [
+      "meta_1769520940948_bte3g"
+    ],
+    "lat": "48.64408",
+    "lng": "11.60615",
+    "country": "Germany",
+    "nominatimCountry": "Germany",
+    "region": "Bayern",
+    "city": "Wolnzach",
+    "road": "St2232"
   }
 }
