@@ -130,5 +130,17 @@
     "region": "Amazonas",
     "city": "Beruri",
     "road": "Estrada Manaus–Porto Velho"
+  },
+  "nfZLreXfUrLGUjo20Sgu6A": {
+    "metas": [
+      "meta_1769520965321_j0aa0"
+    ],
+    "lat": "37.14439",
+    "lng": "-8.40469",
+    "country": "Portugal",
+    "nominatimCountry": "Portugal",
+    "region": "Faro",
+    "city": "Silves",
+    "road": "EM529-1"
   }
 }
