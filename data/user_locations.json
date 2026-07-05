@@ -154,5 +154,17 @@
     "region": "Comunidad Valenciana",
     "city": "Castelló",
     "road": "Plaça Poligono 11"
+  },
+  "QV386BFPBA7JMSKCthx7Qg": {
+    "metas": [
+      "meta_1769520990434_swv6h"
+    ],
+    "lat": "28.89879",
+    "lng": "-111.12228",
+    "country": "Mexico",
+    "nominatimCountry": "Mexico",
+    "region": "Sonora",
+    "city": "La Puerca",
+    "road": null
   }
 }
