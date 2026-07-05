@@ -151,6 +151,11 @@
 
     // Active StreetView Instance
     let svInstance = null;
+    let hooksInstalled = false;
+    let googleWatcherInstalled = false;
+    let watchedGoogleObject = null;
+    let watchedMapsObject = null;
+    const hookedStreetViewInstances = new WeakSet();
     
     /** Current Location State */
     let currentLocationData = {
@@ -2374,6 +2379,47 @@
         return null;
     }
 
+    function readPanoidFromStreetView(instance, reason = 'streetview sync') {
+        try {
+            if (!instance || typeof instance.getPano !== 'function') return null;
+            const panoid = instance.getPano();
+            if (!isValidPanoid(panoid)) return null;
+            svInstance = instance;
+            console.log(`[BetterMetas] StreetView panoid from ${reason}:`, panoid);
+            checkLocation(panoid);
+            return panoid;
+        } catch (err) {
+            console.warn(`[BetterMetas] Could not sync StreetView panoid from ${reason}:`, err);
+            return null;
+        }
+    }
+
+    function registerStreetViewInstance(instance, reason = 'StreetView instance') {
+        if (!instance) return;
+
+        svInstance = instance;
+
+        if (!hookedStreetViewInstances.has(instance)) {
+            hookedStreetViewInstances.add(instance);
+
+            if (win.google && win.google.maps && win.google.maps.event) {
+                win.google.maps.event.addListener(instance, 'pano_changed', () => {
+                    readPanoidFromStreetView(instance, 'pano_changed');
+                });
+
+                win.google.maps.event.addListener(instance, 'status_changed', () => {
+                    svInstance = instance;
+                    extractLocationData();
+                    setTimeout(() => readPanoidFromStreetView(instance, 'status_changed'), 0);
+                });
+            }
+        }
+
+        readPanoidFromStreetView(instance, reason);
+        setTimeout(() => readPanoidFromStreetView(instance, `${reason} delayed`), 100);
+        setTimeout(() => readPanoidFromStreetView(instance, `${reason} settled`), 500);
+    }
+
     function syncPanoidForUserAction(reason = 'user action') {
         const visiblePanoid = getStreetViewPanoid();
         const queuedPanoid = isValidPanoid(nextPanoid) ? nextPanoid : null;
@@ -2658,6 +2704,9 @@
         if (!hud) return;
 
         const resultActive = isRoundResult();
+        if (resultActive) {
+            syncPanoidForUserAction('result visibility');
+        }
 
         // If we are completely out of the result window (including sticky), reset dismissal
         if (!resultActive) {
@@ -3192,6 +3241,8 @@
                 const systemLocCount = Object.keys(systemLocationMap).length;
                 const pendingLocCount = Object.keys(pending.locations).length;
                 console.log(`[BetterMetas] DB Ready: ${locCount} locs (${userLocCount} user, ${systemLocCount} system), ${metasData.length} unique metas (${tempUserMetas.length} user, ${tempSystemMetas.length} system). Pending local merge: ${pending.metas.length} metas, ${pendingLocCount} locs.`);
+
+                syncPanoidForUserAction('DB ready');
                 
                 if (currentPanoid) {
                      updateStatus(`ID: ${currentPanoid.substring(0,12)}...`);
@@ -3211,7 +3262,79 @@
 
 
     // --- Google Maps Hooks ---
+    function watchConfigurableProperty(target, prop, onSet) {
+        if (!target) return false;
+
+        const descriptor = Object.getOwnPropertyDescriptor(target, prop);
+        if (descriptor && descriptor.configurable === false) return false;
+
+        let currentValue = descriptor && descriptor.get ? descriptor.get.call(target) : target[prop];
+        Object.defineProperty(target, prop, {
+            configurable: true,
+            enumerable: descriptor ? descriptor.enumerable : true,
+            get() {
+                return descriptor && descriptor.get ? descriptor.get.call(target) : currentValue;
+            },
+            set(value) {
+                if (descriptor && descriptor.set) {
+                    descriptor.set.call(target, value);
+                } else {
+                    currentValue = value;
+                }
+                onSet(value);
+            }
+        });
+
+        if (currentValue) onSet(currentValue);
+        return true;
+    }
+
+    function queueHookInstall(delay = 0) {
+        setTimeout(() => {
+            installNestedGoogleWatchers();
+            installHooks();
+        }, delay);
+    }
+
+    function installNestedGoogleWatchers() {
+        const googleObject = win.google;
+        if (!googleObject || typeof googleObject !== 'object') return;
+
+        if (watchedGoogleObject !== googleObject) {
+            watchedGoogleObject = googleObject;
+            watchConfigurableProperty(googleObject, 'maps', () => {
+                installNestedGoogleWatchers();
+                queueHookInstall();
+            });
+        }
+
+        const mapsObject = googleObject.maps;
+        if (!mapsObject || typeof mapsObject !== 'object') return;
+
+        if (watchedMapsObject !== mapsObject) {
+            watchedMapsObject = mapsObject;
+            watchConfigurableProperty(mapsObject, 'StreetViewPanorama', () => {
+                queueHookInstall();
+            });
+        }
+    }
+
+    function installGoogleHookWatcher() {
+        if (googleWatcherInstalled) return;
+        googleWatcherInstalled = true;
+
+        watchConfigurableProperty(win, 'google', () => {
+            installNestedGoogleWatchers();
+            queueHookInstall();
+        });
+
+        installNestedGoogleWatchers();
+        queueHookInstall();
+    }
+
     function installHooks() {
+        if (hooksInstalled) return true;
+
         // Check for Maps API
         if (!win.google || !win.google.maps || !win.google.maps.StreetViewPanorama) {
             return false;
@@ -3221,29 +3344,22 @@
         
         // 1. Hook StreetViewPanorama Constructor
         const OriginalStreetViewPanorama = win.google.maps.StreetViewPanorama;
+        if (OriginalStreetViewPanorama.__betterMetasHooked) {
+            hooksInstalled = true;
+            return true;
+        }
         
         win.google.maps.StreetViewPanorama = function(node, opts) {
             const instance = new OriginalStreetViewPanorama(node, opts);
-            
-            // Initial check
-            if (opts && opts.pano) {
+
+            registerStreetViewInstance(instance, 'constructor');
+            if (opts && isValidPanoid(opts.pano)) {
                 checkLocation(opts.pano);
             }
 
-            svInstance = instance;
-
-            // Events
-            win.google.maps.event.addListener(instance, 'pano_changed', () => {
-                const panoId = instance.getPano();
-                checkLocation(panoId);
-            });
-            
-            win.google.maps.event.addListener(instance, 'status_changed', () => {
-                 extractLocationData();
-            });
-
             return instance;
         };
+        win.google.maps.StreetViewPanorama.__betterMetasHooked = true;
 
         // Copy statics
         win.google.maps.StreetViewPanorama.prototype = OriginalStreetViewPanorama.prototype;
@@ -3255,14 +3371,30 @@
 
         // 2. Hook setPano (for SPA updates)
         const originalSetPano = win.google.maps.StreetViewPanorama.prototype.setPano;
-        win.google.maps.StreetViewPanorama.prototype.setPano = function(pano) {
-            if (!svInstance) {
-                svInstance = this;
-            }
-            checkLocation(pano);
-            return originalSetPano.apply(this, arguments);
-        };
+        if (typeof originalSetPano === 'function' && !originalSetPano.__betterMetasHooked) {
+            win.google.maps.StreetViewPanorama.prototype.setPano = function(pano) {
+                registerStreetViewInstance(this, 'setPano');
+                const result = originalSetPano.apply(this, arguments);
+                if (isValidPanoid(pano)) checkLocation(pano);
+                setTimeout(() => readPanoidFromStreetView(this, 'setPano applied'), 0);
+                return result;
+            };
+            win.google.maps.StreetViewPanorama.prototype.setPano.__betterMetasHooked = true;
+        }
+
+        const originalSetPosition = win.google.maps.StreetViewPanorama.prototype.setPosition;
+        if (typeof originalSetPosition === 'function' && !originalSetPosition.__betterMetasHooked) {
+            win.google.maps.StreetViewPanorama.prototype.setPosition = function() {
+                registerStreetViewInstance(this, 'setPosition');
+                const result = originalSetPosition.apply(this, arguments);
+                setTimeout(() => readPanoidFromStreetView(this, 'setPosition applied'), 0);
+                setTimeout(() => readPanoidFromStreetView(this, 'setPosition settled'), 300);
+                return result;
+            };
+            win.google.maps.StreetViewPanorama.prototype.setPosition.__betterMetasHooked = true;
+        }
         
+        hooksInstalled = true;
         console.log('[BetterMetas] Hooks installed successfully.');
         return true;
     }
@@ -3270,6 +3402,8 @@
 
 
     function startObserver() {
+         installGoogleHookWatcher();
+
          // UI Poller
          setInterval(() => {
              updateVisibility();
@@ -3286,7 +3420,7 @@
             if (installHooks()) {
                 clearInterval(timer);
             }
-         }, 50);
+         }, 25);
 
          // Input Capture for Instant Hide
          document.addEventListener('keydown', (e) => {
@@ -3348,8 +3482,8 @@
         console.log('[Geoguessr Meta] Initializing UI...');
         addStyles();
         createHUD();
-        fetchLocationData();
         startObserver();
+        fetchLocationData();
     }
 
     init();
