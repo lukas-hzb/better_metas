@@ -178,5 +178,17 @@
     "region": "Bayern",
     "city": "Wolnzach",
     "road": "St2232"
+  },
+  "cR4ZLtSIhf-EOkI73xVZVQ": {
+    "metas": [
+      "meta_1769520963039_z5gpy"
+    ],
+    "lat": "60.06464",
+    "lng": "10.54595",
+    "country": "Norway",
+    "nominatimCountry": "Norway",
+    "region": "Buskerud",
+    "city": "Ringerike",
+    "road": "Nye Heggelivei"
   }
 }
