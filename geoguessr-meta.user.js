@@ -43,6 +43,7 @@
     
     const win = (typeof unsafeWindow !== 'undefined') ? unsafeWindow : window;
     const HUD_SIZE_STORAGE_KEY = 'gg_hud_size';
+    const PENDING_LOCAL_CHANGES_STORAGE_KEY = 'gg_pending_local_changes';
     const DEFAULT_HUD_WIDTH = '320px';
     const DEFAULT_HUD_HEIGHT = '75.6vh';
 
@@ -221,28 +222,28 @@
             opacity: 1;
             pointer-events: auto;
             transform: translateY(0);
-            resize: both;
             overflow: hidden;
             min-width: 260px;
             min-height: 220px;
             max-width: calc(100vw - 1rem);
             max-height: calc(100vh - 1rem);
-            background: rgba(5, 18, 34, 0.9);
-            outline: 1px dashed rgba(191, 219, 254, 0.7);
-            outline-offset: -6px;
-            box-shadow: 0 0 0 2px rgba(96, 165, 250, 0.95), 0 0 0 5px rgba(96, 165, 250, 0.2), 0 8px 32px rgba(0, 0, 0, 0.55);
+            box-sizing: border-box;
+            background:
+                radial-gradient(circle at 18% 0%, rgba(121, 80, 229, 0.24), transparent 42%),
+                radial-gradient(circle at 85% 100%, rgba(0, 162, 254, 0.16), transparent 46%),
+                rgba(16, 12, 38, 0.94);
+            border: none;
+            box-shadow: inset 0 0 38px rgba(121, 80, 229, 0.32), inset 0 0 86px rgba(0, 162, 254, 0.16);
         }
 
-        #gg-meta-hud.gg-resize-mode::after {
+        #gg-meta-hud.gg-resize-mode::before {
             content: "";
             position: absolute;
-            right: 10px;
-            bottom: 10px;
-            width: 18px;
-            height: 18px;
-            border-right: 3px solid rgba(147, 197, 253, 0.95);
-            border-bottom: 3px solid rgba(147, 197, 253, 0.95);
-            box-shadow: 4px 4px 0 rgba(147, 197, 253, 0.35);
+            inset: 0;
+            z-index: 4;
+            box-sizing: border-box;
+            border: 2px dashed rgba(121, 80, 229, 0.95);
+            border-radius: inherit;
             pointer-events: none;
         }
 
@@ -255,78 +256,149 @@
         }
 
         .gg-resize-controls {
-            position: absolute;
-            top: 10px;
-            right: 12px;
             display: none;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .gg-resize-button-row {
+            display: flex;
+            position: relative;
+            z-index: 1;
+            align-items: center;
+            justify-content: center;
             gap: 6px;
-            z-index: 2;
+        }
+
+        .gg-resize-help-text {
+            position: relative;
+            z-index: 1;
+            max-width: 220px;
+            color: rgba(255,255,255,0.76);
+            font-size: 0.72rem;
+            font-weight: 600;
+            line-height: 1.35;
+            letter-spacing: 0;
+            text-align: center;
+        }
+
+        .gg-resize-controls::before {
+            content: "";
+            display: none;
+            position: absolute;
+            inset: -180px -200px;
+            z-index: 0;
+            background: radial-gradient(
+                    ellipse 38% 42% at 50% 54%,
+                    rgba(4, 2, 15, 0.84) 0%,
+                    rgba(4, 2, 15, 0.72) 16%,
+                    rgba(4, 2, 15, 0.52) 30%,
+                    rgba(4, 2, 15, 0.34) 44%,
+                    rgba(4, 2, 15, 0.18) 56%,
+                    rgba(4, 2, 15, 0.08) 66%,
+                    rgba(4, 2, 15, 0.025) 76%,
+                    transparent 88%,
+                    transparent 100%
+                );
+            pointer-events: none;
+        }
+
+        .gg-resize-hitbox {
+            display: none;
+            position: absolute;
+            right: 0;
+            bottom: 0;
+            z-index: 3;
+            width: 34px;
+            height: 34px;
+            cursor: nwse-resize;
+            background: transparent;
         }
 
         .gg-resize-mode-title {
-            position: absolute;
-            top: 10px;
-            left: 16px;
             display: none;
             align-items: center;
-            gap: 8px;
-            color: #bfdbfe;
-            font-size: 0.72rem;
-            font-weight: 900;
-            letter-spacing: 0.08em;
-            text-transform: uppercase;
-            z-index: 2;
+            color: #fff;
+            font-size: 0.95rem;
+            font-weight: 800;
+            line-height: 1;
+            letter-spacing: 0.05em;
         }
 
         .gg-resize-mode-title::before {
-            content: "";
-            width: 8px;
-            height: 8px;
-            border-radius: 50%;
-            background: #60a5fa;
-            box-shadow: 0 0 10px rgba(96, 165, 250, 0.9);
+            content: none;
         }
 
         #gg-meta-hud.gg-resize-mode .gg-resize-controls {
             display: flex;
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            z-index: 2;
+            transform: translate(-50%, -50%);
+            flex-direction: column;
+            isolation: isolate;
+        }
+
+        #gg-meta-hud.gg-resize-mode .gg-resize-controls::before {
+            display: block;
+        }
+
+        #gg-meta-hud.gg-resize-mode .gg-resize-hitbox {
+            display: block;
         }
 
         #gg-meta-hud.gg-resize-mode .gg-resize-mode-title {
             display: flex;
         }
 
-        #gg-meta-hud.gg-resize-mode .gg-meta-title > span,
-        #gg-meta-hud.gg-resize-mode .gg-meta-title > div {
+        #gg-meta-hud.gg-resize-mode .gg-normal-title {
+            display: none;
+        }
+
+        #gg-meta-hud.gg-resize-mode .gg-normal-controls {
             visibility: hidden;
         }
 
         #gg-meta-hud.gg-resize-mode .gg-meta-title {
-            border-bottom-color: rgba(96, 165, 250, 0.45);
+            border-bottom-color: rgba(255,255,255,0.1);
         }
 
-        .gg-resize-control-btn {
-            background: rgba(15, 23, 42, 0.85);
-            color: rgba(219, 234, 254, 0.95);
-            border: 1px solid rgba(147, 197, 253, 0.35);
-            border-radius: 14px;
+        .gg-resize-control-btn,
+        #gg-meta-add-btn,
+        #gg-settings-btn {
+            background: rgba(255, 255, 255, 0.2);
+            color: #fff;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 20px;
             cursor: pointer;
-            font-size: 0.65rem;
-            font-weight: 800;
-            height: 26px;
-            padding: 0 9px;
-            text-transform: uppercase;
-            transition: background 0.2s, color 0.2s;
+            font-size: 0.75rem;
+            font-weight: 600;
+            line-height: 1;
+            padding: 4px 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: background 0.2s, color 0.2s, border-color 0.2s;
         }
 
-        .gg-resize-control-btn:hover {
-            background: rgba(30, 64, 175, 0.45);
+        .gg-resize-control-btn:hover,
+        #gg-meta-add-btn:hover,
+        #gg-settings-btn:hover {
+            background: rgba(255, 255, 255, 0.4);
             color: #fff;
         }
 
         .gg-resize-control-btn.gg-save-size {
-            background: rgba(37, 99, 235, 0.9);
-            border-color: rgba(147, 197, 253, 0.95);
+            background: #7950e5;
+            border-color: #5f3dc4;
             color: #fff;
+            box-shadow: 0 2px 8px rgba(121, 80, 229, 0.42);
+        }
+
+        .gg-resize-control-btn.gg-save-size:hover {
+            background: #8f6bf2;
+            border-color: #7950e5;
         }
 
 
@@ -355,6 +427,15 @@
             flex: 1;
             overflow-y: auto;
             margin-bottom: 8px; /* Spacing above status */
+        }
+        #gg-meta-container {
+            scrollbar-width: none;
+            -ms-overflow-style: none;
+        }
+        #gg-meta-container::-webkit-scrollbar {
+            display: none;
+            width: 0;
+            height: 0;
         }
         .gg-meta-tag, .gg-tag-pill {
             display: inline-block;
@@ -480,25 +561,6 @@
             color: #ffd700;
         }
 
-        #gg-meta-add-btn, #gg-settings-btn {
-            background: rgba(255, 255, 255, 0.2);
-            backdrop-filter: blur(10px);
-            -webkit-backdrop-filter: blur(10px);
-            border: none;
-            color: white;
-            cursor: pointer;
-            padding: 4px 12px;
-            border-radius: 20px;
-            font-size: 0.75rem;
-            font-weight: bold;
-            transition: background 0.2s;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }
-        #gg-meta-add-btn:hover, #gg-settings-btn:hover {
-            background: rgba(255, 255, 255, 0.4);
-        }
         #gg-settings-btn {
             padding: 4px 8px;
             margin-right: 8px;
@@ -1004,6 +1066,135 @@
         resetButton.style.display = getSettingsTokenValue() ? 'flex' : 'none';
     }
 
+    function getEmptyPendingLocalChanges() {
+        return { metas: [], locations: {} };
+    }
+
+    function normalizePendingLocalChanges(value) {
+        const normalized = getEmptyPendingLocalChanges();
+        if (!value || typeof value !== 'object') return normalized;
+
+        if (Array.isArray(value.metas)) {
+            normalized.metas = value.metas.filter(meta => meta && meta.id);
+        }
+
+        if (value.locations && typeof value.locations === 'object' && !Array.isArray(value.locations)) {
+            normalized.locations = value.locations;
+        }
+
+        return normalized;
+    }
+
+    function loadPendingLocalChanges() {
+        try {
+            return normalizePendingLocalChanges(JSON.parse(localStorage.getItem(PENDING_LOCAL_CHANGES_STORAGE_KEY) || 'null'));
+        } catch (err) {
+            console.warn('[BetterMetas] Invalid pending local changes:', err);
+            return getEmptyPendingLocalChanges();
+        }
+    }
+
+    function savePendingLocalChanges(pending) {
+        const normalized = normalizePendingLocalChanges(pending);
+        if (normalized.metas.length === 0 && Object.keys(normalized.locations).length === 0) {
+            localStorage.removeItem(PENDING_LOCAL_CHANGES_STORAGE_KEY);
+            return;
+        }
+
+        localStorage.setItem(PENDING_LOCAL_CHANGES_STORAGE_KEY, JSON.stringify(normalized));
+    }
+
+    function mergePendingLocalChangesInto(userMetas, userLocations) {
+        const pending = loadPendingLocalChanges();
+        const confirmedMetaIds = new Set((userMetas || []).map(meta => meta.id).filter(Boolean));
+
+        pending.metas.forEach(meta => {
+            if (!confirmedMetaIds.has(meta.id)) {
+                userMetas.push(meta);
+                confirmedMetaIds.add(meta.id);
+            }
+        });
+
+        Object.keys(pending.locations).forEach(panoid => {
+            userLocations[panoid] = mergeLocationEntries(userLocations[panoid], pending.locations[panoid]);
+        });
+
+        return pending;
+    }
+
+    function pruneConfirmedPendingLocalChanges(rawUserMetas, rawUserLocations) {
+        const pending = loadPendingLocalChanges();
+        const rawMetaIds = new Set((rawUserMetas || []).map(meta => meta.id).filter(Boolean));
+
+        const pruned = getEmptyPendingLocalChanges();
+        pruned.metas = pending.metas.filter(meta => !rawMetaIds.has(meta.id));
+
+        Object.keys(pending.locations).forEach(panoid => {
+            const rawMetaIdsForLocation = new Set(getLocationMetaIds(rawUserLocations[panoid]));
+            const pendingMetaIds = getLocationMetaIds(pending.locations[panoid]).filter(id => !rawMetaIdsForLocation.has(id));
+
+            if (pendingMetaIds.length > 0) {
+                const pendingEntry = Array.isArray(pending.locations[panoid])
+                    ? { metas: pendingMetaIds }
+                    : { ...pending.locations[panoid], metas: pendingMetaIds };
+                pruned.locations[panoid] = pendingEntry;
+            }
+        });
+
+        savePendingLocalChanges(pruned);
+    }
+
+    function rememberLocalLocationLinks(panoid, metaIds) {
+        const pending = loadPendingLocalChanges();
+        addMetaIdsToLocationMap(pending.locations, panoid, metaIds);
+        savePendingLocalChanges(pending);
+    }
+
+    function rememberLocalMeta(meta, panoid) {
+        const pending = loadPendingLocalChanges();
+        if (!pending.metas.some(existing => existing.id === meta.id)) {
+            pending.metas.push(meta);
+        }
+        addMetaIdsToLocationMap(pending.locations, panoid, [meta.id]);
+        savePendingLocalChanges(pending);
+    }
+
+    function applyLocalLocationLinks(panoid, metaIds) {
+        currentPanoid = panoid;
+        nextPanoid = null;
+        updateStatus(`ID: ${panoid.substring(0,12)}...`);
+        addMetaIdsToLocationMap(userLocationMap, panoid, metaIds);
+        locationMap = mergeLocationMaps(systemLocationMap, userLocationMap);
+        rememberLocalLocationLinks(panoid, metaIds);
+        console.log('[BetterMetas] Applied local location links:', {
+            panoid,
+            metaIds,
+            linkedMetaIds: getLocationMetaIds(userLocationMap[panoid])
+        });
+        refreshDisplay();
+    }
+
+    function applyLocalSavedMeta(meta, panoid) {
+        currentPanoid = panoid;
+        nextPanoid = null;
+        updateStatus(`ID: ${panoid.substring(0,12)}...`);
+
+        if (!metasData.some(existing => existing.id === meta.id)) {
+            metasData.unshift(meta);
+        }
+
+        userMetaIds.add(meta.id);
+        addMetaIdsToLocationMap(userLocationMap, panoid, [meta.id]);
+        locationMap = mergeLocationMaps(systemLocationMap, userLocationMap);
+        rememberLocalMeta(meta, panoid);
+        console.log('[BetterMetas] Applied local saved meta:', {
+            panoid,
+            metaId: meta.id,
+            linkedMetaIds: getLocationMetaIds(userLocationMap[panoid])
+        });
+        refreshDisplay();
+    }
+
     // --- UI Construction ---
     function createHUD() {
         if (document.getElementById('gg-meta-hud')) return;
@@ -1013,22 +1204,26 @@
         hud.id = 'gg-meta-hud';
         applyHudSize(hud, getSavedHudSize());
         hud.innerHTML = `
-            <div class="gg-resize-mode-title">Resize Window</div>
-            <div class="gg-resize-controls">
-                <button class="gg-resize-control-btn gg-save-size" id="gg-resize-save">Save</button>
-                <button class="gg-resize-control-btn" id="gg-resize-reset">Reset</button>
-                <button class="gg-resize-control-btn" id="gg-resize-close">Close</button>
-            </div>
             <div class="gg-meta-title">
-                <span>BetterMetas</span>
-                <div style="display:flex; align-items:center;">
+                <span class="gg-normal-title">BetterMetas</span>
+                <span class="gg-resize-mode-title">Resizing Window...</span>
+                <div class="gg-normal-controls" style="display:flex; align-items:center;">
                     <button id="gg-settings-btn" title="Settings">
                         <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg>
                     </button>
 
                     <button id="gg-meta-add-btn">+ Add</button>
                 </div>
+                <div class="gg-resize-controls">
+                    <div class="gg-resize-help-text">Drag the bottom-right corner to resize this window.</div>
+                    <div class="gg-resize-button-row">
+                        <button class="gg-resize-control-btn gg-save-size" id="gg-resize-save">Save</button>
+                        <button class="gg-resize-control-btn" id="gg-resize-reset">Reset</button>
+                        <button class="gg-resize-control-btn" id="gg-resize-close">Close</button>
+                    </div>
+                </div>
             </div>
+            <div class="gg-resize-hitbox" id="gg-resize-hitbox" title="Drag to resize"></div>
             <div id="gg-location-info" style="display:none;">
                 <!-- Filled by JS -->
             </div>
@@ -1088,7 +1283,7 @@
                 
                 <hr class="gg-modal-divider">
                 
-                <button class="gg-btn-danger" id="gg-reset-db">Reset User Database</button>
+                <button class="gg-btn-danger" id="gg-reset-db">Clear Own Data</button>
                 
                 <button class="gg-btn-primary" id="gg-save-settings" style="margin-top: 16px;">Save Changes</button>
                 
@@ -1268,6 +1463,8 @@
 
         // Event Listeners
         document.getElementById('gg-meta-add-btn').addEventListener('click', async () => {
+            syncPanoidForUserAction('open add modal');
+
             // Try to recover Panoid if missing (e.g. script loaded late on result screen)
             if (!currentPanoid) {
                 updateStatus('Finding location...');
@@ -1275,7 +1472,6 @@
             }
 
             // Allow opening even without active location for testing, but warn
-            const idToUse = currentPanoid || "YOUR_PANOID_HERE";
             if (!currentPanoid) {
                 console.log('No active location found even after recovery attempt.');
                 // Optional: Alert user?
@@ -1397,7 +1593,43 @@
             resizeModePreviousSize = null;
         }
 
+        function startHudCornerResize(e) {
+            const hud = document.getElementById('gg-meta-hud');
+            if (!hud || !hud.classList.contains('gg-resize-mode')) return;
+
+            e.preventDefault();
+            e.stopPropagation();
+
+            const startX = e.clientX;
+            const startY = e.clientY;
+            const startSize = getCurrentHudSize(hud);
+            const previousUserSelect = document.body.style.userSelect;
+            document.body.style.userSelect = 'none';
+
+            const onPointerMove = (moveEvent) => {
+                const maxWidth = window.innerWidth - 16;
+                const maxHeight = window.innerHeight - 16;
+                const width = Math.min(maxWidth, Math.max(260, startSize.width + moveEvent.clientX - startX));
+                const height = Math.min(maxHeight, Math.max(220, startSize.height + moveEvent.clientY - startY));
+
+                hud.style.width = `${Math.round(width)}px`;
+                hud.style.height = `${Math.round(height)}px`;
+                hud.style.maxWidth = 'calc(100vw - 1rem)';
+                hud.style.maxHeight = 'calc(100vh - 1rem)';
+            };
+
+            const onPointerUp = () => {
+                document.removeEventListener('pointermove', onPointerMove);
+                document.removeEventListener('pointerup', onPointerUp);
+                document.body.style.userSelect = previousUserSelect;
+            };
+
+            document.addEventListener('pointermove', onPointerMove);
+            document.addEventListener('pointerup', onPointerUp);
+        }
+
         document.getElementById('gg-resize-window').addEventListener('click', enterHudResizeMode);
+        document.getElementById('gg-resize-hitbox').addEventListener('pointerdown', startHudCornerResize);
 
         document.getElementById('gg-resize-save').addEventListener('click', () => {
             const hud = document.getElementById('gg-meta-hud');
@@ -1454,6 +1686,7 @@
 
 
         document.getElementById('gg-status').addEventListener('click', () => {
+            syncPanoidForUserAction('manual refresh');
             updateStatus('Refreshing Data...');
             fetchLocationData();
         });
@@ -1663,7 +1896,7 @@
     }
 
     async function linkMultipleMetas(metaIds) {
-        const panoid = currentPanoid;
+        const panoid = syncPanoidForUserAction('link metas');
         if (!panoid || panoid === "YOUR_PANOID_HERE") {
             alert("No location detected! Please try on a game result screen.");
             return;
@@ -1671,17 +1904,13 @@
 
         const token = localStorage.getItem('gg_gh_token');
         if (!token) {
-            const plonkitMetaIds = metaIds.filter(id => systemMetaIds.has(id));
-            const ownMetaIds = metaIds.filter(id => userMetaIds.has(id));
-
             // Mode: Community (No Token) - Submit via GitHub Issue
             const submission = { 
                 action: "link_metas",
                 panoid: panoid, 
                 metaIds: metaIds,
                 targetFiles: {
-                    plonkitLocations: plonkitMetaIds,
-                    userLocations: ownMetaIds
+                    userLocations: metaIds
                 },
                 lat: currentLocationData.lat,
                 lng: currentLocationData.lng,
@@ -1716,8 +1945,9 @@
                         method,
                         url,
                         headers: {
-                            'Authorization': `token ${token}`,
+                            'Authorization': `Bearer ${token}`,
                             'Accept': 'application/vnd.github.v3+json',
+                            'X-GitHub-Api-Version': '2022-11-28',
                             'Content-Type': 'application/json'
                         },
                         data: body ? JSON.stringify(body) : null,
@@ -1728,7 +1958,11 @@
                                     resolve(data);
                                 } catch(e) { resolve(res.responseText); }
                             } else {
-                                reject(new Error(`GitHub API ${res.status}: ${res.statusText}`));
+                                let details = res.statusText;
+                                try {
+                                    details = JSON.parse(res.responseText).message || details;
+                                } catch(e) {}
+                                reject(new Error(`GitHub API ${res.status}: ${details}`));
                             }
                         },
                         onerror: (err) => reject(err)
@@ -1736,38 +1970,30 @@
                 });
             };
 
-            const plonkitMetaIds = metaIds.filter(id => systemMetaIds.has(id));
-            const ownMetaIds = metaIds.filter(id => userMetaIds.has(id));
             const unknownMetaIds = metaIds.filter(id => !systemMetaIds.has(id) && !userMetaIds.has(id));
 
             if (unknownMetaIds.length > 0) {
                 throw new Error(`Unknown meta IDs: ${unknownMetaIds.join(', ')}`);
             }
 
-            const updateLocationFile = async (apiUrl, idsForFile, label) => {
-                if (idsForFile.length === 0) return;
+            const data = await ghAPI(getApiUrlForBranch(API_USER_LOCATIONS_URL));
+            const locations = JSON.parse(decodeURIComponent(escape(window.atob(data.content.replace(/\n/g, "")))));
+            addMetaIdsToLocationMap(locations, panoid, metaIds);
 
-                const data = await ghAPI(getApiUrlForBranch(apiUrl));
-                const locations = JSON.parse(decodeURIComponent(escape(window.atob(data.content.replace(/\n/g, "")))));
-                addMetaIdsToLocationMap(locations, panoid, idsForFile);
+            const contentBase64 = window.btoa(unescape(encodeURIComponent(JSON.stringify(locations, null, 2))));
+            await ghAPI(API_USER_LOCATIONS_URL, 'PUT', {
+                message: `Link ${metaIds.length} metas to ${panoid} via BetterMetas`,
+                content: contentBase64,
+                sha: data.sha,
+                branch: REPO_BRANCH
+            });
 
-                const contentBase64 = window.btoa(unescape(encodeURIComponent(JSON.stringify(locations, null, 2))));
-                await ghAPI(apiUrl, 'PUT', {
-                    message: `Link ${idsForFile.length} ${label} metas to ${panoid} via BetterMetas`,
-                    content: contentBase64,
-                    sha: data.sha,
-                    branch: REPO_BRANCH
-                });
-            };
-
-            await updateLocationFile(API_SYSTEM_LOCATIONS_URL, plonkitMetaIds, 'Plonkit');
-            await updateLocationFile(API_USER_LOCATIONS_URL, ownMetaIds, 'user');
-
+            applyLocalLocationLinks(panoid, metaIds);
             updateStatus('Linked!');
             selectedMetaIds.clear();
             document.getElementById('gg-meta-modal').style.display = 'none';
             document.getElementById('gg-modal-backdrop').classList.remove('gg-visible');
-            fetchLocationData();
+            setTimeout(fetchLocationData, 2500);
         } catch (e) {
             console.error(e);
             alert(`Error: ${e.message}`);
@@ -1788,7 +2014,7 @@
             return;
         }
 
-        const panoid = currentPanoid || "YOUR_PANOID_HERE";
+        const panoid = syncPanoidForUserAction('save meta') || "YOUR_PANOID_HERE";
         if (panoid === "YOUR_PANOID_HERE") {
             alert("No location detected! Please try again on a game result screen.");
             return;
@@ -1868,8 +2094,9 @@
                         method,
                         url,
                         headers: {
-                            'Authorization': `token ${token}`,
+                            'Authorization': `Bearer ${token}`,
                             'Accept': 'application/vnd.github.v3+json',
+                            'X-GitHub-Api-Version': '2022-11-28',
                             'Content-Type': 'application/json'
                         },
                         data: body ? JSON.stringify(body) : null,
@@ -1880,7 +2107,11 @@
                                     resolve(data);
                                 } catch(e) { resolve(res.responseText); }
                             } else {
-                                reject(new Error(`GitHub API ${res.status}: ${res.statusText}`));
+                                let details = res.statusText;
+                                try {
+                                    details = JSON.parse(res.responseText).message || details;
+                                } catch(e) {}
+                                reject(new Error(`GitHub API ${res.status}: ${details}`));
                             }
                         },
                         onerror: (err) => reject(err)
@@ -1920,14 +2151,14 @@
             updateStatus('Saving user_locations.json...');
             await putFile(API_USER_LOCATIONS_URL, locsFile.sha, locsFile.content, `Link ${panoid} to ${newMeta.id} via BetterMetas`);
 
+            applyLocalSavedMeta(newMeta, panoid);
             updateStatus('Saved!');
             btn.innerHTML = 'Saved!';
             setTimeout(() => {
                 document.getElementById('gg-meta-modal').style.display = 'none';
                 btn.innerHTML = 'Generate JSON';
                 btn.disabled = false;
-                // Reload data to show new meta immediately
-                fetchLocationData(); 
+                setTimeout(fetchLocationData, 2500);
             }, 1000);
 
         } catch (err) {
@@ -1943,14 +2174,14 @@
     async function resetDatabase() {
         const token = getSettingsTokenValue();
         if (!token) {
-            alert("No token saved. Cannot reset DB.");
+            alert("No token saved. Cannot clear own data.");
             return;
         }
         
-        updateStatus('Clearing DB...');
+        updateStatus('Clearing own data...');
         const btn = document.getElementById('gg-reset-db');
         const origText = btn.innerText;
-        btn.innerText = "Clearing...";
+        btn.innerText = "Clearing Own Data...";
         btn.disabled = true;
 
         try {
@@ -1961,8 +2192,9 @@
                         method,
                         url,
                         headers: {
-                            'Authorization': `token ${token}`,
+                            'Authorization': `Bearer ${token}`,
                             'Accept': 'application/vnd.github.v3+json',
+                            'X-GitHub-Api-Version': '2022-11-28',
                             'Content-Type': 'application/json'
                         },
                         data: body ? JSON.stringify(body) : null,
@@ -1973,7 +2205,11 @@
                                     resolve(data);
                                 } catch(e) { resolve(res.responseText); }
                             } else {
-                                reject(new Error(`GitHub API ${res.status}: ${res.statusText}`));
+                                let details = res.statusText;
+                                try {
+                                    details = JSON.parse(res.responseText).message || details;
+                                } catch(e) {}
+                                reject(new Error(`GitHub API ${res.status}: ${details}`));
                             }
                         },
                         onerror: (err) => reject(err)
@@ -2000,16 +2236,16 @@
             const locsSha = await getSha(API_USER_LOCATIONS_URL);
 
             // 2. Overwrite with empty
-            await putFile(API_METAS_URL, metasSha, [], "Reset User Database (Metas)");
-            await putFile(API_USER_LOCATIONS_URL, locsSha, {}, "Reset User Database (Locations)");
+            await putFile(API_METAS_URL, metasSha, [], "Clear own BetterMetas metas");
+            await putFile(API_USER_LOCATIONS_URL, locsSha, {}, "Clear own BetterMetas location links");
 
-            alert("User database cleared!");
+            alert("Own BetterMetas data cleared!");
             location.reload();
 
         } catch (e) {
             console.error(e);
-            alert("Error clearing DB: " + e.message);
-            updateStatus('Reset Failed');
+            alert("Error clearing own data: " + e.message);
+            updateStatus('Clear Failed');
         } finally {
             btn.innerText = origText;
             btn.disabled = false;
@@ -2119,6 +2355,50 @@
 
     function showDebug(msg) {
         console.log('[GG Meta]', msg);
+    }
+
+    function isValidPanoid(panoid) {
+        return !!(panoid && typeof panoid === 'string' && panoid.length > 5);
+    }
+
+    function getStreetViewPanoid() {
+        try {
+            if (svInstance && typeof svInstance.getPano === 'function') {
+                const panoid = svInstance.getPano();
+                if (isValidPanoid(panoid)) return panoid;
+            }
+        } catch (err) {
+            console.warn('[BetterMetas] Could not read active StreetView panoid:', err);
+        }
+
+        return null;
+    }
+
+    function syncPanoidForUserAction(reason = 'user action') {
+        const visiblePanoid = getStreetViewPanoid();
+        const queuedPanoid = isValidPanoid(nextPanoid) ? nextPanoid : null;
+        const activePanoid = visiblePanoid || queuedPanoid || currentPanoid;
+
+        if (!isValidPanoid(activePanoid)) return null;
+
+        if (visiblePanoid && queuedPanoid && visiblePanoid !== queuedPanoid) {
+            console.log(`[BetterMetas] Ignoring queued panoid for ${reason}; visible panoid wins: ${visiblePanoid} (queued ${queuedPanoid})`);
+        }
+
+        if (activePanoid !== currentPanoid) {
+            console.log(`[BetterMetas] Syncing active panoid for ${reason}: ${activePanoid} (was ${currentPanoid || 'none'})`);
+            currentPanoid = activePanoid;
+            nextPanoid = null;
+            updateStatus(`ID: ${currentPanoid.substring(0,12)}...`);
+            extractLocationData();
+            refreshDisplay();
+        }
+
+        return currentPanoid;
+    }
+
+    async function tryRecoverPanoid() {
+        return syncPanoidForUserAction('panoid recovery');
     }
 
     // --- Logic ---
@@ -2681,10 +2961,47 @@
 
 
 
+    function decodeGitHubJsonContent(content) {
+        return JSON.parse(decodeURIComponent(escape(window.atob((content || '').replace(/\n/g, "")))));
+    }
+
+    function fetchGitHubContentJson(apiUrl, token) {
+        return new Promise((resolve, reject) => {
+            GM_xmlhttpRequest({
+                method: "GET",
+                url: getApiUrlForBranch(apiUrl),
+                headers: {
+                    'Authorization': `Bearer ${token}`,
+                    'Accept': 'application/vnd.github.v3+json',
+                    'X-GitHub-Api-Version': '2022-11-28'
+                },
+                onload: function(response) {
+                    if (response.status >= 200 && response.status < 300) {
+                        try {
+                            const data = JSON.parse(response.responseText);
+                            resolve(decodeGitHubJsonContent(data.content));
+                        } catch (e) {
+                            reject(e);
+                        }
+                    } else {
+                        let details = response.statusText;
+                        try {
+                            details = JSON.parse(response.responseText).message || details;
+                        } catch (e) {}
+                        reject(new Error(`GitHub API ${response.status}: ${details}`));
+                    }
+                },
+                onerror: reject
+            });
+        });
+    }
+
+
     // --- Data Fetching ---
     function fetchLocationData() {
         console.log('[BetterMetas] Fetching data...');
         updateStatus('Loading DB...');
+        const token = getSettingsTokenValue();
 
         let userLocLoaded = false;
         let systemLocLoaded = false;
@@ -2695,32 +3012,7 @@
         let tempSystemMetas = [];
 
         // Fetch User Locations Map
-        GM_xmlhttpRequest({
-            method: "GET",
-            url: getRawUserLocationsUrl(),
-            onload: function(response) {
-                if (response.status === 200) {
-                    try {
-                        userLocationMap = JSON.parse(response.responseText);
-                        console.log(`[BetterMetas] Loaded ${Object.keys(userLocationMap).length} user location mappings.`);
-                        userLocLoaded = true;
-                        checkAllLoaded();
-                    } catch (e) {
-                        console.error('[BetterMetas] Error parsing user_locations.json:', e);
-                        useFallback("User Locations Parse Error");
-                    }
-                } else {
-                    console.log('[BetterMetas] User locations file empty or 404, proceeding...');
-                    userLocationMap = {};
-                    userLocLoaded = true;
-                    checkAllLoaded();
-                }
-            },
-            onerror: function(err) {
-                console.error('[BetterMetas] User locations request error:', err);
-                useFallback("Network Error (User Locations)");
-            }
-        });
+        loadUserLocations();
 
         // Fetch System Locations Map (Plonkit links)
         GM_xmlhttpRequest({
@@ -2751,27 +3043,7 @@
         });
 
         // Fetch User Metas Collection
-        GM_xmlhttpRequest({
-            method: "GET",
-            url: getRawUserMetasUrl(),
-            onload: function(response) {
-                if (response.status === 200) {
-                    try {
-                        tempUserMetas = JSON.parse(response.responseText);
-                        console.log(`[BetterMetas] Loaded ${tempUserMetas.length} user metas.`);
-                        userMetasLoaded = true;
-                        checkAllLoaded();
-                    } catch (e) {
-                        console.error('[BetterMetas] Error parsing user_metas.json:', e);
-                        useFallback("User Metas Parse Error");
-                    }
-                } else {
-                    console.log('[BetterMetas] User metas file empty or 404, proceeding...');
-                    userMetasLoaded = true;
-                    checkAllLoaded();
-                }
-            }
-        });
+        loadUserMetas();
 
         // Fetch System Metas Collection (Plonkit)
         GM_xmlhttpRequest({
@@ -2801,8 +3073,108 @@
             }
         });
 
+        function loadUserLocations() {
+            if (token) {
+                fetchGitHubContentJson(API_USER_LOCATIONS_URL, token)
+                    .then(locations => {
+                        userLocationMap = locations && typeof locations === 'object' && !Array.isArray(locations) ? locations : {};
+                        console.log(`[BetterMetas] Loaded ${Object.keys(userLocationMap).length} user location mappings from GitHub API.`);
+                        userLocLoaded = true;
+                        checkAllLoaded();
+                    })
+                    .catch(err => {
+                        console.warn('[BetterMetas] GitHub API user_locations fetch failed, falling back to raw:', err);
+                        loadRawUserLocations();
+                    });
+                return;
+            }
+
+            loadRawUserLocations();
+        }
+
+        function loadRawUserLocations() {
+            GM_xmlhttpRequest({
+                method: "GET",
+                url: getRawUserLocationsUrl(),
+                onload: function(response) {
+                    if (response.status === 200) {
+                        try {
+                            userLocationMap = JSON.parse(response.responseText);
+                            console.log(`[BetterMetas] Loaded ${Object.keys(userLocationMap).length} user location mappings from raw.`);
+                            userLocLoaded = true;
+                            checkAllLoaded();
+                        } catch (e) {
+                            console.error('[BetterMetas] Error parsing user_locations.json:', e);
+                            useFallback("User Locations Parse Error");
+                        }
+                    } else {
+                        console.log('[BetterMetas] User locations file empty or 404, proceeding...');
+                        userLocationMap = {};
+                        userLocLoaded = true;
+                        checkAllLoaded();
+                    }
+                },
+                onerror: function(err) {
+                    console.error('[BetterMetas] User locations request error:', err);
+                    useFallback("Network Error (User Locations)");
+                }
+            });
+        }
+
+        function loadUserMetas() {
+            if (token) {
+                fetchGitHubContentJson(API_USER_METAS_URL, token)
+                    .then(metas => {
+                        tempUserMetas = Array.isArray(metas) ? metas : [];
+                        console.log(`[BetterMetas] Loaded ${tempUserMetas.length} user metas from GitHub API.`);
+                        userMetasLoaded = true;
+                        checkAllLoaded();
+                    })
+                    .catch(err => {
+                        console.warn('[BetterMetas] GitHub API user_metas fetch failed, falling back to raw:', err);
+                        loadRawUserMetas();
+                    });
+                return;
+            }
+
+            loadRawUserMetas();
+        }
+
+        function loadRawUserMetas() {
+            GM_xmlhttpRequest({
+                method: "GET",
+                url: getRawUserMetasUrl(),
+                onload: function(response) {
+                    if (response.status === 200) {
+                        try {
+                            tempUserMetas = JSON.parse(response.responseText);
+                            console.log(`[BetterMetas] Loaded ${tempUserMetas.length} user metas from raw.`);
+                            userMetasLoaded = true;
+                            checkAllLoaded();
+                        } catch (e) {
+                            console.error('[BetterMetas] Error parsing user_metas.json:', e);
+                            useFallback("User Metas Parse Error");
+                        }
+                    } else {
+                        console.log('[BetterMetas] User metas file empty or 404, proceeding...');
+                        userMetasLoaded = true;
+                        checkAllLoaded();
+                    }
+                },
+                onerror: function(err) {
+                    console.error('[BetterMetas] User metas request error:', err);
+                    useFallback("Network Error (User Metas)");
+                }
+            });
+        }
+
         function checkAllLoaded() {
             if (userLocLoaded && systemLocLoaded && userMetasLoaded && systemMetasLoaded) {
+                const rawUserMetas = tempUserMetas.slice();
+                const rawUserLocationMap = { ...userLocationMap };
+                pruneConfirmedPendingLocalChanges(rawUserMetas, rawUserLocationMap);
+                const pending = mergePendingLocalChangesInto(tempUserMetas, userLocationMap);
+
                 locationMap = mergeLocationMaps(systemLocationMap, userLocationMap);
                 userMetaIds = new Set(tempUserMetas.map(m => m.id).filter(Boolean));
                 systemMetaIds = new Set(tempSystemMetas.map(m => m.id).filter(Boolean));
@@ -2818,7 +3190,8 @@
                 const locCount = Object.keys(locationMap).length;
                 const userLocCount = Object.keys(userLocationMap).length;
                 const systemLocCount = Object.keys(systemLocationMap).length;
-                console.log(`[BetterMetas] DB Ready: ${locCount} locs (${userLocCount} user, ${systemLocCount} system), ${metasData.length} unique metas (${tempUserMetas.length} user, ${tempSystemMetas.length} system).`);
+                const pendingLocCount = Object.keys(pending.locations).length;
+                console.log(`[BetterMetas] DB Ready: ${locCount} locs (${userLocCount} user, ${systemLocCount} system), ${metasData.length} unique metas (${tempUserMetas.length} user, ${tempSystemMetas.length} system). Pending local merge: ${pending.metas.length} metas, ${pendingLocCount} locs.`);
                 
                 if (currentPanoid) {
                      updateStatus(`ID: ${currentPanoid.substring(0,12)}...`);
