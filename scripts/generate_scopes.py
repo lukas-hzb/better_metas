@@ -5,7 +5,8 @@ Generate scope values for all metas in plonkit_metas.json.
 Scope indicates the geographic applicability of a meta:
 - Countrywide: Feature applies anywhere in the country
 - Region: Feature applies to a large region/state
-- Longitude: Feature varies by longitude
+- City: Feature applies to a city or town
+- Road: Feature applies to a specific road or road segment
 - 1000km: Applies within ~1000km radius
 - 100km: Applies within ~100km radius  
 - 10km: Applies within ~10km radius
@@ -41,12 +42,12 @@ def determine_scope(title: str, desc: str, note: str, section: str) -> str:
     ]
     for pattern in unique_patterns:
         if re.search(pattern, desc, re.I):
-            return "Unique"
+            return "unique"
     
     # Specific single landmarks/monuments
     if any(x in d for x in ["monument", "statue", "memorial", "landmark", "fortress", "castle", "palace"]):
         if "across the country" not in d and "throughout" not in d:
-            return "Unique"
+            return "unique"
     
     # ============================================
     # COUNTRYWIDE - National-level features
@@ -81,7 +82,7 @@ def determine_scope(title: str, desc: str, note: str, section: str) -> str:
     
     for pattern in countrywide_patterns:
         if re.search(pattern, desc, re.I):
-            return "Countrywide"
+            return "countrywide"
     
     # Specific countrywide features
     countrywide_keywords = [
@@ -96,18 +97,18 @@ def determine_scope(title: str, desc: str, note: str, section: str) -> str:
         if kw in d:
             # Check it's not region-specific
             if not any(x in d for x in ["north", "south", "east", "west", "region", "coast", "area"]):
-                return "Countrywide"
+                return "countrywide"
     
     # Road line colors are usually countrywide
     if ("road" in d or "roads" in d) and ("yellow" in d or "white" in d) and "line" in d:
         if "outer" in d or "center" in d or "centre" in d or "middle" in d:
-            return "Countrywide"
+            return "countrywide"
     
     # Step 1 items are often countrywide identifiers
     if section == "Step 1":
         # Features that distinguish the country
         if any(x in d for x in ["can be", "are used", "typically use", "primarily use", "generally"]):
-            return "Countrywide"
+            return "countrywide"
     
     # ============================================
     # REGION - Large area within country
@@ -130,13 +131,13 @@ def determine_scope(title: str, desc: str, note: str, section: str) -> str:
     
     for pattern in region_patterns:
         if re.search(pattern, desc, re.I):
-            return "Region"
+            return "region"
     
-    # ============================================
-    # LONGITUDE - Longitude-based features
-    # ============================================
+    # Longitude-based features are treated as broad regional clues because
+    # the userscript scope filter and matcher do not define a separate
+    # longitude scope.
     if "longitude" in d or "meridian" in d:
-        return "Longitude"
+        return "region"
     
     # ============================================
     # 1000km - Very large areas
@@ -158,7 +159,7 @@ def determine_scope(title: str, desc: str, note: str, section: str) -> str:
             return "100km"
     
     # ============================================
-    # 10km - Specific roads, town features
+    # ROAD - Specific roads and road segments
     # ============================================
     # Specific road stretches with endpoints
     road_patterns = [
@@ -170,8 +171,15 @@ def determine_scope(title: str, desc: str, note: str, section: str) -> str:
     ]
     for pattern in road_patterns:
         if re.search(pattern, desc, re.I):
-            return "10km"
+            return "road"
     
+    # Specific road coverage areas
+    if re.search(r"\b[ABCDEFM]\d+\b", desc) or re.search(r"road\s+[ABCDEFM]\d+", d):
+        return "road"
+
+    # ============================================
+    # CITY - Specific towns and cities
+    # ============================================
     # Town/city specific features
     town_patterns = [
         r"in\s+[A-Z][a-z]+\s+(you|the|there|most)",
@@ -185,7 +193,7 @@ def determine_scope(title: str, desc: str, note: str, section: str) -> str:
         if re.search(pattern, desc):
             # Make sure it's about a specific place, not a general feature
             if any(x in d for x in ["recogni", "distinguish", "identify", "can be seen", "visible", "surround"]):
-                return "10km"
+                return "city"
     
     # Towns with specific features (from title)
     town_in_title = re.search(r"^([A-Z][a-z]+(?:[-\s][A-Z][a-z]+)?)\s", title)
@@ -195,12 +203,11 @@ def determine_scope(title: str, desc: str, note: str, section: str) -> str:
         if town_name not in ["the", "a", "an", "road", "route", "highway", "blue", "red", "green", "yellow", "white", "black", "north", "south", "east", "west", "left", "right", "gen", "main", "limited", "desert", "coastal", "mountain", "flat"]:
             # Check if it's about a specific town
             if any(x in t.lower() for x in ["city", "town", "view", "grid", "hills", "ridge", "mountain", "feature"]):
-                return "10km"
-    
-    # Specific road coverage areas
-    if re.search(r"\b[ABCDEFM]\d+\b", desc) or re.search(r"road\s+[ABCDEFM]\d+", d):
-        # Named roads with specific descriptions
-        return "10km"
+                return "city"
+
+    # ============================================
+    # 10km - Small local areas that are not tied to a road/city name
+    # ============================================
     
     # ============================================
     # 1km - Specific neighborhoods, small areas
@@ -236,7 +243,7 @@ def determine_scope(title: str, desc: str, note: str, section: str) -> str:
     
     # If the description mentions specific features but across too broad an area
     if "can be found" in d and len(d) < 100:
-        return "Countrywide"
+        return "countrywide"
     
     # ============================================
     # FALLBACKS based on step/section
@@ -244,11 +251,11 @@ def determine_scope(title: str, desc: str, note: str, section: str) -> str:
     
     # Step 1 is usually country identification - default to Countrywide
     if section == "Step 1":
-        return "Countrywide"
+        return "countrywide"
     
     # Step 2 is usually region narrowing
     if section == "Step 2":
-        return "Region"
+        return "region"
     
     # Step 3 is usually specific locations
     if section == "Step 3":
@@ -264,14 +271,15 @@ def main():
         data = json.load(f)
     
     stats = {
-        "Countrywide": 0,
-        "Region": 0,
-        "Longitude": 0,
+        "countrywide": 0,
+        "region": 0,
+        "city": 0,
+        "road": 0,
         "1000km": 0,
         "100km": 0,
         "10km": 0,
         "1km": 0,
-        "Unique": 0,
+        "unique": 0,
         "": 0,
     }
     

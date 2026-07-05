@@ -8,10 +8,11 @@ Available tags:
 - poles: utility poles, lamp posts, power lines
 - signs: road signs, street signs, directional signs
 - language: script, alphabet, language features
-- license plates: license plates, vehicle plates
+- plates: license plates, vehicle plates
 - cars: coverage vehicle, google car, pickup truck
 - architecture: buildings, houses, construction style
 - soil: ground, floor, terrain, road surface
+- road: road surface, markings, lanes, shoulders, medians
 - camera: camera types, quality, generation, dirt/smudges on lens, camera angles/tilt
 - structures: silos, water towers, strange buildings, non-architecture landmarks
 """

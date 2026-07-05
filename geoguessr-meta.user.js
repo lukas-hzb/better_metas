@@ -44,8 +44,19 @@
     const win = (typeof unsafeWindow !== 'undefined') ? unsafeWindow : window;
     const HUD_SIZE_STORAGE_KEY = 'gg_hud_size';
     const PENDING_LOCAL_CHANGES_STORAGE_KEY = 'gg_pending_local_changes';
+    const ACTIVE_SCOPES_STORAGE_KEY = 'gg_active_scopes';
+    const GITHUB_TOKEN_STORAGE_KEY = 'gg_gh_token';
     const DEFAULT_HUD_WIDTH = '320px';
     const DEFAULT_HUD_HEIGHT = '75.6vh';
+    const HUD_MIN_WIDTH = 260;
+    const HUD_MIN_HEIGHT = 220;
+    const DATA_REFRESH_AFTER_SAVE_MS = 2500;
+    const SAVE_COMPLETE_RESET_MS = 1000;
+    const STREETVIEW_RETRY_DELAY_MS = 500;
+    const RESULT_SCREEN_GRACE_MS = 500;
+    const VISIBILITY_POLL_INTERVAL_MS = 200;
+    const MISSING_PANOID_PLACEHOLDER = "YOUR_PANOID_HERE";
+    const META_SAVE_BUTTON_LABEL = 'Save Meta';
 
     /** 
      * @typedef {Object} Meta
@@ -140,8 +151,9 @@
     let currentPanoid = null;
     let selectedMetaIds = new Set();
     
-    const ALL_SCOPES = ['countrywide', 'region', 'longitude', '1000km', '100km', '10km', '1km', 'road', 'unique'];
-    let activeScopes = new Set(JSON.parse(localStorage.getItem('gg_active_scopes') || JSON.stringify(ALL_SCOPES)));
+    const ALL_SCOPES = ['countrywide', 'region', 'city', 'road', '1000km', '100km', '10km', '1km', 'unique'];
+    const TAG_PRESETS = ['plants', 'bollards', 'poles', 'signs', 'plates', 'cars', 'soil', 'structures', 'road', 'camera', 'language', 'architecture'];
+    let activeScopes = loadActiveScopes();
     let resizeModePreviousSize = null;
     
     // Locking & Visibility State
@@ -169,12 +181,45 @@
         lng: null
     };
 
+    function getScopeLabel(scope) {
+        if (!scope) return '';
+        if (/^\d+km$/i.test(scope)) return scope;
+        return scope.charAt(0).toUpperCase() + scope.slice(1);
+    }
+
+    function renderScopePills(scopes, selectedScopes = null) {
+        return scopes.map(scope => {
+            const selectedClass = selectedScopes && selectedScopes.has(scope) ? ' gg-tag-selected' : '';
+            return `<span class="gg-tag-pill${selectedClass}" data-value="${scope}">${getScopeLabel(scope)}</span>`;
+        }).join('');
+    }
+
+    function renderTagPills(tags) {
+        return tags.map(tag => `<span class="gg-tag-pill">${tag}</span>`).join('');
+    }
+
+    function loadActiveScopes() {
+        try {
+            const storedScopes = JSON.parse(localStorage.getItem(ACTIVE_SCOPES_STORAGE_KEY) || 'null');
+            if (Array.isArray(storedScopes)) {
+                const knownScopes = storedScopes
+                    .map(scope => scope === 'longitude' ? 'city' : scope)
+                    .filter(scope => ALL_SCOPES.includes(scope));
+                if (knownScopes.length > 0) return new Set(knownScopes);
+            }
+        } catch (err) {
+            console.warn('[BetterMetas] Invalid active scopes:', err);
+        }
+        return new Set(ALL_SCOPES);
+    }
+
 
 
     // --- Styles ---
     const STYLES = `
         #gg-meta-hud {
             --gg-meta-divider-gap: 12px;
+            --gg-meta-content-status-gap: 8px;
 
             position: fixed;
             top: 0.5rem; /* Below the top bar */
@@ -199,7 +244,6 @@
             font-family: inherit !important;
             font-weight: 700;
 
-            border: none;
             border: none;
             /* display: flex controlled via opacity now */
             display: flex; 
@@ -230,8 +274,8 @@
             pointer-events: auto;
             transform: translateY(0);
             overflow: hidden;
-            min-width: 260px;
-            min-height: 220px;
+            min-width: ${HUD_MIN_WIDTH}px;
+            min-height: ${HUD_MIN_HEIGHT}px;
             max-width: calc(100vw - 1rem);
             max-height: calc(100vh - 1rem);
             box-sizing: border-box;
@@ -266,6 +310,11 @@
             display: none;
             align-items: center;
             gap: 10px;
+        }
+
+        .gg-normal-controls {
+            display: flex;
+            align-items: center;
         }
 
         .gg-resize-button-row {
@@ -433,7 +482,7 @@
             min-height: 40px;
             flex: 1;
             overflow-y: auto;
-            margin-bottom: 8px; /* Spacing above status */
+            margin-bottom: var(--gg-meta-content-status-gap); /* Spacing above status */
         }
         #gg-meta-container {
             scrollbar-width: none;
@@ -467,9 +516,9 @@
         }
 
         .gg-tag-pill.gg-tag-selected {
-            background: #8cd45a; /* GeoGuessr Green */
+            background: var(--gg-primary-green); /* GeoGuessr Green */
             color: #fff;
-            border-color: #3d8c2a;
+            border-color: var(--gg-primary-border);
             box-shadow: 0 2px 4px rgba(0,0,0,0.3);
         }
 
@@ -485,6 +534,40 @@
             border: 1px solid rgba(255, 255, 255, 0.1);
             cursor: default;
             white-space: nowrap;
+        }
+
+        .gg-meta-badge {
+            font-size: 0.65rem;
+            border: 1px solid;
+            padding: 0 6px;
+            border-radius: 4px;
+            margin-left: 8px;
+            vertical-align: middle;
+            font-weight: 700;
+        }
+
+        .gg-meta-badge-linked {
+            background: rgba(140, 212, 90, 0.15);
+            border-color: rgba(140, 212, 90, 0.4);
+            color: var(--gg-primary-green);
+        }
+
+        .gg-meta-badge-predicted {
+            background: rgba(255,255,255,0.15);
+            border-color: rgba(255,255,255,0.2);
+            color: rgba(255,255,255,0.7);
+        }
+
+        .gg-meta-tags {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 6px;
+            margin-top: 4px;
+            margin-left: 1px;
+        }
+
+        .gg-meta-tags .gg-tag-static {
+            margin-right: 0;
         }
 
         .gg-country-badge {
@@ -508,6 +591,13 @@
             padding-bottom: var(--gg-meta-divider-gap);
             border-bottom: 1px solid rgba(255,255,255,0.1);
         }
+
+        .gg-meta-row-predicted {
+            border-left: 2px solid rgba(255,255,255,0.2);
+            padding-left: 10px;
+            margin-left: -12px;
+        }
+
         .gg-meta-item-title {
             font-size: 1.1rem;
             font-weight: 800;
@@ -515,6 +605,21 @@
             margin-bottom: 6px;
             line-height: 1.3;
         }
+
+        .gg-clickable-meta-title {
+            cursor: pointer;
+        }
+
+        .gg-empty-state {
+            color: #ccc;
+            font-style: italic;
+        }
+
+        .gg-muted-empty-state {
+            opacity: 0.6;
+            font-style: italic;
+        }
+
         #gg-meta-hud .gg-meta-description {
             font-size: 0.75rem;
             color: rgba(255, 255, 255, 0.8);
@@ -563,6 +668,9 @@
             font-weight: 500;
             word-break: break-word;
         }
+        .gg-loc-val-country {
+            color: var(--gg-primary-green);
+        }
         .gg-loc-coords {
             font-family: monospace;
             color: #ffd700;
@@ -575,9 +683,10 @@
         .gg-status-msg {
             font-size: 0.75em;
             color: rgba(255, 255, 255, 0.5);
-            margin-top: 8px;
+            margin-top: var(--gg-meta-content-status-gap);
             font-style: normal;
             text-align: right;
+            cursor: pointer;
         }
 
         /* Modal Spacing System */
@@ -587,11 +696,21 @@
             --modal-spacing-md: 16px;
             --modal-spacing-lg: 24px;
             --modal-radius: 16px;
-            --modal-btn-radius: 25px;
+            --modal-btn-radius: 30px;
+            --modal-btn-height: 42px;
+            --modal-btn-font-size: 0.8rem;
+            --modal-control-bg: rgba(0, 0, 0, 0.3);
+            --modal-control-bg-active: rgba(0, 0, 0, 0.4);
+            --modal-control-border: rgba(100, 90, 150, 0.4);
+            --modal-control-radius: 8px;
+            --gg-primary-green: #8cd45a;
+            --gg-primary-border: #3d8c2a;
+            --gg-primary-gradient: linear-gradient(180deg, #8cd45a 0%, #6cc04a 50%, #5ab840 100%);
         }
 
         /* Modal Base Styles - GeoGuessr Native Style */
-        #gg-meta-modal {
+        #gg-meta-modal,
+        #gg-settings-modal .gg-modal-container {
             position: fixed;
             top: 50%;
             left: 50%;
@@ -602,15 +721,18 @@
             color: white;
             font-family: inherit;
             font-weight: 700;
-            z-index: 100000;
             max-height: 85vh;
             overflow-y: auto;
             scrollbar-width: thin;
             scrollbar-color: rgba(255,255,255,0.3) transparent;
             box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5);
             text-align: center;
-            width: 550px;
             padding: var(--modal-spacing-lg);
+        }
+
+        #gg-meta-modal {
+            z-index: 100000;
+            width: 550px;
             transition: all 0.3s ease-in-out;
         }
 
@@ -627,25 +749,8 @@
         }
 
         #gg-settings-modal .gg-modal-container {
-            position: fixed;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            background: linear-gradient(180deg, #252060 0%, #1a1a40 100%);
-            border: 1px solid rgba(80, 70, 120, 0.5);
-            border-radius: var(--modal-radius);
-            color: white;
-            font-family: inherit;
-            font-weight: 700;
             z-index: 100001;
-            max-height: 85vh;
-            overflow-y: auto;
-            scrollbar-width: thin;
-            scrollbar-color: rgba(255,255,255,0.3) transparent;
-            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5);
-            text-align: center;
             width: 360px;
-            padding: var(--modal-spacing-lg);
         }
 
         /* Modal Header */
@@ -673,6 +778,10 @@
             margin-bottom: var(--modal-spacing-sm);
         }
 
+        .gg-form-group-lg {
+            margin-bottom: var(--modal-spacing-md);
+        }
+
         .gg-form-label {
             display: block;
             margin-bottom: 4px;
@@ -685,10 +794,10 @@
         .gg-form-input {
             width: 100%;
             padding: var(--modal-spacing-sm) var(--modal-spacing-md);
-            background: rgba(0, 0, 0, 0.3);
-            border: 1px solid rgba(100, 90, 150, 0.4);
+            background: var(--modal-control-bg);
+            border: 1px solid var(--modal-control-border);
             color: white;
-            border-radius: 8px;
+            border-radius: var(--modal-control-radius);
             box-sizing: border-box;
             font-family: inherit;
             font-size: 0.95rem;
@@ -703,7 +812,7 @@
 
         .gg-form-input:focus {
             outline: none;
-            background: rgba(0, 0, 0, 0.4);
+            background: var(--modal-control-bg-active);
             border-color: rgba(150, 140, 200, 0.6);
         }
 
@@ -722,18 +831,35 @@
             text-align: center;
         }
 
+        .gg-hidden-control {
+            display: none;
+        }
+
+        .gg-pill-grid {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 4px;
+            margin-top: var(--modal-spacing-xs);
+            text-align: center;
+        }
+
+        .gg-pill-grid .gg-tag-pill {
+            margin: 0;
+        }
+
         /* Buttons - GeoGuessr Green Style */
         .gg-btn-primary {
-            background: linear-gradient(180deg, #8cd45a 0%, #6cc04a 50%, #5ab840 100%);
+            background: var(--gg-primary-gradient);
             color: #fff;
             border: none;
-            border-bottom: 2px solid #3d8c2a;
+            border-bottom: 2px solid var(--gg-primary-border);
             padding: 10px 0; /* Consistent height */
-            border-radius: 30px;
+            border-radius: var(--modal-btn-radius);
             cursor: pointer;
             width: 100%;
             font-weight: 800;
-            font-size: 0.85rem;
+            font-size: var(--modal-btn-font-size);
             font-style: italic;
             text-transform: uppercase;
             letter-spacing: 0.03em;
@@ -742,7 +868,7 @@
             box-shadow: 0 4px 12px rgba(0, 0, 0, 0.25);
             text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.3);
             box-sizing: border-box;
-            height: 42px; /* Fixed height for consistency */
+            height: var(--modal-btn-height); /* Fixed height for consistency */
             display: flex;
             align-items: center;
             justify-content: center;
@@ -755,24 +881,24 @@
 
         .gg-btn-primary:active {
             transform: translateY(1px);
-            border-bottom: 1px solid #3d8c2a;
+            border-bottom: 1px solid var(--gg-primary-border);
             box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
         }
 
         .gg-btn-secondary {
-            background: rgba(0, 0, 0, 0.3);
+            background: var(--modal-control-bg);
             color: rgba(255, 255, 255, 0.7);
-            border: 1px solid rgba(100, 90, 150, 0.4);
+            border: 1px solid var(--modal-control-border);
             padding: 10px 0;
             cursor: pointer;
             margin-top: 12px;
             width: 100%;
-            font-size: 0.8rem;
+            font-size: var(--modal-btn-font-size);
             font-weight: 700;
-            border-radius: 30px; /* Match primary button */
+            border-radius: var(--modal-btn-radius); /* Match primary button */
             transition: background 0.2s, color 0.2s;
             box-sizing: border-box;
-            height: 42px; /* Fixed height for consistency */
+            height: var(--modal-btn-height); /* Fixed height for consistency */
             display: flex;
             align-items: center;
             justify-content: center;
@@ -781,7 +907,7 @@
         }
 
         .gg-btn-secondary:hover {
-            background: rgba(0, 0, 0, 0.4);
+            background: var(--modal-control-bg-active);
             color: #fff;
         }
 
@@ -790,16 +916,16 @@
             color: #f97316;
             border: 2px solid #f97316;
             padding: 10px 0;
-            border-radius: 30px; /* Match primary button */
+            border-radius: var(--modal-btn-radius); /* Match primary button */
             cursor: pointer;
             width: 100%;
-            font-size: 0.8rem;
+            font-size: var(--modal-btn-font-size);
             font-weight: 700;
             text-transform: uppercase;
             letter-spacing: 0.04em;
             transition: background 0.2s, color 0.2s;
             box-sizing: border-box;
-            height: 42px; /* Fixed height for consistency */
+            height: var(--modal-btn-height); /* Fixed height for consistency */
             display: flex;
             align-items: center;
             justify-content: center;
@@ -807,6 +933,18 @@
 
         .gg-btn-danger:hover {
             background: rgba(249, 115, 22, 0.15);
+        }
+
+        #gg-resize-window {
+            margin-top: var(--modal-spacing-xs);
+        }
+
+        #gg-save-settings {
+            margin-top: var(--modal-spacing-md);
+        }
+
+        #meta-details-btn {
+            margin-top: 0;
         }
 
         /* Divider */
@@ -823,9 +961,9 @@
             scrollbar-width: thin;
             scrollbar-color: rgba(255,255,255,0.2) transparent;
             width: 100%;
-            background: rgba(0, 0, 0, 0.3);
-            border: 1px solid rgba(100, 90, 150, 0.4);
-            border-radius: 8px;
+            background: var(--modal-control-bg);
+            border: 1px solid var(--modal-control-border);
+            border-radius: var(--modal-control-radius);
             box-sizing: border-box;
             margin-top: 8px;
         }
@@ -838,27 +976,82 @@
             border-bottom: 1px solid rgba(255,255,255,0.06);
         }
 
+        .gg-meta-list-main {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            flex: 1;
+            overflow: hidden;
+            height: 100%;
+        }
+
         .gg-meta-list-item:last-child {
             border-bottom: none;
+        }
+
+        .gg-list-empty-state {
+            padding: 8px 0;
         }
 
         .gg-meta-list-title {
             font-size: 0.8rem;
             font-weight: 600;
             color: #fff;
+            white-space: nowrap;
+            line-height: 1;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            padding: 0 4px;
+            flex-shrink: 0;
         }
 
         .gg-meta-list-tags {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            overflow-x: auto;
+            scrollbar-width: none;
+            height: 100%;
+            flex: 1;
             font-size: 0.65rem;
             color: rgba(255,255,255,0.4);
             margin-top: 2px;
         }
 
+        .gg-modal-header-with-back {
+            position: relative;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .gg-modal-back-btn {
+            background: none;
+            border: none;
+            color: rgba(255,255,255,0.5);
+            cursor: pointer;
+            position: absolute;
+            left: 0;
+            display: flex;
+            align-items: center;
+            padding: 0;
+        }
+
+        .gg-selection-actions {
+            margin-top: 10px;
+        }
+
+        #gg-link-selected-btn {
+            display: none;
+            width: 100%;
+            margin-bottom: 10px;
+        }
+
         .gg-btn-link-meta {
-            background: linear-gradient(180deg, #8cd45a 0%, #6cc04a 50%, #5ab840 100%);
+            background: var(--gg-primary-gradient);
             color: #fff;
             border: none;
-            border-bottom: 2px solid #3d8c2a;
+            border-bottom: 2px solid var(--gg-primary-border);
             padding: 4px 10px;
             border-radius: 12px;
             cursor: pointer;
@@ -880,16 +1073,21 @@
 
         .gg-btn-link-meta:active {
             transform: translateY(1px);
-            border-bottom: 1px solid #3d8c2a;
+            border-bottom: 1px solid var(--gg-primary-border);
             box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
+        }
+
+        .gg-btn-link-meta.gg-tag-selected {
+            background: var(--gg-primary-green);
+            border-color: var(--gg-primary-border);
         }
 
         /* JSON Output */
         #gg-json-output {
             margin-top: 12px;
-            background: rgba(0, 0, 0, 0.4);
+            background: var(--modal-control-bg-active);
             padding: 10px;
-            border-radius: 8px;
+            border-radius: var(--modal-control-radius);
             font-family: monospace;
             font-size: 0.7rem;
             color: #6f6;
@@ -991,6 +1189,17 @@
             -webkit-line-clamp: 4;
             -webkit-box-orient: vertical;
         }
+
+        #gg-meta-preview-popup .gg-meta-tags {
+            gap: 4px;
+            margin-left: 0;
+        }
+
+        #gg-meta-preview-popup .gg-meta-tags .gg-tag-static {
+            font-size: 0.6rem;
+            padding: 1px 4px;
+            margin: 0;
+        }
         
         /* Triangle Pointer (Right side) - Rotated Square Method */
         #gg-meta-preview-popup::after {
@@ -1021,8 +1230,8 @@
                 savedSize &&
                 Number.isFinite(savedSize.width) &&
                 Number.isFinite(savedSize.height) &&
-                savedSize.width >= 260 &&
-                savedSize.height >= 220
+                savedSize.width >= HUD_MIN_WIDTH &&
+                savedSize.height >= HUD_MIN_HEIGHT
             ) {
                 return savedSize;
             }
@@ -1063,7 +1272,7 @@
 
     function getSettingsTokenValue() {
         const tokenInput = document.getElementById('gg-gh-token');
-        return (tokenInput?.value || localStorage.getItem('gg_gh_token') || '').trim();
+        return ((tokenInput && tokenInput.value) || localStorage.getItem(GITHUB_TOKEN_STORAGE_KEY) || '').trim();
     }
 
     function updateResetDatabaseButtonVisibility() {
@@ -1202,6 +1411,52 @@
         refreshDisplay();
     }
 
+    function setElementDisplay(id, display) {
+        const el = document.getElementById(id);
+        if (el) el.style.display = display;
+    }
+
+    function showBackdrop() {
+        const backdrop = document.getElementById('gg-modal-backdrop');
+        if (backdrop) backdrop.classList.add('gg-visible');
+    }
+
+    function hideBackdrop() {
+        const backdrop = document.getElementById('gg-modal-backdrop');
+        if (backdrop) backdrop.classList.remove('gg-visible');
+    }
+
+    function showMetaModal() {
+        setElementDisplay('gg-meta-modal', 'block');
+        setElementDisplay('gg-settings-modal', 'none');
+        showBackdrop();
+    }
+
+    function showSettingsModal() {
+        setElementDisplay('gg-settings-modal', 'block');
+        setElementDisplay('gg-meta-modal', 'none');
+        showBackdrop();
+    }
+
+    function hideMetaModal() {
+        setElementDisplay('gg-meta-modal', 'none');
+    }
+
+    function hideSettingsModal() {
+        setElementDisplay('gg-settings-modal', 'none');
+    }
+
+    function hideAllModals({ hideBackdropOverlay = true } = {}) {
+        hideMetaModal();
+        hideSettingsModal();
+        if (hideBackdropOverlay) hideBackdrop();
+    }
+
+    function hidePreviewPopup() {
+        const previewPopup = document.getElementById('gg-meta-preview-popup');
+        if (previewPopup) previewPopup.classList.remove('gg-visible');
+    }
+
     // --- UI Construction ---
     function createHUD() {
         if (document.getElementById('gg-meta-hud')) return;
@@ -1214,7 +1469,7 @@
             <div class="gg-meta-title">
                 <span class="gg-normal-title">BetterMetas</span>
                 <span class="gg-resize-mode-title">Resizing Window...</span>
-                <div class="gg-normal-controls" style="display:flex; align-items:center;">
+                <div class="gg-normal-controls">
                     <button id="gg-settings-btn" title="Settings">
                         <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg>
                     </button>
@@ -1231,14 +1486,14 @@
                 </div>
             </div>
             <div class="gg-resize-hitbox" id="gg-resize-hitbox" title="Drag to resize"></div>
-            <div id="gg-location-info" style="display:none;">
+            <div id="gg-location-info" class="gg-hidden-control">
                 <!-- Filled by JS -->
             </div>
 
             <div id="gg-meta-container" class="gg-meta-content">
-                <div style="color: #ccc; font-style: italic;">Waiting for location...</div>
+                <div class="gg-empty-state">Waiting for location...</div>
             </div>
-            <div id="gg-status" class="gg-status-msg" style="cursor:pointer;" title="Click to retry finding location">Waiting for location...</div>
+            <div id="gg-status" class="gg-status-msg" title="Click to retry finding location">Waiting for location...</div>
         `;
         document.body.appendChild(hud);
 
@@ -1255,7 +1510,7 @@
         // Close preview on outside click
         document.addEventListener('click', (e) => {
             if (previewPopup.classList.contains('gg-visible')) {
-                previewPopup.classList.remove('gg-visible');
+                hidePreviewPopup();
             }
         });
 
@@ -1267,9 +1522,9 @@
             <div class="gg-modal-container">
                 <div class="gg-modal-header">Settings</div>
                 
-                <div class="gg-form-group" style="margin-bottom: 16px;">
+                <div class="gg-form-group gg-form-group-lg">
                     <label class="gg-form-label">Scope Filter</label>
-                    <div id="gg-settings-scope-filter" style="display: flex; flex-wrap: wrap; justify-content: center; margin-top: 8px;">
+                    <div id="gg-settings-scope-filter" class="gg-pill-grid">
                         <!-- Filled by JS -->
                     </div>
                 </div>
@@ -1285,14 +1540,14 @@
 
                 <div class="gg-form-group">
                     <label class="gg-form-label">Additional Settings</label>
-                    <button class="gg-btn-secondary" id="gg-resize-window" style="margin-top: 8px;">Resize Window</button>
+                    <button class="gg-btn-secondary" id="gg-resize-window">Resize Window</button>
                 </div>
                 
                 <hr class="gg-modal-divider">
                 
                 <button class="gg-btn-danger" id="gg-reset-db">Clear Own Data</button>
                 
-                <button class="gg-btn-primary" id="gg-save-settings" style="margin-top: 16px;">Save Changes</button>
+                <button class="gg-btn-primary" id="gg-save-settings">Save Changes</button>
                 
                 <button class="gg-btn-secondary" id="gg-close-settings">Close</button>
             </div>
@@ -1321,8 +1576,8 @@
                 </div>
                 <div id="gg-existing-metas"></div>
 
-                <div id="gg-selection-actions" style="margin-top: 10px;">
-                    <button class="gg-btn-primary" id="gg-link-selected-btn" style="display: none; width: 100%; margin-bottom: 10px; background: linear-gradient(180deg, #8cd45a 0%, #6cc04a 50%, #5ab840 100%);">
+                <div id="gg-selection-actions" class="gg-selection-actions">
+                    <button class="gg-btn-primary" id="gg-link-selected-btn">
                         Link Selected Metas (0)
                     </button>
                 </div>
@@ -1330,7 +1585,7 @@
                 <hr class="gg-modal-divider">
 
                 <div>
-                    <button class="gg-btn-primary" id="meta-details-btn" style="margin-top: 0;">
+                    <button class="gg-btn-primary" id="meta-details-btn">
                         Add another meta
                     </button>
                 </div>
@@ -1341,8 +1596,8 @@
             </div>
 
             <div id="meta-details-view" class="gg-modal-subview gg-hidden">
-                <div class="gg-modal-header" style="position: relative; display: flex; align-items: center; justify-content: center;">
-                    <button id="meta-back-btn" style="background:none; border:none; color:rgba(255,255,255,0.5); cursor:pointer; position:absolute; left:0; display: flex; align-items: center; padding: 0;">
+                <div class="gg-modal-header gg-modal-header-with-back">
+                    <button id="meta-back-btn" class="gg-modal-back-btn">
                         <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="19" y1="12" x2="5" y2="12"></line><polyline points="12 19 5 12 12 5"></polyline></svg>
                     </button>
                     Meta Details
@@ -1365,41 +1620,22 @@
 
                 <div class="gg-form-group">
                     <label class="gg-form-label">Scope</label>
-                    <input type="text" id="meta-scope" class="gg-form-input" style="display:none;">
-                    <div id="meta-scope-presets" style="margin-top: 8px; text-align: center;">
-                        <span class="gg-tag-pill" data-value="countrywide">Countrywide</span>
-                        <span class="gg-tag-pill" data-value="region">Region</span>
-                        <span class="gg-tag-pill" data-value="city">City</span>
-                        <span class="gg-tag-pill" data-value="road">Road</span>
-                        <span class="gg-tag-pill" data-value="1000km">1000km</span>
-                        <span class="gg-tag-pill" data-value="100km">100km</span>
-                        <span class="gg-tag-pill" data-value="10km">10km</span>
-                        <span class="gg-tag-pill" data-value="1km">1km</span>
-                        <span class="gg-tag-pill" data-value="unique">Unique</span>
+                    <input type="text" id="meta-scope" class="gg-form-input gg-hidden-control">
+                    <div id="meta-scope-presets" class="gg-pill-grid">
+                        ${renderScopePills(ALL_SCOPES)}
                     </div>
                 </div>
 
                 <div class="gg-form-group">
                     <label class="gg-form-label">Tags</label>
                     <!-- Input hidden, using pills only -->
-                    <input type="text" id="meta-tags" class="gg-form-input" placeholder="" style="display:none;">
-                    <div id="meta-tag-presets" style="margin-top: 8px; text-align: center;">
-                        <span class="gg-tag-pill">plants</span>
-                        <span class="gg-tag-pill">bollards</span>
-                        <span class="gg-tag-pill">poles</span>
-                        <span class="gg-tag-pill">signs</span>
-                        <span class="gg-tag-pill">plates</span>
-                        <span class="gg-tag-pill">cars</span>
-                        <span class="gg-tag-pill">soil</span>
-                        <span class="gg-tag-pill">structures</span>
-                        <span class="gg-tag-pill">road</span>
-                        <span class="gg-tag-pill">camera</span>
-                        <span class="gg-tag-pill">language</span>
-                        <span class="gg-tag-pill">architecture</span>
+                    <input type="text" id="meta-tags" class="gg-form-input gg-hidden-control" placeholder="">
+                    <div id="meta-tag-presets" class="gg-pill-grid">
+                        ${renderTagPills(TAG_PRESETS)}
                     </div>
                 </div>
 
-                <button class="gg-btn-primary" id="meta-generate-btn">Save Meta</button>
+                <button class="gg-btn-primary" id="meta-generate-btn">${META_SAVE_BUTTON_LABEL}</button>
             </div>
         `;
 
@@ -1483,9 +1719,7 @@
                 console.log('No active location found even after recovery attempt.');
                 // Optional: Alert user?
             }
-            document.getElementById('gg-meta-modal').style.display = 'block';
-            document.getElementById('gg-settings-modal').style.display = 'none'; // Close settings
-            document.getElementById('gg-modal-backdrop').classList.add('gg-visible');
+            showMetaModal();
             document.getElementById('meta-main-view').classList.remove('gg-hidden');
             document.getElementById('meta-details-view').classList.add('gg-hidden');
             document.getElementById('gg-json-output').style.display = 'none';
@@ -1495,17 +1729,13 @@
         });
 
         document.getElementById('gg-settings-btn').addEventListener('click', () => {
-            const token = localStorage.getItem('gg_gh_token') || '';
+            const token = localStorage.getItem(GITHUB_TOKEN_STORAGE_KEY) || '';
             document.getElementById('gg-gh-token').value = token;
             updateResetDatabaseButtonVisibility();
             
             // Render Scope Filter
             const scopeContainer = document.getElementById('gg-settings-scope-filter');
-            scopeContainer.innerHTML = ALL_SCOPES.map(scope => {
-                const isActive = activeScopes.has(scope);
-                const label = scope.charAt(0).toUpperCase() + scope.slice(1);
-                return `<span class="gg-tag-pill ${isActive ? 'gg-tag-selected' : ''}" data-value="${scope}" style="cursor:pointer; margin:3px;">${label}</span>`;
-            }).join('');
+            scopeContainer.innerHTML = renderScopePills(ALL_SCOPES, activeScopes);
 
             // Add listeners
             scopeContainer.querySelectorAll('.gg-tag-pill').forEach(pill => {
@@ -1515,11 +1745,8 @@
                 });
             });
 
-            document.getElementById('gg-settings-modal').style.display = 'block';
-            document.getElementById('gg-meta-modal').style.display = 'none'; // Close meta modal
-            const previewPopup = document.getElementById('gg-meta-preview-popup');
-            if (previewPopup) previewPopup.classList.remove('gg-visible');
-            document.getElementById('gg-modal-backdrop').classList.add('gg-visible');
+            hidePreviewPopup();
+            showSettingsModal();
         });
 
         document.getElementById('gg-save-settings').addEventListener('click', () => {
@@ -1527,15 +1754,15 @@
              
              // Save Token
              if (token) {
-                 localStorage.setItem('gg_gh_token', token);
-             } else if (localStorage.getItem('gg_gh_token')) {
+                 localStorage.setItem(GITHUB_TOKEN_STORAGE_KEY, token);
+             } else if (localStorage.getItem(GITHUB_TOKEN_STORAGE_KEY)) {
                  // If field is empty but we had one, do we clear it? 
                  // Current logic implies empty field = no change if we don't want to clear.
                  // But typically empty input means user wants to clear if they deleted it.
                  // Let's stick to existing behavior or safest approach:
                  // If user explicitly clears it, maybe they want to clear it?
                  // For now, let's assume they might.
-                 localStorage.setItem('gg_gh_token', ''); 
+                 localStorage.setItem(GITHUB_TOKEN_STORAGE_KEY, '');
              }
 
              // Save Scopes from UI state
@@ -1544,18 +1771,18 @@
                                          .map(el => el.dataset.value);
              
              activeScopes = new Set(selectedFromUI);
-             localStorage.setItem('gg_active_scopes', JSON.stringify(Array.from(activeScopes)));
+             localStorage.setItem(ACTIVE_SCOPES_STORAGE_KEY, JSON.stringify(Array.from(activeScopes)));
              
              // Refresh HUD
              if (currentPanoid) refreshDisplay();
 
-             document.getElementById('gg-settings-modal').style.display = 'none';
-             document.getElementById('gg-modal-backdrop').classList.remove('gg-visible');
+             hideSettingsModal();
+             hideBackdrop();
         });
 
         document.getElementById('gg-close-settings').addEventListener('click', () => {
-             document.getElementById('gg-settings-modal').style.display = 'none';
-            document.getElementById('gg-modal-backdrop').classList.remove('gg-visible');
+            hideSettingsModal();
+            hideBackdrop();
         });
 
         function enterHudResizeMode() {
@@ -1570,12 +1797,9 @@
                 wasVisible: hud.classList.contains('gg-visible')
             };
 
-            document.getElementById('gg-settings-modal').style.display = 'none';
-            document.getElementById('gg-meta-modal').style.display = 'none';
-            document.getElementById('gg-modal-backdrop').classList.remove('gg-visible');
+            hideAllModals();
 
-            const previewPopup = document.getElementById('gg-meta-preview-popup');
-            if (previewPopup) previewPopup.classList.remove('gg-visible');
+            hidePreviewPopup();
 
             hud.classList.add('gg-visible', 'gg-resize-mode');
         }
@@ -1616,8 +1840,8 @@
             const onPointerMove = (moveEvent) => {
                 const maxWidth = window.innerWidth - 16;
                 const maxHeight = window.innerHeight - 16;
-                const width = Math.min(maxWidth, Math.max(260, startSize.width + moveEvent.clientX - startX));
-                const height = Math.min(maxHeight, Math.max(220, startSize.height + moveEvent.clientY - startY));
+                const width = Math.min(maxWidth, Math.max(HUD_MIN_WIDTH, startSize.width + moveEvent.clientX - startX));
+                const height = Math.min(maxHeight, Math.max(HUD_MIN_HEIGHT, startSize.height + moveEvent.clientY - startY));
 
                 hud.style.width = `${Math.round(width)}px`;
                 hud.style.height = `${Math.round(height)}px`;
@@ -1669,10 +1893,9 @@
         });
 
         document.getElementById('meta-close-btn').addEventListener('click', () => {
-            document.getElementById('gg-meta-modal').style.display = 'none';
-            document.getElementById('gg-modal-backdrop').classList.remove('gg-visible');
-            const previewPopup = document.getElementById('gg-meta-preview-popup');
-            if (previewPopup) previewPopup.classList.remove('gg-visible');
+            hideMetaModal();
+            hideBackdrop();
+            hidePreviewPopup();
         });
 
         // Close when clicking backdrop
@@ -1683,9 +1906,7 @@
         });
 
         backdrop.addEventListener('click', () => {
-            document.getElementById('gg-meta-modal').style.display = 'none';
-            document.getElementById('gg-settings-modal').style.display = 'none';
-            backdrop.classList.remove('gg-visible');
+            hideAllModals();
         });
 
         document.getElementById('meta-generate-btn').addEventListener('click', generateJSON);
@@ -1798,7 +2019,7 @@
         });
         
         if (uniqueFiltered.length === 0) {
-            container.innerHTML = '<div class="gg-form-hint" style="padding:8px 0;">No metas found.</div>';
+            container.innerHTML = '<div class="gg-form-hint gg-list-empty-state">No metas found.</div>';
             return;
         }
 
@@ -1807,14 +2028,14 @@
             const countryCode = getCountryCode(m.country);
             return `
                 <div class="gg-meta-list-item" data-meta-id="${m.id}">
-                    <div style="display: flex; align-items: center; gap: 4px; flex: 1; overflow: hidden; height: 100%;">
+                    <div class="gg-meta-list-main">
                         <span class="gg-country-badge" title="${m.country || 'Unknown Country'}">${countryCode}</span>
-                        <div class="gg-meta-list-title" style="white-space: nowrap; line-height: 1; overflow: hidden; text-overflow: ellipsis; padding: 0 4px; flex-shrink: 0;">${m.title}</div>
-                        <div class="gg-meta-list-tags" style="display: flex; align-items: center; gap: 4px; overflow-x: auto; scrollbar-width: none; height: 100%; flex: 1;">
+                        <div class="gg-meta-list-title">${m.title}</div>
+                        <div class="gg-meta-list-tags">
                             ${(m.tags || []).map(t => `<span class="gg-tag-static">${t}</span>`).join('')}
                         </div>
                     </div>
-                    <button class="gg-btn-link-meta ${isSelected ? 'gg-tag-selected' : ''}" data-meta-id="${m.id}" style="${isSelected ? 'background: #8cd45a; border-color: #3d8c2a;' : ''}">
+                    <button class="gg-btn-link-meta ${isSelected ? 'gg-tag-selected' : ''}" data-meta-id="${m.id}">
                         ${isSelected ? 'Selected' : 'Link'}
                     </button>
                 </div>
@@ -1836,8 +2057,8 @@
                     <div class="gg-meta-item-title">${meta.title}</div>
                     ${meta.imageUrl ? `<img src="${meta.imageUrl}" class="gg-meta-image">` : ''}
                     <div class="gg-meta-description">${meta.description}</div>
-                    <div style="display: flex; flex-wrap: wrap; gap: 4px; margin-top: 4px;">
-                        ${(meta.tags || []).map(t => `<span class="gg-tag-static" style="font-size: 0.6rem; padding: 1px 4px; margin: 0;">${t}</span>`).join('')}
+                    <div class="gg-meta-tags">
+                        ${(meta.tags || []).map(t => `<span class="gg-tag-static">${t}</span>`).join('')}
                     </div>
                 `;
 
@@ -1870,7 +2091,7 @@
             });
 
             item.addEventListener('mouseleave', () => {
-                if (previewPopup) previewPopup.classList.remove('gg-visible');
+                hidePreviewPopup();
             });
         });
 
@@ -1904,12 +2125,12 @@
 
     async function linkMultipleMetas(metaIds) {
         const panoid = syncPanoidForUserAction('link metas');
-        if (!panoid || panoid === "YOUR_PANOID_HERE") {
+        if (!panoid || panoid === MISSING_PANOID_PLACEHOLDER) {
             alert("No location detected! Please try on a game result screen.");
             return;
         }
 
-        const token = localStorage.getItem('gg_gh_token');
+        const token = localStorage.getItem(GITHUB_TOKEN_STORAGE_KEY);
         if (!token) {
             // Mode: Community (No Token) - Submit via GitHub Issue
             const submission = { 
@@ -1935,8 +2156,8 @@
             
             // Clear selection and close
             selectedMetaIds.clear();
-            document.getElementById('gg-meta-modal').style.display = 'none';
-            document.getElementById('gg-modal-backdrop').classList.remove('gg-visible');
+            hideMetaModal();
+            hideBackdrop();
             return;
         }
 
@@ -1945,62 +2166,30 @@
         updateStatus(`Linking ${metaIds.length} metas...`);
         
         try {
-            // Helper for GitHub API via GM_xmlhttpRequest
-            const ghAPI = (url, method = 'GET', body = null) => {
-                return new Promise((resolve, reject) => {
-                    GM_xmlhttpRequest({
-                        method,
-                        url,
-                        headers: {
-                            'Authorization': `Bearer ${token}`,
-                            'Accept': 'application/vnd.github.v3+json',
-                            'X-GitHub-Api-Version': '2022-11-28',
-                            'Content-Type': 'application/json'
-                        },
-                        data: body ? JSON.stringify(body) : null,
-                        onload: (res) => {
-                            if (res.status >= 200 && res.status < 300) {
-                                try {
-                                    const data = JSON.parse(res.responseText);
-                                    resolve(data);
-                                } catch(e) { resolve(res.responseText); }
-                            } else {
-                                let details = res.statusText;
-                                try {
-                                    details = JSON.parse(res.responseText).message || details;
-                                } catch(e) {}
-                                reject(new Error(`GitHub API ${res.status}: ${details}`));
-                            }
-                        },
-                        onerror: (err) => reject(err)
-                    });
-                });
-            };
-
             const unknownMetaIds = metaIds.filter(id => !systemMetaIds.has(id) && !userMetaIds.has(id));
 
             if (unknownMetaIds.length > 0) {
                 throw new Error(`Unknown meta IDs: ${unknownMetaIds.join(', ')}`);
             }
 
-            const data = await ghAPI(getApiUrlForBranch(API_USER_LOCATIONS_URL));
-            const locations = JSON.parse(decodeURIComponent(escape(window.atob(data.content.replace(/\n/g, "")))));
+            const locationsFile = await getGitHubJsonFile(API_USER_LOCATIONS_URL, token);
+            const locations = locationsFile.content;
             addMetaIdsToLocationMap(locations, panoid, metaIds);
 
-            const contentBase64 = window.btoa(unescape(encodeURIComponent(JSON.stringify(locations, null, 2))));
-            await ghAPI(API_USER_LOCATIONS_URL, 'PUT', {
-                message: `Link ${metaIds.length} metas to ${panoid} via BetterMetas`,
-                content: contentBase64,
-                sha: data.sha,
-                branch: REPO_BRANCH
-            });
+            await putGitHubJsonFile(
+                API_USER_LOCATIONS_URL,
+                token,
+                locationsFile.sha,
+                locations,
+                `Link ${metaIds.length} metas to ${panoid} via BetterMetas`
+            );
 
             applyLocalLocationLinks(panoid, metaIds);
             updateStatus('Linked!');
             selectedMetaIds.clear();
-            document.getElementById('gg-meta-modal').style.display = 'none';
-            document.getElementById('gg-modal-backdrop').classList.remove('gg-visible');
-            setTimeout(fetchLocationData, 2500);
+            hideMetaModal();
+            hideBackdrop();
+            setTimeout(fetchLocationData, DATA_REFRESH_AFTER_SAVE_MS);
         } catch (e) {
             console.error(e);
             alert(`Error: ${e.message}`);
@@ -2021,8 +2210,8 @@
             return;
         }
 
-        const panoid = syncPanoidForUserAction('save meta') || "YOUR_PANOID_HERE";
-        if (panoid === "YOUR_PANOID_HERE") {
+        const panoid = syncPanoidForUserAction('save meta') || MISSING_PANOID_PLACEHOLDER;
+        if (panoid === MISSING_PANOID_PLACEHOLDER) {
             alert("No location detected! Please try again on a game result screen.");
             return;
         }
@@ -2059,7 +2248,7 @@
         const output = document.getElementById('gg-json-output');
         
         // Save to GitHub
-        const token = localStorage.getItem('gg_gh_token');
+        const token = localStorage.getItem(GITHUB_TOKEN_STORAGE_KEY);
         
         // Mode: Community (No Token)
         if (!token) {
@@ -2079,7 +2268,7 @@
             
             if (confirm("No GitHub Token found. Submit this as a Community Contribution via GitHub Issues?")) {
                 window.open(issueUrl, '_blank');
-                document.getElementById('gg-meta-modal').style.display = 'none';
+                hideMetaModal();
             } else {
                  // Fallback to copy-paste
                 output.textContent = "Token missing. Copy this:\n" + jsonStr;
@@ -2094,55 +2283,12 @@
         output.style.display = 'none';
 
         try {
-            // Helper for GitHub API via GM_xmlhttpRequest
-            const ghAPI = (url, method = 'GET', body = null) => {
-                return new Promise((resolve, reject) => {
-                    GM_xmlhttpRequest({
-                        method,
-                        url,
-                        headers: {
-                            'Authorization': `Bearer ${token}`,
-                            'Accept': 'application/vnd.github.v3+json',
-                            'X-GitHub-Api-Version': '2022-11-28',
-                            'Content-Type': 'application/json'
-                        },
-                        data: body ? JSON.stringify(body) : null,
-                        onload: (res) => {
-                            if (res.status >= 200 && res.status < 300) {
-                                try {
-                                    const data = JSON.parse(res.responseText);
-                                    resolve(data);
-                                } catch(e) { resolve(res.responseText); }
-                            } else {
-                                let details = res.statusText;
-                                try {
-                                    details = JSON.parse(res.responseText).message || details;
-                                } catch(e) {}
-                                reject(new Error(`GitHub API ${res.status}: ${details}`));
-                            }
-                        },
-                        onerror: (err) => reject(err)
-                    });
-                });
-            };
-
-            const getFile = async (apiUrl) => {
-                const data = await ghAPI(getApiUrlForBranch(apiUrl));
-                const content = decodeURIComponent(escape(window.atob(data.content.replace(/\n/g, ""))));
-                return { sha: data.sha, content: JSON.parse(content) };
-            };
-
-            const putFile = async (apiUrl, sha, content, message) => {
-                const contentBase64 = window.btoa(unescape(encodeURIComponent(JSON.stringify(content, null, 2))));
-                return await ghAPI(apiUrl, 'PUT', { message, content: contentBase64, sha, branch: REPO_BRANCH });
-            };
-
             // 1. Fetch both user files
             updateStatus('Fetching user_metas.json...');
-            const metasFile = await getFile(API_USER_METAS_URL);
+            const metasFile = await getGitHubJsonFile(API_USER_METAS_URL, token);
             
             updateStatus('Fetching user_locations.json...');
-            const locsFile = await getFile(API_USER_LOCATIONS_URL);
+            const locsFile = await getGitHubJsonFile(API_USER_LOCATIONS_URL, token);
 
             // 2. Add meta to user_metas.json
             metasFile.content.push(newMeta);
@@ -2152,21 +2298,21 @@
 
             // 4. Commit user_metas.json
             updateStatus('Saving user_metas.json...');
-            await putFile(API_USER_METAS_URL, metasFile.sha, metasFile.content, `Add meta ${newMeta.id} via BetterMetas`);
+            await putGitHubJsonFile(API_USER_METAS_URL, token, metasFile.sha, metasFile.content, `Add meta ${newMeta.id} via BetterMetas`);
 
             // 5. Commit user_locations.json
             updateStatus('Saving user_locations.json...');
-            await putFile(API_USER_LOCATIONS_URL, locsFile.sha, locsFile.content, `Link ${panoid} to ${newMeta.id} via BetterMetas`);
+            await putGitHubJsonFile(API_USER_LOCATIONS_URL, token, locsFile.sha, locsFile.content, `Link ${panoid} to ${newMeta.id} via BetterMetas`);
 
             applyLocalSavedMeta(newMeta, panoid);
             updateStatus('Saved!');
             btn.innerHTML = 'Saved!';
             setTimeout(() => {
-                document.getElementById('gg-meta-modal').style.display = 'none';
-                btn.innerHTML = 'Generate JSON';
+                hideMetaModal();
+                btn.innerHTML = META_SAVE_BUTTON_LABEL;
                 btn.disabled = false;
-                setTimeout(fetchLocationData, 2500);
-            }, 1000);
+                setTimeout(fetchLocationData, DATA_REFRESH_AFTER_SAVE_MS);
+            }, SAVE_COMPLETE_RESET_MS);
 
         } catch (err) {
             console.error('Save error:', err);
@@ -2192,59 +2338,13 @@
         btn.disabled = true;
 
         try {
-             // Helper for GitHub API
-             const ghAPI = (url, method = 'GET', body = null) => {
-                return new Promise((resolve, reject) => {
-                    GM_xmlhttpRequest({
-                        method,
-                        url,
-                        headers: {
-                            'Authorization': `Bearer ${token}`,
-                            'Accept': 'application/vnd.github.v3+json',
-                            'X-GitHub-Api-Version': '2022-11-28',
-                            'Content-Type': 'application/json'
-                        },
-                        data: body ? JSON.stringify(body) : null,
-                        onload: (res) => {
-                            if (res.status >= 200 && res.status < 300) {
-                                try {
-                                    const data = JSON.parse(res.responseText);
-                                    resolve(data);
-                                } catch(e) { resolve(res.responseText); }
-                            } else {
-                                let details = res.statusText;
-                                try {
-                                    details = JSON.parse(res.responseText).message || details;
-                                } catch(e) {}
-                                reject(new Error(`GitHub API ${res.status}: ${details}`));
-                            }
-                        },
-                        onerror: (err) => reject(err)
-                    });
-                });
-            };
-
-            const getSha = async (apiUrl) => {
-                try {
-                    const data = await ghAPI(getApiUrlForBranch(apiUrl));
-                    return data.sha;
-                } catch (e) { return null; }
-            };
-
-            const putFile = async (apiUrl, sha, content, message) => {
-                const contentBase64 = window.btoa(unescape(encodeURIComponent(JSON.stringify(content, null, 2))));
-                const body = { message, content: contentBase64, branch: REPO_BRANCH };
-                if (sha) body.sha = sha;
-                return await ghAPI(apiUrl, 'PUT', body);
-            };
-
             // 1. Get SHAs
-            const metasSha = await getSha(API_METAS_URL);
-            const locsSha = await getSha(API_USER_LOCATIONS_URL);
+            const metasSha = await getGitHubFileSha(API_METAS_URL, token);
+            const locsSha = await getGitHubFileSha(API_USER_LOCATIONS_URL, token);
 
             // 2. Overwrite with empty
-            await putFile(API_METAS_URL, metasSha, [], "Clear own BetterMetas metas");
-            await putFile(API_USER_LOCATIONS_URL, locsSha, {}, "Clear own BetterMetas location links");
+            await putGitHubJsonFile(API_METAS_URL, token, metasSha, [], "Clear own BetterMetas metas");
+            await putGitHubJsonFile(API_USER_LOCATIONS_URL, token, locsSha, {}, "Clear own BetterMetas location links");
 
             alert("Own BetterMetas data cleared!");
             location.reload();
@@ -2263,35 +2363,35 @@
         const container = document.getElementById('gg-meta-container');
 
         if ((!metas || metas.length === 0) && (!predicted || predicted.length === 0)) {
-            container.innerHTML = '<div style="opacity:0.6; font-style:italic;">No active hints for this location.</div>';
+            container.innerHTML = '<div class="gg-muted-empty-state">No active hints for this location.</div>';
             return;
         }
 
         const renderMeta = (m, isPredicted = false) => {
              // Predicted metas get a click handler for Quick Link
              const titleAttr = isPredicted 
-                 ? `onclick="window.quickLinkMeta('${m.id}', '${m.title.replace(/'/g, "\\'")}')" style="cursor:pointer;" title="Click to Link to this Location"`
+                 ? `class="gg-clickable-meta-title" onclick="window.quickLinkMeta('${m.id}', '${m.title.replace(/'/g, "\\'")}')" title="Click to Link to this Location"`
                  : '';
              
              // Badge logic
              let badge = '';
-             if (isPredicted) {
-                 // Predicted badge - Styled EXACTLY like Linked but Grey
-                 badge = '<span style="font-size: 0.65rem; background: rgba(255,255,255,0.15); border: 1px solid rgba(255,255,255,0.2); padding: 0px 6px; border-radius: 4px; margin-left: 8px; vertical-align: middle; color: rgba(255,255,255,0.7); font-weight: 700;">PREDICTED</span>';
+            if (isPredicted) {
+                // Predicted badge - Styled EXACTLY like Linked but Grey
+                 badge = '<span class="gg-meta-badge gg-meta-badge-predicted">PREDICTED</span>';
              } else {
                  // Linked badge - Styled with Green to match theme
-                 badge = '<span style="font-size: 0.65rem; background: rgba(140, 212, 90, 0.15); border: 1px solid rgba(140, 212, 90, 0.4); padding: 0px 6px; border-radius: 4px; margin-left: 8px; vertical-align: middle; color: #8cd45a; font-weight: 700;">LINKED</span>';
+                 badge = '<span class="gg-meta-badge gg-meta-badge-linked">LINKED</span>';
              }
 
              return `
-            <div class="gg-meta-row" ${isPredicted ? 'style="border-left: 2px solid rgba(255,255,255,0.2); padding-left: 10px; margin-left: -12px;"' : ''}>
+            <div class="gg-meta-row ${isPredicted ? 'gg-meta-row-predicted' : ''}">
                 <div class="gg-meta-item-title">
                     <span ${titleAttr}>${m.title}</span>
                     ${badge}
                 </div>
                 ${m.imageUrl ? `<img src="${m.imageUrl}" class="gg-meta-image">` : ''}
                 <div class="gg-meta-description">${m.description}</div>
-                <div style="display: flex; flex-wrap: wrap; gap: 6px; margin-top: 4px; margin-left: 1px;">${m.tags.map(t => `<span class="gg-tag-static" style="margin-right: 0;">${t}</span>`).join('')}</div>
+                <div class="gg-meta-tags">${(m.tags || []).map(t => `<span class="gg-tag-static">${t}</span>`).join('')}</div>
             </div>
             `;
         };
@@ -2419,7 +2519,7 @@
 
         readPanoidFromStreetView(instance, reason);
         setTimeout(() => readPanoidFromStreetView(instance, `${reason} delayed`), 100);
-        setTimeout(() => readPanoidFromStreetView(instance, `${reason} settled`), 500);
+        setTimeout(() => readPanoidFromStreetView(instance, `${reason} settled`), STREETVIEW_RETRY_DELAY_MS);
     }
 
     function syncPanoidForUserAction(reason = 'user action') {
@@ -2697,8 +2797,8 @@
         
         if (visible) lastResultSeenTime = Date.now();
         
-        // Sticky True: Return true if we saw it recently (500ms grace period)
-        return visible || (Date.now() - lastResultSeenTime < 500);
+        // Sticky True: Return true if we saw it recently during the grace period.
+        return visible || (Date.now() - lastResultSeenTime < RESULT_SCREEN_GRACE_MS);
     }
 
     function updateVisibility() {
@@ -2773,7 +2873,7 @@
         if (!svInstance) {
             console.log(`[BetterMetas] extractLocationData: No svInstance available yet (Attempt ${attempt+1}/${maxAttempts}).`);
             if (attempt < maxAttempts) {
-                setTimeout(() => extractLocationData(attempt + 1), 500);
+                setTimeout(() => extractLocationData(attempt + 1), STREETVIEW_RETRY_DELAY_MS);
             }
             return;
         }
@@ -2959,7 +3059,7 @@
             } catch (e) {
                 console.warn('[BetterMetas] Error accessing location data:', e);
             }
-        }, 500); 
+        }, STREETVIEW_RETRY_DELAY_MS);
     }
 
     function updateLocationUI() {
@@ -2988,7 +3088,7 @@
             </div>
              <div class="gg-loc-row">
                 <div class="gg-loc-label">Country:</div>
-                <div class="gg-loc-val" style="color: #8cd45a;">${country || 'N/A'}</div>
+                <div class="gg-loc-val gg-loc-val-country">${country || 'N/A'}</div>
             </div>
             ${region ? `
             <div class="gg-loc-row">
@@ -3016,35 +3116,72 @@
         return JSON.parse(decodeURIComponent(escape(window.atob((content || '').replace(/\n/g, "")))));
     }
 
-    function fetchGitHubContentJson(apiUrl, token) {
+    function encodeGitHubJsonContent(content) {
+        return window.btoa(unescape(encodeURIComponent(JSON.stringify(content, null, 2))));
+    }
+
+    function parseGitHubApiError(response) {
+        let details = response.statusText;
+        try {
+            details = JSON.parse(response.responseText).message || details;
+        } catch(e) {}
+        return new Error(`GitHub API ${response.status}: ${details}`);
+    }
+
+    function githubApiRequest(url, token, method = 'GET', body = null) {
         return new Promise((resolve, reject) => {
             GM_xmlhttpRequest({
-                method: "GET",
-                url: getApiUrlForBranch(apiUrl),
+                method,
+                url,
                 headers: {
                     'Authorization': `Bearer ${token}`,
                     'Accept': 'application/vnd.github.v3+json',
-                    'X-GitHub-Api-Version': '2022-11-28'
+                    'X-GitHub-Api-Version': '2022-11-28',
+                    'Content-Type': 'application/json'
                 },
-                onload: function(response) {
+                data: body ? JSON.stringify(body) : null,
+                onload: (response) => {
                     if (response.status >= 200 && response.status < 300) {
                         try {
-                            const data = JSON.parse(response.responseText);
-                            resolve(decodeGitHubJsonContent(data.content));
-                        } catch (e) {
-                            reject(e);
+                            resolve(JSON.parse(response.responseText));
+                        } catch(e) {
+                            resolve(response.responseText);
                         }
                     } else {
-                        let details = response.statusText;
-                        try {
-                            details = JSON.parse(response.responseText).message || details;
-                        } catch (e) {}
-                        reject(new Error(`GitHub API ${response.status}: ${details}`));
+                        reject(parseGitHubApiError(response));
                     }
                 },
                 onerror: reject
             });
         });
+    }
+
+    async function getGitHubJsonFile(apiUrl, token) {
+        const data = await githubApiRequest(getApiUrlForBranch(apiUrl), token);
+        return { sha: data.sha, content: decodeGitHubJsonContent(data.content) };
+    }
+
+    async function getGitHubFileSha(apiUrl, token) {
+        try {
+            const data = await githubApiRequest(getApiUrlForBranch(apiUrl), token);
+            return data.sha;
+        } catch (e) {
+            return null;
+        }
+    }
+
+    async function putGitHubJsonFile(apiUrl, token, sha, content, message) {
+        const body = {
+            message,
+            content: encodeGitHubJsonContent(content),
+            branch: REPO_BRANCH
+        };
+        if (sha) body.sha = sha;
+        return githubApiRequest(apiUrl, token, 'PUT', body);
+    }
+
+    function fetchGitHubContentJson(apiUrl, token) {
+        return getGitHubJsonFile(apiUrl, token).then(file => file.content);
     }
 
 
@@ -3415,7 +3552,7 @@
                  console.log('[BetterMetas] Applying queued panoid:', nextPanoid);
                  checkLocation(nextPanoid);
              }
-         }, 200);
+         }, VISIBILITY_POLL_INTERVAL_MS);
 
          // Hook Poller - wait for Google Maps
          const timer = setInterval(() => {
@@ -3454,7 +3591,6 @@
              if (isRoundResult()) {
                   // If we click ANY button on result screen that isn't inside our HUD or modals, hide HUD
                   // Exclude: HUD, Settings Modal, Add Meta Modal
-                  // Exclude: HUD, Settings Modal, Add Meta Modal
                   if (!target.closest('#gg-meta-hud') && 
                       !target.closest('#gg-settings-modal') && 
                       !target.closest('#gg-meta-modal')) {
@@ -3467,11 +3603,7 @@
                        }
 
                        // Close Modals
-                       const metaModal = document.getElementById('gg-meta-modal');
-                       if (metaModal) metaModal.style.display = 'none';
-
-                       const settingsModal = document.getElementById('gg-settings-modal');
-                       if (settingsModal) settingsModal.style.display = 'none';
+                       hideAllModals();
                   }
              }
          }, true); // Capture phase to catch it early

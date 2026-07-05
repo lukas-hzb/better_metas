@@ -1,7 +1,7 @@
 {
-  "name": "plonkit-scraper",
+  "name": "bettermetas",
   "version": "1.0.0",
-  "description": "Scraper for Plonkit Geoguessr guides",
+  "description": "BetterMetas data scraper and generator scripts",
   "main": "scraper.js",
   "scripts": {
     "start": "node scraper.js"
