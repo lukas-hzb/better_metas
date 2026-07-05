@@ -174,6 +174,8 @@
     // --- Styles ---
     const STYLES = `
         #gg-meta-hud {
+            --gg-meta-divider-gap: 12px;
+
             position: fixed;
             top: 0.5rem; /* Below the top bar */
             left: 0.5rem; /* Aligned to left */
@@ -416,7 +418,7 @@
         .gg-meta-title {
             font-weight: 800;
             color: #fff; /* White title like compass directions */
-            margin-bottom: 8px;
+            margin-bottom: var(--gg-meta-divider-gap);
             display: flex;
             justify-content: space-between;
             align-items: center;
@@ -424,7 +426,7 @@
             /* text-transform: uppercase; Removed to allow BetterMetas mixed case */
             letter-spacing: 0.05em;
             border-bottom: 1px solid rgba(255,255,255,0.1);
-            padding-bottom: 8px;
+            padding-bottom: var(--gg-meta-divider-gap);
         }
         .gg-meta-content {
             font-size: 0.9rem;
@@ -502,8 +504,8 @@
         }
 
         .gg-meta-row {
-            margin-bottom: 12px;
-            padding-bottom: 12px;
+            margin-bottom: var(--gg-meta-divider-gap);
+            padding-bottom: var(--gg-meta-divider-gap);
             border-bottom: 1px solid rgba(255,255,255,0.1);
         }
         .gg-meta-item-title {
