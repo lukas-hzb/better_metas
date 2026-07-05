@@ -190,5 +190,17 @@
     "region": "Buskerud",
     "city": "Ringerike",
     "road": "Nye Heggelivei"
+  },
+  "JgtJuutpShC0wGxjk0U-ew": {
+    "metas": [
+      "meta_1769520973301_7eyv8"
+    ],
+    "lat": "39.28373",
+    "lng": "-7.12749",
+    "country": "Spain",
+    "nominatimCountry": "Spain",
+    "region": "Extremadura",
+    "city": "San Vicente de Alcántara",
+    "road": "BA-132"
   }
 }
