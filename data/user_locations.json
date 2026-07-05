@@ -142,5 +142,17 @@
     "region": "Faro",
     "city": "Silves",
     "road": "EM529-1"
+  },
+  "-czNtELgCkZ7-vq4Tqlf_g": {
+    "metas": [
+      "meta_1769520973301_0b723"
+    ],
+    "lat": "40.50551",
+    "lng": "0.29482",
+    "country": "Spain",
+    "nominatimCountry": "Spain",
+    "region": "Comunidad Valenciana",
+    "city": "Castelló",
+    "road": "Plaça Poligono 11"
   }
 }
