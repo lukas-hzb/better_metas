@@ -622,5 +622,17 @@
     "region": "KwaZulu-Natal",
     "city": "Clifton Canyon",
     "road": "Mr551 Road"
+  },
+  "4VXR2PUq8Tq6SnoWNtquOw": {
+    "metas": [
+      "meta_france_DwIX"
+    ],
+    "lat": 43.75008,
+    "lng": 6.05912,
+    "country": "France",
+    "nominatimCountry": "France",
+    "region": "Provence-Alpes-C\u00f4te d'Azur",
+    "city": "Esparron-de-Verdon",
+    "road": "Chemin de Beau Regard"
   }
 }
