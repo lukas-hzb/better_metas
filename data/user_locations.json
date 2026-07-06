@@ -634,5 +634,17 @@
     "region": "Provence-Alpes-C\u00f4te d'Azur",
     "city": "Esparron-de-Verdon",
     "road": "Chemin de Beau Regard"
+  },
+  "iVej_ZWZFevKJJPyxlW8yA": {
+    "metas": [
+      "meta_mexico_7E67"
+    ],
+    "lat": 18.03135,
+    "lng": -94.76426,
+    "country": "Mexico",
+    "nominatimCountry": "Mexico",
+    "region": "Veracruz",
+    "city": "Rancho Viejo",
+    "road": "La Palma"
   }
 }
