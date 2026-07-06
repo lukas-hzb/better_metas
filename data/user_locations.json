@@ -358,5 +358,17 @@
     "region": "Veracruz",
     "city": "Tres Valles",
     "road": "Sayula de Alem\u00e1n - Tierra Blanca"
+  },
+  "GQDYwxgQBczJmpnK1nsT_g": {
+    "metas": [
+      "meta_portugal_rEuU"
+    ],
+    "lat": 38.12573,
+    "lng": -7.8224,
+    "country": "Portugal",
+    "nominatimCountry": "Portugal",
+    "region": "Beja",
+    "city": "Beja",
+    "road": "Estrada Municipal 521"
   }
 }
