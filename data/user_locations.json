@@ -646,5 +646,17 @@
     "region": "Veracruz",
     "city": "Rancho Viejo",
     "road": "La Palma"
+  },
+  "PuD4hGsDtWK3jhtZCLwKLw": {
+    "metas": [
+      "meta_bangladesh_oHUw"
+    ],
+    "lat": 25.79479,
+    "lng": 88.99664,
+    "country": "Bangladesh",
+    "nominatimCountry": "Bangladesh",
+    "region": "Rangpur Division",
+    "city": "Kursha",
+    "road": "Kursha"
   }
 }
