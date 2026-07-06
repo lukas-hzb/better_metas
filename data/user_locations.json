@@ -814,5 +814,17 @@
     "region": "Central Visayas",
     "city": "Mabinay",
     "road": "Pantao - Himocdongon Road"
+  },
+  "xKP-q2uqPUkz8VeZOqEKyA": {
+    "metas": [
+      "meta_panama_osKk"
+    ],
+    "lat": 8.2706,
+    "lng": -81.85843,
+    "country": "Panama",
+    "nominatimCountry": "Panama",
+    "region": "Provincia de Chiriqu\u00ed",
+    "city": "Remedios",
+    "road": "Carretera Panamericana"
   }
 }
