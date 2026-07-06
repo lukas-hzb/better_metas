@@ -478,5 +478,17 @@
     "region": "Caraga",
     "city": "Prosperidad",
     "road": "Bayugan - Cantilan - Tandag Road"
+  },
+  "N2CEJPbzqCMBEBCU2D0XNw": {
+    "metas": [
+      "meta_japan_1FK1"
+    ],
+    "lat": 26.13122,
+    "lng": 127.71258,
+    "country": "Japan",
+    "nominatimCountry": "Japan",
+    "region": "Okinawa",
+    "city": "Yaese",
+    "road": null
   }
 }
