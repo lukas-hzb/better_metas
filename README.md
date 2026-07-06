@@ -32,15 +32,17 @@ Since this is a specific Userscript, you need a Userscript manager for your brow
 3. Tampermonkey will ask if you want to add the script. Confirm by clicking "Install".
 4. Open Geoguessr and start a game – the HUD should appear automatically.
 
-## Usage
-
-### Scraping Metas, their Locations, and generating new Titles
+### Development Setup
 
 The data pipeline is Node.js based and does not require Python. Install npm metadata once:
 
 ```bash
 npm install
 ```
+
+## Usage
+
+### Scraping Metas, their Locations, and generating new Titles
 
 Use the dry-runs before writing data:
 
@@ -91,13 +93,7 @@ By default this uses local Ollama (`gemma4:e2b`) and only fills missing titles. 
 node scripts/generate_titles_ai.js --model=qwen3.5:0.8b
 ```
 
-To regenerate all titles, add `--force`, but treat that as a review workflow, not a blind update:
-
-```bash
-node scripts/generate_titles_ai.js --force --dry-run --limit=50
-```
-
-The AI script has guardrails and keeps the old title when a generated title looks unsafe, but existing curated titles are often better than model rewrites. For regular updates, prefer the default non-force mode.
+To regenerate all titles, add `--force`, but treat that as a review workflow, not a blind update. Existing curated titles are often better than model rewrites. For regular updates, prefer the default non-force mode.
 
 Run the regular update pipeline:
 
