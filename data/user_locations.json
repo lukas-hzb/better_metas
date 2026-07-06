@@ -310,5 +310,17 @@
     "region": "Navarre",
     "city": "Lazagurr\u00eda",
     "road": "Bargota"
+  },
+  "TMPJGVJaxaD6fkKmStA0Qw": {
+    "metas": [
+      "meta_russia_8PIl"
+    ],
+    "lat": 50.92218,
+    "lng": 142.18642,
+    "country": "Russia",
+    "nominatimCountry": "Russia",
+    "region": "Sakhalinskaya oblast'",
+    "city": "Aleksandrovsk-Sakhalinskiy",
+    "road": "64H-4"
   }
 }
