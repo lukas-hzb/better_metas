@@ -406,5 +406,17 @@
     "region": "Tarapac\u00e1",
     "city": "Tamarugal",
     "road": "Panamericana Norte"
+  },
+  "8lWUsSEc88TDgwQgaENF-A": {
+    "metas": [
+      "meta_spain_pPsk"
+    ],
+    "lat": 43.16765,
+    "lng": -8.92523,
+    "country": "Spain",
+    "nominatimCountry": "Spain",
+    "region": "Galicia",
+    "city": "Regalados",
+    "road": "Remisqueira"
   }
 }
