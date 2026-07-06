@@ -430,5 +430,17 @@
     "region": "Benue",
     "city": "Numor",
     "road": "Gboko-Makurdi Road"
+  },
+  "5n7kv-GIcve1cVQhU_JtLQ": {
+    "metas": [
+      "meta_peru_j7qH"
+    ],
+    "lat": -17.81265,
+    "lng": -70.57788,
+    "country": "Peru",
+    "nominatimCountry": "Peru",
+    "region": "Tacna",
+    "city": "Tacna",
+    "road": "Carretera Panamericana Sur"
   }
 }
