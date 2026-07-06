@@ -3,8 +3,8 @@
     "metas": [
       "meta_1769520967604_r84ll"
     ],
-    "lat": "43.57744",
-    "lng": "39.73195",
+    "lat": 43.57744,
+    "lng": 39.73195,
     "country": "Russia",
     "nominatimCountry": "Russia",
     "region": "Krasnodarskiy kray",
@@ -15,8 +15,8 @@
     "metas": [
       "meta_1769520914473_bn9l5"
     ],
-    "lat": "7.26303",
-    "lng": "125.61377",
+    "lat": 7.26303,
+    "lng": 125.61377,
     "country": "Philippines",
     "nominatimCountry": "Philippines",
     "region": "Davao Region",
@@ -27,8 +27,8 @@
     "metas": [
       "meta_1769520990434_0igv0"
     ],
-    "lat": "30.75810",
-    "lng": "-112.49378",
+    "lat": 30.75810,
+    "lng": -112.49378,
     "country": "Mexico",
     "nominatimCountry": "Mexico",
     "region": "Sonora",
@@ -39,8 +39,8 @@
     "metas": [
       "meta_1769520990434_lsdi2"
     ],
-    "lat": "18.63931",
-    "lng": "-87.72938",
+    "lat": 18.63931,
+    "lng": -87.72938,
     "country": "Mexico",
     "nominatimCountry": "Mexico",
     "region": "Quintana Roo",
@@ -51,8 +51,8 @@
     "metas": [
       "meta_1769520890252_lindo"
     ],
-    "lat": "24.20462",
-    "lng": "91.43099",
+    "lat": 24.20462,
+    "lng": 91.43099,
     "country": "Bangladesh",
     "nominatimCountry": "Bangladesh",
     "region": "Sylhet Division",
@@ -63,20 +63,20 @@
     "metas": [
       "meta_1769521017889_majdc"
     ],
-    "lat": "-7.72241",
-    "lng": "-79.21619",
+    "lat": -7.72241,
+    "lng": -79.21619,
     "country": "Peru",
     "nominatimCountry": "Peru",
     "region": "La Libertad",
     "city": "Ascope",
-    "road": "LI-619 / Paiján"
+    "road": "LI-619 / Paij\u00e1n"
   },
   "iK1sv4OtRh90_XAUjQgwLA": {
     "metas": [
       "meta_1769521008671_t2nc1"
     ],
-    "lat": "-27.58540",
-    "lng": "-58.90689",
+    "lat": -27.58540,
+    "lng": -58.90689,
     "country": "Argentina",
     "nominatimCountry": "Argentina",
     "region": "Chaco Province",
@@ -87,8 +87,8 @@
     "metas": [
       "meta_1769520890252_hwae6"
     ],
-    "lat": "25.11486",
-    "lng": "88.58729",
+    "lat": 25.11486,
+    "lng": 88.58729,
     "country": "Bangladesh",
     "nominatimCountry": "Bangladesh",
     "region": "Rajshahi Division",
@@ -99,20 +99,20 @@
     "metas": [
       "meta_1769521017889_ofq4x"
     ],
-    "lat": "-6.76720",
-    "lng": "-79.90027",
+    "lat": -6.76720,
+    "lng": -79.90027,
     "country": "Peru",
     "nominatimCountry": "Peru",
     "region": "Lambayeque",
     "city": "Ciudad de Dios",
-    "road": "San José - Carretera Chiclayo"
+    "road": "San Jos\u00e9 - Carretera Chiclayo"
   },
   "SajzOxi5-Pa6gjZ3X1oNQA": {
     "metas": [
       "meta_1769520990434_lsdi2"
     ],
-    "lat": "18.34517",
-    "lng": "-87.80877",
+    "lat": 18.34517,
+    "lng": -87.80877,
     "country": "Mexico",
     "nominatimCountry": "Mexico",
     "region": "Quintana Roo",
@@ -123,20 +123,20 @@
     "metas": [
       "meta_1769521010977_fnkax"
     ],
-    "lat": "-5.31197",
-    "lng": "-61.98620",
+    "lat": -5.31197,
+    "lng": -61.98620,
     "country": "Brazil",
     "nominatimCountry": "Brazil",
     "region": "Amazonas",
     "city": "Beruri",
-    "road": "Estrada Manaus–Porto Velho"
+    "road": "Estrada Manaus\u2013Porto Velho"
   },
   "nfZLreXfUrLGUjo20Sgu6A": {
     "metas": [
       "meta_1769520965321_j0aa0"
     ],
-    "lat": "37.14439",
-    "lng": "-8.40469",
+    "lat": 37.14439,
+    "lng": -8.40469,
     "country": "Portugal",
     "nominatimCountry": "Portugal",
     "region": "Faro",
@@ -147,20 +147,20 @@
     "metas": [
       "meta_1769520973301_0b723"
     ],
-    "lat": "40.50551",
-    "lng": "0.29482",
+    "lat": 40.50551,
+    "lng": 0.29482,
     "country": "Spain",
     "nominatimCountry": "Spain",
     "region": "Comunidad Valenciana",
-    "city": "Castelló",
-    "road": "Plaça Poligono 11"
+    "city": "Castell\u00f3",
+    "road": "Pla\u00e7a Poligono 11"
   },
   "QV386BFPBA7JMSKCthx7Qg": {
     "metas": [
       "meta_1769520990434_swv6h"
     ],
-    "lat": "28.89879",
-    "lng": "-111.12228",
+    "lat": 28.89879,
+    "lng": -111.12228,
     "country": "Mexico",
     "nominatimCountry": "Mexico",
     "region": "Sonora",
@@ -171,8 +171,8 @@
     "metas": [
       "meta_1769520940948_bte3g"
     ],
-    "lat": "48.64408",
-    "lng": "11.60615",
+    "lat": 48.64408,
+    "lng": 11.60615,
     "country": "Germany",
     "nominatimCountry": "Germany",
     "region": "Bayern",

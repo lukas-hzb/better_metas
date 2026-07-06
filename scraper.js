@@ -1,8 +1,11 @@
 const puppeteer = require('puppeteer');
 const fs = require('fs');
+const path = require('path');
+const { stringifyJsonAscii } = require('./scripts/json_utils');
 
 const BASE_URL = 'https://www.plonkit.net';
 const GUIDE_URL = `${BASE_URL}/guide`;
+const PLONKIT_METAS_PATH = path.join(__dirname, 'data/plonkit_metas.json');
 
 async function scrapeGuideLinks(browser) {
     const page = await browser.newPage();
@@ -101,20 +104,15 @@ async function scrapeCountry(browser, urlPath) {
         const data = await page.evaluate((fullUrl) => {
             const countryName = document.querySelector('h1')?.innerText || 'Unknown';
             const metas = [];
-
-            // Helper to clean text
-            const clean = (t) => t ? t.trim() : '';
+            const fallbackScopeForSection = (section) => {
+                if (section === 'Step 2') return 'region';
+                if (section === 'Step 3') return '10km';
+                return 'countrywide';
+            };
 
             // Find all divs with ID matching digit-digit
             const contentDivs = Array.from(document.querySelectorAll('div[id]'))
                 .filter(div => div.id.match(/^\d+-\d+$/));
-
-            // Section names mapping
-            const sectionNames = {};
-            ['1', '2', '3'].forEach(id => {
-                 const el = document.getElementById(id);
-                 if (el) sectionNames[id] = el.innerText.trim();
-            });
 
             contentDivs.forEach(div => {
                 const id = div.id;
@@ -122,12 +120,6 @@ async function scrapeCountry(browser, urlPath) {
                 
                 // User requested shortened names "Step 1", etc.
                 let section = `Step ${sectionId}`;
-                
-                // Optional: You could append the original title if it exists, but user asked to shorten.
-                // If we want "Step 1 - Identifying...", we could do:
-                // if (sectionNames[sectionId]) section += ` - ${sectionNames[sectionId].split('-')[0].trim()}`; 
-                // But "shorten to 'Step 1' etc" implies just the prefix.
-                // Let's stick to "Step 1", "Step 2", "Step 3".
 
                 // Extract Image
                 const imgEl = div.querySelector('img');
@@ -167,7 +159,7 @@ async function scrapeCountry(browser, urlPath) {
                         description: text, 
                         note: note,
                         imageUrl: imageUrl,
-                        scope: '',
+                        scope: fallbackScopeForSection(section),
                         tags: []
                     });
                 }
@@ -193,7 +185,7 @@ async function scrapeCountry(browser, urlPath) {
 async function main() {
     const isTest = process.argv.includes('--test');
     
-    // Try to find system Chrome if bundled one tails, or allow user override
+    // Try to find system Chrome if bundled one fails, or allow user override
     const userExecutablePath = process.argv.find(arg => arg.startsWith('--executable-path='))?.split('=')[1];
     
     // Common macOS Chrome path
@@ -221,14 +213,14 @@ async function main() {
             const testLink = links.find(l => l.includes('united-states')) || '/united-states';
             console.log(`Testing on ${testLink}...`);
             const result = await scrapeCountry(browser, testLink);
-            console.log(JSON.stringify(result, null, 2));
+            console.log(stringifyJsonAscii(result));
         } else {
             const results = [];
             for (const link of links) {
                 const result = await scrapeCountry(browser, link);
                 if (result) results.push(result);
             }
-            fs.writeFileSync('data/plonkit_metas.json', JSON.stringify(results, null, 2));
+            fs.writeFileSync(PLONKIT_METAS_PATH, stringifyJsonAscii(results));
             console.log(`Saved data for ${results.length} countries.`);
         }
     } catch (e) {
@@ -238,4 +230,7 @@ async function main() {
     }
 }
 
-main();
+main().catch((err) => {
+    console.error("Fatal error:", err);
+    process.exitCode = 1;
+});

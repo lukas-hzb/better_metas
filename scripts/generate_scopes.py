@@ -2,24 +2,34 @@
 """
 Generate scope values for all metas in plonkit_metas.json.
 
-Scope indicates the geographic applicability of a meta:
-- Countrywide: Feature applies anywhere in the country
-- Region: Feature applies to a large region/state
-- City: Feature applies to a city or town
-- Road: Feature applies to a specific road or road segment
+Scope indicates the geographic applicability of a meta.
+Values must match the userscript ALL_SCOPES taxonomy:
+- countrywide: Feature applies anywhere in the country
+- region: Feature applies to a large region/state
+- city: Feature applies to a city or town
+- road: Feature applies to a specific road or road segment
 - 1000km: Applies within ~1000km radius
-- 100km: Applies within ~100km radius  
+- 100km: Applies within ~100km radius
 - 10km: Applies within ~10km radius
 - 1km: Applies within ~1km radius
-- Unique: One-of-a-kind location identifier
-- (empty): Doesn't fit above categories (e.g., entire streets)
+- unique: One-of-a-kind location identifier
 """
 
-import json
 import re
-from pathlib import Path
 
-JSON_FILE_PATH = Path(__file__).parent.parent / "data" / "plonkit_metas.json"
+try:
+    from .data_utils import load_plonkit_metas, save_plonkit_metas
+except ImportError:
+    from data_utils import load_plonkit_metas, save_plonkit_metas
+
+
+def fallback_scope_for_section(section: str) -> str:
+    """Return a valid broad scope when content is too generic to classify."""
+    if section == "Step 2":
+        return "region"
+    if section == "Step 3":
+        return "10km"
+    return "countrywide"
 
 
 def determine_scope(title: str, desc: str, note: str, section: str) -> str:
@@ -200,9 +210,9 @@ def determine_scope(title: str, desc: str, note: str, section: str) -> str:
     if town_in_title:
         town_name = town_in_title.group(1).lower()
         # Exclude generic words
-        if town_name not in ["the", "a", "an", "road", "route", "highway", "blue", "red", "green", "yellow", "white", "black", "north", "south", "east", "west", "left", "right", "gen", "main", "limited", "desert", "coastal", "mountain", "flat"]:
+        if town_name not in ["the", "a", "an", "road", "route", "highway", "blue", "red", "green", "yellow", "white", "black", "north", "south", "east", "west", "left", "right", "gen", "main", "limited", "desert", "coastal", "mountain", "flat", "coverage"]:
             # Check if it's about a specific town
-            if any(x in t.lower() for x in ["city", "town", "view", "grid", "hills", "ridge", "mountain", "feature"]):
+            if re.search(r"\b(city|town|view|grid|hills|ridge|mountain|feature|features)\b", t, re.I):
                 return "city"
 
     # ============================================
@@ -222,7 +232,8 @@ def determine_scope(title: str, desc: str, note: str, section: str) -> str:
             return "1km"
     
     # ============================================
-    # EMPTY - Features that don't fit categories
+    # Generic informational entries still need a valid scope because the
+    # userscript scope filter does not expose an empty category.
     # ============================================
     # Headers/section titles
     simple_headers = [
@@ -231,15 +242,15 @@ def determine_scope(title: str, desc: str, note: str, section: str) -> str:
     ]
     for header in simple_headers:
         if d.strip() == header or t.strip() == header:
-            return ""
+            return fallback_scope_for_section(section)
     
     # Maps and coverage info (informational, no scope)
     if any(x in t.lower() for x in ["map", "header", "overview", "notes"]):
-        return ""
+        return fallback_scope_for_section(section)
     
     # Generic features without specific location
     if re.search(r"(along|throughout)\s+the\s+road", d, re.I):
-        return ""
+        return fallback_scope_for_section(section)
     
     # If the description mentions specific features but across too broad an area
     if "can be found" in d and len(d) < 100:
@@ -261,14 +272,12 @@ def determine_scope(title: str, desc: str, note: str, section: str) -> str:
     if section == "Step 3":
         return "10km"
     
-    # Default: leave empty for unclear cases
-    return ""
+    return fallback_scope_for_section(section)
 
 
 def main():
     print("Loading plonkit_metas.json...")
-    with open(JSON_FILE_PATH, 'r', encoding='utf-8') as f:
-        data = json.load(f)
+    data = load_plonkit_metas()
     
     stats = {
         "countrywide": 0,
@@ -280,7 +289,6 @@ def main():
         "10km": 0,
         "1km": 0,
         "unique": 0,
-        "": 0,
     }
     
     count = 0
@@ -299,21 +307,19 @@ def main():
             count += 1
             
             # Show first few examples of each type
-            if sum(1 for k, v in stats.items() if v <= 3 and k == new_scope) and new_scope:
+            if stats[new_scope] <= 3:
                 print(f"[{country_name}] {new_scope:12} | {title[:40]}")
     
     print(f"\n{'='*50}")
     print("SCOPE DISTRIBUTION:")
     print('='*50)
     for scope, num in sorted(stats.items(), key=lambda x: -x[1]):
-        label = scope if scope else "(empty)"
-        print(f"  {label:12}: {num:5} metas")
+        print(f"  {scope:12}: {num:5} metas")
     print(f"{'='*50}")
     print(f"Total: {count} metas processed\n")
     
     print("Saving to plonkit_metas.json...")
-    with open(JSON_FILE_PATH, 'w', encoding='utf-8') as f:
-        json.dump(data, f, indent=2, ensure_ascii=False)
+    save_plonkit_metas(data)
     
     print("Done!")
 

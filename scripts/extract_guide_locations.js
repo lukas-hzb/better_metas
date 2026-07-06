@@ -3,13 +3,13 @@ const fs = require('fs');
 const path = require('path');
 const puppeteer = require('puppeteer');
 const https = require('https');
+const { stringifyJsonAscii } = require('./json_utils');
 
 const PLONKIT_DATA_PATH = path.join(__dirname, '../data/plonkit_metas.json');
 const LOCATIONS_DATA_PATH = path.join(__dirname, '../data/plonkit_locations.json');
 
 // --- Configuration ---
 const NOMINATIM_RATE_LIMIT_MS = 1200; // Limit to 1 request per 1.2s to be safe
-const MAX_CONCURRENT_LINK_RESOLUTIONS = 5; // How many short links to resolve in parallel
 
 async function main() {
     console.log('Starting Optimized Extraction...');
@@ -109,8 +109,7 @@ async function main() {
 
     console.log(`Total Tasks to process: ${tasks.length}`);
 
-    // 3. Process Tasks (Queue)
-    // We process tasks in a custom queue to handle rate limits
+    // 3. Process Tasks sequentially to respect Nominatim rate limits.
     
     // We need a helper to resolving short links via HEAD request (or GET)
     async function resolveUrl(url) {
@@ -181,8 +180,12 @@ async function main() {
             if (panoid && lat && lng) {
                 // SKIP CHECK: If we already have this panoid with valid road/region, skip geocoding
                 const existing = locationsData[panoid];
-                if (existing && existing.road && existing.region) {
+                if (existing && existing.road && existing.region && Object.prototype.hasOwnProperty.call(existing, 'city')) {
                     let needsUpdate = false;
+                    if (!Array.isArray(existing.metas)) {
+                        existing.metas = [];
+                        needsUpdate = true;
+                    }
                     
                     // Link meta if missing
                     if (!existing.metas.includes(task.metaId)) {
@@ -198,7 +201,7 @@ async function main() {
                     }
 
                     if (needsUpdate) {
-                        fs.writeFileSync(LOCATIONS_DATA_PATH, JSON.stringify(locationsData, null, 2));
+                        fs.writeFileSync(LOCATIONS_DATA_PATH, stringifyJsonAscii(locationsData));
                     }
                     
                     skippedCount++;
@@ -218,6 +221,7 @@ async function main() {
                 
                 let road = null;
                 let region = null;
+                let city = null;
                 let country = task.country; 
                 let nominatimCountry = null;
 
@@ -228,14 +232,19 @@ async function main() {
                         road = roadName.includes(';') ? roadName.split(';').map(s => s.trim()) : roadName;
                     }
                     region = a.state || a.region || a.province || a.county || a.district || null;
+                    city = a.city || a.town || a.village || a.hamlet || a.municipality || null;
                     nominatimCountry = a.country || null;
                 }
 
                 // D. Update Data
                 if (!locationsData[panoid]) {
-                    locationsData[panoid] = { metas: [], lat, lng, country, region, road, nominatimCountry };
+                    locationsData[panoid] = { metas: [], lat, lng, country, region, city, road, nominatimCountry };
                 } else {
-                    locationsData[panoid] = { ...locationsData[panoid], lat, lng, country, region, road, nominatimCountry };
+                    locationsData[panoid] = { ...locationsData[panoid], lat, lng, country, region, city, road, nominatimCountry };
+                }
+
+                if (!Array.isArray(locationsData[panoid].metas)) {
+                    locationsData[panoid].metas = [];
                 }
 
                 if (!locationsData[panoid].metas.includes(task.metaId)) {
@@ -246,7 +255,7 @@ async function main() {
                 const displayRoad = Array.isArray(road) ? road.join(', ') : (road || 'null');
                 process.stdout.write(`\r\x1b[32m${progress} Resolved: ${displayRoad} | ${region || 'null'}\x1b[0m\x1b[K`);
 
-                fs.writeFileSync(LOCATIONS_DATA_PATH, JSON.stringify(locationsData, null, 2));
+                fs.writeFileSync(LOCATIONS_DATA_PATH, stringifyJsonAscii(locationsData));
 
             } else {
                 process.stdout.write(`\r\x1b[33m${progress} Failed URL: ${finalUrl.substring(0, 30)}...\x1b[0m\x1b[K`);
@@ -263,4 +272,7 @@ async function main() {
     console.log(`Done.`);
 }
 
-main();
+main().catch((err) => {
+    console.error('Fatal error:', err);
+    process.exitCode = 1;
+});

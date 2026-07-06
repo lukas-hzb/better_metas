@@ -10,6 +10,8 @@
 // @icon         https://www.google.com/s2/favicons?sz=64&domain=geoguessr.com
 // @run-at       document-start
 // @grant        GM_xmlhttpRequest
+// @grant        GM_getValue
+// @grant        GM_setValue
 // @grant        unsafeWindow
 // @connect      raw.githubusercontent.com
 // @connect      api.github.com
@@ -36,14 +38,14 @@
     const getRawSystemLocationsUrl = () => `https://raw.githubusercontent.com/${REPO_OWNER}/${REPO_NAME}/${REPO_BRANCH}/${SYSTEM_LOCATIONS_FILE}?t=${Date.now()}`;
     
     const API_USER_LOCATIONS_URL = `https://api.github.com/repos/${REPO_OWNER}/${REPO_NAME}/contents/${USER_LOCATIONS_FILE}`;
-    const API_SYSTEM_LOCATIONS_URL = `https://api.github.com/repos/${REPO_OWNER}/${REPO_NAME}/contents/${SYSTEM_LOCATIONS_FILE}`;
     const API_USER_METAS_URL = `https://api.github.com/repos/${REPO_OWNER}/${REPO_NAME}/contents/${USER_METAS_FILE}`;
-    const API_METAS_URL = `https://api.github.com/repos/${REPO_OWNER}/${REPO_NAME}/contents/${USER_METAS_FILE}`; // Alias for reset
     const getApiUrlForBranch = (apiUrl) => `${apiUrl}?ref=${encodeURIComponent(REPO_BRANCH)}`;
     
     const win = (typeof unsafeWindow !== 'undefined') ? unsafeWindow : window;
     const HUD_SIZE_STORAGE_KEY = 'gg_hud_size';
     const PENDING_LOCAL_CHANGES_STORAGE_KEY = 'gg_pending_local_changes';
+    const DATA_CACHE_STORAGE_KEY = 'gg_data_cache';
+    const DATA_CACHE_VERSION = `${REPO_OWNER}/${REPO_NAME}/${REPO_BRANCH}:1`;
     const ACTIVE_SCOPES_STORAGE_KEY = 'gg_active_scopes';
     const GITHUB_TOKEN_STORAGE_KEY = 'gg_gh_token';
     const DEFAULT_HUD_WIDTH = '320px';
@@ -52,6 +54,10 @@
     const HUD_MIN_HEIGHT = 220;
     const DATA_REFRESH_AFTER_SAVE_MS = 2500;
     const SAVE_COMPLETE_RESET_MS = 1000;
+    const DATA_FETCH_TIMEOUT_MS = 8000;
+    const DATA_FETCH_MAX_ATTEMPTS = 3;
+    const DATA_FETCH_RETRY_DELAY_MS = 400;
+    const DATA_CACHE_MAX_AGE_MS = 12 * 60 * 60 * 1000;
     const STREETVIEW_RETRY_DELAY_MS = 500;
     const RESULT_SCREEN_GRACE_MS = 500;
     const VISIBILITY_POLL_INTERVAL_MS = 200;
@@ -79,28 +85,79 @@
     let metasData = [];
     let userMetaIds = new Set();
     let systemMetaIds = new Set();
+    let dataLoadSequence = 0;
+    let uiInitialized = false;
+
+    function normalizeMetaIds(value) {
+        return Array.isArray(value)
+            ? value.filter(id => typeof id === 'string' && id.trim())
+            : [];
+    }
 
     function getLocationMetaIds(entry) {
         if (!entry) return [];
-        if (Array.isArray(entry)) return entry;
-        return Array.isArray(entry.metas) ? entry.metas : [];
+        if (Array.isArray(entry)) return normalizeMetaIds(entry);
+        return normalizeMetaIds(entry.metas);
+    }
+
+    function normalizeCoordinate(value) {
+        if (value === null || value === undefined || value === '') return null;
+        if (typeof value === 'number') return Number.isFinite(value) ? value : null;
+        if (typeof value === 'string') {
+            const parsed = Number(value);
+            return Number.isFinite(parsed) ? parsed : null;
+        }
+        return null;
+    }
+
+    function normalizeLocationEntry(entry) {
+        if (!entry) return null;
+
+        const normalized = Array.isArray(entry)
+            ? { metas: getLocationMetaIds(entry) }
+            : (typeof entry === 'object' ? { ...entry, metas: getLocationMetaIds(entry) } : null);
+        if (!normalized) return null;
+
+        normalized.lat = normalizeCoordinate(normalized.lat);
+        normalized.lng = normalizeCoordinate(normalized.lng);
+        ['country', 'nominatimCountry', 'region', 'city', 'road'].forEach(field => {
+            if (!Object.prototype.hasOwnProperty.call(normalized, field)) {
+                normalized[field] = null;
+            }
+        });
+        return normalized;
+    }
+
+    function getCurrentLocationSnapshot() {
+        return {
+            lat: normalizeCoordinate(currentLocationData.lat),
+            lng: normalizeCoordinate(currentLocationData.lng),
+            country: currentLocationData.country || null,
+            nominatimCountry: currentLocationData.nominatimCountry || null,
+            region: currentLocationData.region || null,
+            city: currentLocationData.city || null,
+            road: currentLocationData.road || null
+        };
+    }
+
+    function getNormalizedRoadNames(value) {
+        const values = Array.isArray(value) ? value : [value];
+        return values
+            .map(road => String(road || '').toLowerCase().trim())
+            .filter(Boolean);
     }
 
     function mergeLocationEntries(systemEntry, userEntry) {
-        if (!systemEntry) return userEntry;
-        if (!userEntry) return systemEntry;
+        if (!systemEntry) return normalizeLocationEntry(userEntry);
+        if (!userEntry) return normalizeLocationEntry(systemEntry);
 
         const systemEntryMetaIds = getLocationMetaIds(systemEntry);
         const userEntryMetaIds = getLocationMetaIds(userEntry);
         const mergedMetaIds = Array.from(new Set([...systemEntryMetaIds, ...userEntryMetaIds]));
 
-        if (Array.isArray(systemEntry) && Array.isArray(userEntry)) {
-            return mergedMetaIds;
-        }
-
         const systemData = Array.isArray(systemEntry) ? { metas: systemEntryMetaIds } : { ...systemEntry };
         const userData = Array.isArray(userEntry) ? { metas: userEntryMetaIds } : { ...userEntry };
-        return { ...systemData, ...userData, metas: mergedMetaIds };
+        return normalizeLocationEntry({ ...systemData, ...userData, metas: mergedMetaIds });
     }
 
     function mergeLocationMaps(systemMap, userMap) {
@@ -113,26 +170,21 @@
 
     function ensureLocationEntry(locations, panoid) {
         if (!locations[panoid]) {
+            const locationSnapshot = getCurrentLocationSnapshot();
             locations[panoid] = {
                 metas: [],
-                lat: currentLocationData.lat,
-                lng: currentLocationData.lng,
-                country: currentLocationData.country,
-                nominatimCountry: currentLocationData.nominatimCountry,
-                region: currentLocationData.region,
-                city: currentLocationData.city,
-                road: currentLocationData.road
+                ...locationSnapshot
             };
         } else if (Array.isArray(locations[panoid])) {
+            const locationSnapshot = getCurrentLocationSnapshot();
             locations[panoid] = {
-                metas: locations[panoid],
-                lat: currentLocationData.lat,
-                lng: currentLocationData.lng,
-                country: currentLocationData.country,
-                nominatimCountry: currentLocationData.nominatimCountry,
-                region: currentLocationData.region,
-                city: currentLocationData.city,
-                road: currentLocationData.road
+                metas: getLocationMetaIds(locations[panoid]),
+                ...locationSnapshot
+            };
+        } else {
+            locations[panoid] = normalizeLocationEntry(locations[panoid]) || {
+                metas: [],
+                ...getCurrentLocationSnapshot()
             };
         }
 
@@ -146,6 +198,169 @@
                 entry.metas.push(id);
             }
         });
+    }
+
+    function normalizeLocationMap(value) {
+        if (!value || typeof value !== 'object' || Array.isArray(value)) return {};
+
+        const normalized = {};
+        Object.entries(value).forEach(([panoid, entry]) => {
+            const normalizedEntry = normalizeLocationEntry(entry);
+            if (normalizedEntry) {
+                normalized[panoid] = normalizedEntry;
+            }
+        });
+        return normalized;
+    }
+
+    function normalizeMetaList(value) {
+        return Array.isArray(value)
+            ? value
+                .filter(meta => meta && typeof meta.id === 'string' && meta.id.trim())
+                .map(meta => ({
+                    ...meta,
+                    scope: normalizeScope(meta.scope),
+                    tags: normalizeTags(meta.tags)
+                }))
+            : [];
+    }
+
+    function normalizeUserMetas(value) {
+        return normalizeMetaList(value);
+    }
+
+    function normalizeSystemMetas(value) {
+        if (!Array.isArray(value)) return [];
+        return value.flatMap(entry => {
+            if (entry && entry.id) return [entry];
+            if (Array.isArray(entry)) return normalizeMetaList(entry);
+            if (entry && Array.isArray(entry.metas)) return normalizeMetaList(entry.metas);
+            return [];
+        });
+    }
+
+    function stringifyJsonContent(content) {
+        return JSON.stringify(content, null, 2).replace(/[^\x00-\x7F]/g, (char) => {
+            return `\\u${char.charCodeAt(0).toString(16).padStart(4, '0')}`;
+        });
+    }
+
+    function normalizeDataSnapshot(value) {
+        if (!value || typeof value !== 'object') return null;
+        return {
+            userLocationMap: normalizeLocationMap(value.userLocationMap),
+            systemLocationMap: normalizeLocationMap(value.systemLocationMap),
+            userMetas: normalizeUserMetas(value.userMetas),
+            systemMetas: normalizeSystemMetas(value.systemMetas)
+        };
+    }
+
+    function buildUniqueMetas(userMetas, systemMetas) {
+        const combined = [...normalizeUserMetas(userMetas), ...normalizeUserMetas(systemMetas)];
+        const seen = new Set();
+        return combined.filter(meta => {
+            if (!meta || !meta.id || seen.has(meta.id)) return false;
+            seen.add(meta.id);
+            return true;
+        });
+    }
+
+    function applyDataSnapshot(snapshot, options = {}) {
+        const normalized = normalizeDataSnapshot(snapshot);
+        if (!normalized) return null;
+
+        const tempUserMetas = normalized.userMetas.slice();
+        const tempUserLocationMap = { ...normalized.userLocationMap };
+
+        if (options.prunePending) {
+            pruneConfirmedPendingLocalChanges(tempUserMetas, tempUserLocationMap);
+        }
+
+        const pending = mergePendingLocalChangesInto(tempUserMetas, tempUserLocationMap);
+
+        userLocationMap = tempUserLocationMap;
+        systemLocationMap = normalized.systemLocationMap;
+        locationMap = mergeLocationMaps(systemLocationMap, userLocationMap);
+        userMetaIds = new Set(tempUserMetas.map(meta => meta.id).filter(Boolean));
+        systemMetaIds = new Set(normalized.systemMetas.map(meta => meta.id).filter(Boolean));
+        metasData = buildUniqueMetas(tempUserMetas, normalized.systemMetas);
+
+        return { pending, userMetas: tempUserMetas, userLocationMap: tempUserLocationMap };
+    }
+
+    function readDataCache() {
+        if (typeof GM_getValue === 'function') {
+            return GM_getValue(DATA_CACHE_STORAGE_KEY, null);
+        }
+
+        return localStorage.getItem(DATA_CACHE_STORAGE_KEY);
+    }
+
+    function writeDataCache(value) {
+        if (typeof GM_setValue === 'function') {
+            GM_setValue(DATA_CACHE_STORAGE_KEY, value);
+            return;
+        }
+
+        localStorage.setItem(DATA_CACHE_STORAGE_KEY, value);
+    }
+
+    function clearDataCache() {
+        if (typeof GM_setValue === 'function') {
+            GM_setValue(DATA_CACHE_STORAGE_KEY, null);
+        }
+
+        localStorage.removeItem(DATA_CACHE_STORAGE_KEY);
+    }
+
+    function loadCachedDataSnapshot() {
+        try {
+            const cached = JSON.parse(readDataCache() || 'null');
+            if (!cached || typeof cached !== 'object') return null;
+            if (cached.version !== DATA_CACHE_VERSION) {
+                clearDataCache();
+                return null;
+            }
+            if (!cached.timestamp || Date.now() - cached.timestamp > DATA_CACHE_MAX_AGE_MS) {
+                clearDataCache();
+                return null;
+            }
+            return normalizeDataSnapshot(cached);
+        } catch (err) {
+            console.warn('[BetterMetas] Invalid cached data snapshot:', err);
+            clearDataCache();
+            return null;
+        }
+    }
+
+    function saveDataSnapshotCache(snapshot) {
+        const normalized = normalizeDataSnapshot(snapshot);
+        if (!normalized) return;
+
+        try {
+            writeDataCache(JSON.stringify({
+                version: DATA_CACHE_VERSION,
+                timestamp: Date.now(),
+                ...normalized
+            }));
+        } catch (err) {
+            console.warn('[BetterMetas] Could not save data cache:', err);
+        }
+    }
+
+    function applyCachedDataSnapshot() {
+        const cached = loadCachedDataSnapshot();
+        if (!cached) return false;
+
+        applyDataSnapshot(cached);
+        console.log(`[BetterMetas] Loaded cached DB: ${Object.keys(locationMap).length} locs, ${metasData.length} metas.`);
+        if (currentPanoid) {
+            updateStatus(`ID: ${currentPanoid.substring(0,12)}...`);
+            refreshDisplay();
+        } else {
+            updateStatus(`Cached DB (${metasData.length} metas)`);
+        }
+        return true;
     }
     
     let currentPanoid = null;
@@ -176,6 +391,7 @@
         nominatimCountry: null, // Raw Nominatim result
         googleCountry: null,    // Raw Google result
         region: null,
+        city: null,
         road: null,
         lat: null,
         lng: null
@@ -187,15 +403,79 @@
         return scope.charAt(0).toUpperCase() + scope.slice(1);
     }
 
+    function normalizeScope(scope, fallback = 'countrywide') {
+        const normalized = String(scope || '').trim().toLowerCase();
+        if (!normalized) return fallback;
+        if (normalized === 'longitude') return 'region';
+        return ALL_SCOPES.includes(normalized) ? normalized : fallback;
+    }
+
+    function normalizeTags(value) {
+        const tags = Array.isArray(value)
+            ? value
+            : String(value || '').split(',');
+        const seen = new Set();
+        return tags
+            .map(tag => String(tag || '').trim().toLowerCase())
+            .filter(tag => TAG_PRESETS.includes(tag))
+            .filter(tag => {
+                if (seen.has(tag)) return false;
+                seen.add(tag);
+                return true;
+            });
+    }
+
     function renderScopePills(scopes, selectedScopes = null) {
         return scopes.map(scope => {
             const selectedClass = selectedScopes && selectedScopes.has(scope) ? ' gg-tag-selected' : '';
-            return `<span class="gg-tag-pill${selectedClass}" data-value="${scope}">${getScopeLabel(scope)}</span>`;
+            return `<span class="gg-tag-pill${selectedClass}" data-value="${escapeAttribute(scope)}">${escapeHtml(getScopeLabel(scope))}</span>`;
         }).join('');
     }
 
     function renderTagPills(tags) {
-        return tags.map(tag => `<span class="gg-tag-pill">${tag}</span>`).join('');
+        return tags.map(tag => `<span class="gg-tag-pill">${escapeHtml(tag)}</span>`).join('');
+    }
+
+    function escapeHtml(value) {
+        return String(value ?? '').replace(/[&<>"']/g, (char) => ({
+            '&': '&amp;',
+            '<': '&lt;',
+            '>': '&gt;',
+            '"': '&quot;',
+            "'": '&#39;'
+        }[char]));
+    }
+
+    function escapeAttribute(value) {
+        return escapeHtml(value);
+    }
+
+    function getSafeImageUrl(value) {
+        if (!value) return '';
+        try {
+            const url = new URL(String(value), window.location.href);
+            return ['http:', 'https:'].includes(url.protocol) ? url.href : '';
+        } catch (err) {
+            return '';
+        }
+    }
+
+    function renderMetaImage(imageUrl) {
+        const safeUrl = getSafeImageUrl(imageUrl);
+        return safeUrl ? `<img src="${escapeAttribute(safeUrl)}" class="gg-meta-image">` : '';
+    }
+
+    function renderStaticTags(tags) {
+        return (Array.isArray(tags) ? tags : [])
+            .map(tag => `<span class="gg-tag-static">${escapeHtml(tag)}</span>`)
+            .join('');
+    }
+
+    function getEventElementTarget(event) {
+        const target = event && event.target;
+        if (!target) return null;
+        if (target.nodeType === 1) return target;
+        return target.parentElement || null;
     }
 
     function loadActiveScopes() {
@@ -203,8 +483,8 @@
             const storedScopes = JSON.parse(localStorage.getItem(ACTIVE_SCOPES_STORAGE_KEY) || 'null');
             if (Array.isArray(storedScopes)) {
                 const knownScopes = storedScopes
-                    .map(scope => scope === 'longitude' ? 'city' : scope)
-                    .filter(scope => ALL_SCOPES.includes(scope));
+                    .map(scope => normalizeScope(scope, null))
+                    .filter(Boolean);
                 if (knownScopes.length > 0) return new Set(knownScopes);
             }
         } catch (err) {
@@ -1220,7 +1500,7 @@
     function addStyles() {
         const style = document.createElement('style');
         style.innerText = STYLES;
-        document.head.appendChild(style);
+        (document.head || document.documentElement).appendChild(style);
     }
 
     function getSavedHudSize() {
@@ -1290,13 +1570,9 @@
         const normalized = getEmptyPendingLocalChanges();
         if (!value || typeof value !== 'object') return normalized;
 
-        if (Array.isArray(value.metas)) {
-            normalized.metas = value.metas.filter(meta => meta && meta.id);
-        }
+        normalized.metas = normalizeMetaList(value.metas);
 
-        if (value.locations && typeof value.locations === 'object' && !Array.isArray(value.locations)) {
-            normalized.locations = value.locations;
-        }
+        normalized.locations = normalizeLocationMap(value.locations);
 
         return normalized;
     }
@@ -1645,12 +1921,13 @@
         const updateHiddenInput = () => {
             const selected = Array.from(presetContainer.querySelectorAll('.gg-tag-selected'))
                                   .map(el => el.textContent.trim());
-            document.getElementById('meta-tags').value = selected.join(', ');
+            document.getElementById('meta-tags').value = normalizeTags(selected).join(', ');
         };
 
         presetContainer.addEventListener('click', (e) => {
-            if (e.target.classList.contains('gg-tag-pill')) {
-                e.target.classList.toggle('gg-tag-selected');
+            const target = getEventElementTarget(e);
+            if (target && target.classList.contains('gg-tag-pill')) {
+                target.classList.toggle('gg-tag-selected');
                 updateHiddenInput();
             }
         });
@@ -1659,18 +1936,19 @@
         const scopeContainer = modal.querySelector('#meta-scope-presets');
         
         scopeContainer.addEventListener('click', (e) => {
-            if (e.target.classList.contains('gg-tag-pill')) {
+            const target = getEventElementTarget(e);
+            if (target && target.classList.contains('gg-tag-pill')) {
                 // Deselect all others
                 Array.from(scopeContainer.querySelectorAll('.gg-tag-pill')).forEach(el => {
-                   if (el !== e.target) el.classList.remove('gg-tag-selected');
+                   if (el !== target) el.classList.remove('gg-tag-selected');
                 });
                 
                 // Toggle clicked
-                const wasSelected = e.target.classList.contains('gg-tag-selected');
+                const wasSelected = target.classList.contains('gg-tag-selected');
                 if (!wasSelected) {
-                    e.target.classList.add('gg-tag-selected');
+                    target.classList.add('gg-tag-selected');
                 } else {
-                    e.target.classList.remove('gg-tag-selected');
+                    target.classList.remove('gg-tag-selected');
                 }
 
                 // Update hidden input
@@ -1740,8 +2018,10 @@
             // Add listeners
             scopeContainer.querySelectorAll('.gg-tag-pill').forEach(pill => {
                 pill.addEventListener('click', (e) => {
+                    const target = getEventElementTarget(e);
+                    if (!target) return;
                     // Only toggle UI state, do NOT save yet
-                    e.target.classList.toggle('gg-tag-selected');
+                    target.classList.toggle('gg-tag-selected');
                 });
             });
 
@@ -1961,8 +2241,8 @@
             'south georgia & sandwich islands': 'GS', 'south korea': 'KR', 'spain': 'ES', 'sri lanka': 'LK',
             'svalbard': 'SJ', 'sweden': 'SE', 'switzerland': 'CH', 'são tomé and príncipe': 'ST',
             'taiwan': 'TW', 'tanzania': 'TZ', 'thailand': 'TH', 'tunisia': 'TN', 'turkey': 'TR',
-            'us minor outlying islands': 'UM', 'us virgin islands': 'VI', 'uganda': 'UG', 'ukraine': 'UA',
-            'united arab emirates': 'AE', 'united kingdom': 'GB', 'united states of america': 'US',
+            'us minor outlying islands': 'UM', 'us virgin islands': 'VI', 'usa': 'US', 'uganda': 'UG', 'ukraine': 'UA',
+            'uae': 'AE', 'united arab emirates': 'AE', 'uk': 'GB', 'united kingdom': 'GB', 'united states': 'US', 'united states of america': 'US',
             'uruguay': 'UY', 'vanuatu': 'VU', 'vietnam': 'VN'
         };
 
@@ -2027,15 +2307,15 @@
             const isSelected = selectedMetaIds.has(m.id);
             const countryCode = getCountryCode(m.country);
             return `
-                <div class="gg-meta-list-item" data-meta-id="${m.id}">
+                <div class="gg-meta-list-item" data-meta-id="${escapeAttribute(m.id)}">
                     <div class="gg-meta-list-main">
-                        <span class="gg-country-badge" title="${m.country || 'Unknown Country'}">${countryCode}</span>
-                        <div class="gg-meta-list-title">${m.title}</div>
+                        <span class="gg-country-badge" title="${escapeAttribute(m.country || 'Unknown Country')}">${escapeHtml(countryCode)}</span>
+                        <div class="gg-meta-list-title">${escapeHtml(m.title)}</div>
                         <div class="gg-meta-list-tags">
-                            ${(m.tags || []).map(t => `<span class="gg-tag-static">${t}</span>`).join('')}
+                            ${renderStaticTags(m.tags)}
                         </div>
                     </div>
-                    <button class="gg-btn-link-meta ${isSelected ? 'gg-tag-selected' : ''}" data-meta-id="${m.id}">
+                    <button class="gg-btn-link-meta ${isSelected ? 'gg-tag-selected' : ''}" data-meta-id="${escapeAttribute(m.id)}">
                         ${isSelected ? 'Selected' : 'Link'}
                     </button>
                 </div>
@@ -2054,11 +2334,11 @@
                 
                 // Populate
                 previewPopup.innerHTML = `
-                    <div class="gg-meta-item-title">${meta.title}</div>
-                    ${meta.imageUrl ? `<img src="${meta.imageUrl}" class="gg-meta-image">` : ''}
-                    <div class="gg-meta-description">${meta.description}</div>
+                    <div class="gg-meta-item-title">${escapeHtml(meta.title)}</div>
+                    ${renderMetaImage(meta.imageUrl)}
+                    <div class="gg-meta-description">${escapeHtml(meta.description)}</div>
                     <div class="gg-meta-tags">
-                        ${(meta.tags || []).map(t => `<span class="gg-tag-static">${t}</span>`).join('')}
+                        ${renderStaticTags(meta.tags)}
                     </div>
                 `;
 
@@ -2133,6 +2413,7 @@
         const token = localStorage.getItem(GITHUB_TOKEN_STORAGE_KEY);
         if (!token) {
             // Mode: Community (No Token) - Submit via GitHub Issue
+            const locationSnapshot = getCurrentLocationSnapshot();
             const submission = { 
                 action: "link_metas",
                 panoid: panoid, 
@@ -2140,14 +2421,9 @@
                 targetFiles: {
                     userLocations: metaIds
                 },
-                lat: currentLocationData.lat,
-                lng: currentLocationData.lng,
-                country: currentLocationData.country,
-                nominatimCountry: currentLocationData.nominatimCountry,
-                region: currentLocationData.region,
-                road: currentLocationData.road
+                ...locationSnapshot
             };
-            const jsonStr = JSON.stringify(submission, null, 2);
+            const jsonStr = stringifyJsonContent(submission);
             const repo = `${REPO_OWNER}/${REPO_NAME}`;
             const issueTitle = encodeURIComponent(`[Meta Submission] ${panoid.substring(0,15)} (Multi-Link)`);
             const body = encodeURIComponent(`## Link Multiple Metas\n\n\`\`\`json\n${jsonStr}\n\`\`\`\n\n_(Automated submission via BetterMetas Script)_`);
@@ -2173,7 +2449,7 @@
             }
 
             const locationsFile = await getGitHubJsonFile(API_USER_LOCATIONS_URL, token);
-            const locations = locationsFile.content;
+            const locations = normalizeLocationMap(locationsFile.content);
             addMetaIdsToLocationMap(locations, panoid, metaIds);
 
             await putGitHubJsonFile(
@@ -2201,9 +2477,9 @@
         const title = document.getElementById('meta-title').value;
         const desc = document.getElementById('meta-desc').value;
         const tagsStr = document.getElementById('meta-tags').value;
-        const tags = tagsStr.split(',').map(t => t.trim()).filter(t => t);
-        const imageUrl = document.getElementById('meta-image').value;
-        const scope = document.getElementById('meta-scope').value;
+        const tags = normalizeTags(tagsStr);
+        const imageUrl = getSafeImageUrl(document.getElementById('meta-image').value) || null;
+        const scope = normalizeScope(document.getElementById('meta-scope').value);
         
         if (!title || !desc) {
             alert('Please fill in Title and Description');
@@ -2218,16 +2494,12 @@
 
         // Generate unique meta ID
         const metaId = `meta_${Date.now()}_${Math.random().toString(36).substr(2, 5)}`;
+        const locationSnapshot = getCurrentLocationSnapshot();
 
         const newMeta = {
             id: metaId,
-            country: currentLocationData.country || "Unknown",
-            nominatimCountry: currentLocationData.nominatimCountry || null,
-            region: currentLocationData.region || null,
-            city: currentLocationData.city || null,
-            road: currentLocationData.road || null,
-            lat: currentLocationData.lat,
-            lng: currentLocationData.lng,
+            ...locationSnapshot,
+            country: locationSnapshot.country || "Unknown",
             section: "User Submitted",
             title: title,
             description: desc,
@@ -2252,7 +2524,7 @@
         
         // Mode: Community (No Token)
         if (!token) {
-            const jsonStr = JSON.stringify(submission, null, 2);
+            const jsonStr = stringifyJsonContent(submission);
             
             // Create Issue URL
             const repo = `${REPO_OWNER}/${REPO_NAME}`;
@@ -2290,19 +2562,22 @@
             updateStatus('Fetching user_locations.json...');
             const locsFile = await getGitHubJsonFile(API_USER_LOCATIONS_URL, token);
 
+            const metas = normalizeUserMetas(metasFile.content);
+            const locations = normalizeLocationMap(locsFile.content);
+
             // 2. Add meta to user_metas.json
-            metasFile.content.push(newMeta);
+            metas.push(newMeta);
 
             // 3. Link panoid in user_locations.json
-            addMetaIdsToLocationMap(locsFile.content, panoid, [newMeta.id]);
+            addMetaIdsToLocationMap(locations, panoid, [newMeta.id]);
 
             // 4. Commit user_metas.json
             updateStatus('Saving user_metas.json...');
-            await putGitHubJsonFile(API_USER_METAS_URL, token, metasFile.sha, metasFile.content, `Add meta ${newMeta.id} via BetterMetas`);
+            await putGitHubJsonFile(API_USER_METAS_URL, token, metasFile.sha, metas, `Add meta ${newMeta.id} via BetterMetas`);
 
             // 5. Commit user_locations.json
             updateStatus('Saving user_locations.json...');
-            await putGitHubJsonFile(API_USER_LOCATIONS_URL, token, locsFile.sha, locsFile.content, `Link ${panoid} to ${newMeta.id} via BetterMetas`);
+            await putGitHubJsonFile(API_USER_LOCATIONS_URL, token, locsFile.sha, locations, `Link ${panoid} to ${newMeta.id} via BetterMetas`);
 
             applyLocalSavedMeta(newMeta, panoid);
             updateStatus('Saved!');
@@ -2318,7 +2593,7 @@
             console.error('Save error:', err);
             btn.innerHTML = 'Error';
             btn.disabled = false;
-            output.textContent = `Error saving to GitHub:\n${err.message}\n\nBackup JSON:\n${JSON.stringify(submission, null, 2)}`;
+            output.textContent = `Error saving to GitHub:\n${err.message}\n\nBackup JSON:\n${stringifyJsonContent(submission)}`;
             output.style.display = 'block';
             alert(`Error: ${err.message}`);
         }
@@ -2339,11 +2614,11 @@
 
         try {
             // 1. Get SHAs
-            const metasSha = await getGitHubFileSha(API_METAS_URL, token);
+            const metasSha = await getGitHubFileSha(API_USER_METAS_URL, token);
             const locsSha = await getGitHubFileSha(API_USER_LOCATIONS_URL, token);
 
             // 2. Overwrite with empty
-            await putGitHubJsonFile(API_METAS_URL, token, metasSha, [], "Clear own BetterMetas metas");
+            await putGitHubJsonFile(API_USER_METAS_URL, token, metasSha, [], "Clear own BetterMetas metas");
             await putGitHubJsonFile(API_USER_LOCATIONS_URL, token, locsSha, {}, "Clear own BetterMetas location links");
 
             alert("Own BetterMetas data cleared!");
@@ -2370,7 +2645,7 @@
         const renderMeta = (m, isPredicted = false) => {
              // Predicted metas get a click handler for Quick Link
              const titleAttr = isPredicted 
-                 ? `class="gg-clickable-meta-title" onclick="window.quickLinkMeta('${m.id}', '${m.title.replace(/'/g, "\\'")}')" title="Click to Link to this Location"`
+                 ? `class="gg-clickable-meta-title" data-meta-id="${escapeAttribute(m.id)}" data-meta-title="${escapeAttribute(m.title)}" title="Click to Link to this Location"`
                  : '';
              
              // Badge logic
@@ -2386,12 +2661,12 @@
              return `
             <div class="gg-meta-row ${isPredicted ? 'gg-meta-row-predicted' : ''}">
                 <div class="gg-meta-item-title">
-                    <span ${titleAttr}>${m.title}</span>
+                    <span ${titleAttr}>${escapeHtml(m.title)}</span>
                     ${badge}
                 </div>
-                ${m.imageUrl ? `<img src="${m.imageUrl}" class="gg-meta-image">` : ''}
-                <div class="gg-meta-description">${m.description}</div>
-                <div class="gg-meta-tags">${(m.tags || []).map(t => `<span class="gg-tag-static">${t}</span>`).join('')}</div>
+                ${renderMetaImage(m.imageUrl)}
+                <div class="gg-meta-description">${escapeHtml(m.description)}</div>
+                <div class="gg-meta-tags">${renderStaticTags(m.tags)}</div>
             </div>
             `;
         };
@@ -2400,6 +2675,12 @@
         const predictedHtml = (predicted || []).map(m => renderMeta(m, true)).join('');
 
         container.innerHTML = exactHtml + predictedHtml;
+
+        container.querySelectorAll('.gg-clickable-meta-title').forEach(titleEl => {
+            titleEl.addEventListener('click', () => {
+                win.quickLinkMeta(titleEl.dataset.metaId, titleEl.dataset.metaTitle || '');
+            });
+        });
     }
 
 
@@ -2429,9 +2710,7 @@
 
         // Helper to check scope
         const isScopeActive = (m) => {
-            const scope = (m.scope || 'countrywide').toLowerCase();
-            const s = scope === '' ? 'countrywide' : scope;
-            return activeScopes.has(s);
+            return activeScopes.has(normalizeScope(m.scope));
         };
 
         // Get exact metas - BYPASS SCOPE FILTER
@@ -2562,11 +2841,9 @@
     }
 
     function getDistanceForScope(scope) {
-        const s = (scope || '').toLowerCase();
+        const s = normalizeScope(scope);
         if (s === '1km') return 1;
         if (s === '10km') return 10;
-        if (s === '25km') return 25;
-        if (s === '50km') return 50;
         if (s === '100km') return 100;
         if (s === '1000km') return 1000;
         
@@ -2581,28 +2858,35 @@
     }
 
     const COUNTRY_ALIAS_MAP = {
-        "France": (lat, lng) => {
+        "france": (lat, lng) => {
             // Reunion Check
             if (lat < -19 && lat > -22 && lng > 54 && lng < 57) return "Reunion";
             return "France";
         },
-        "China": (lat, lng) => {
+        "china": (lat, lng) => {
             // Hong Kong / Macau Check
             if (lat > 22 && lat < 23 && lng > 113.8 && lng < 114.5) return "Hong Kong";
             if (lat > 22 && lat < 22.3 && lng > 113.5 && lng < 113.6) return "Macau";
             return "China";
         },
-        "United States": "USA",
-        "United Kingdom": "UK",
-        "Virgin Islands, U.S.": "US Virgin Islands",
-        "United Arab Emirates": "UAE"
+        "usa": "United States of America",
+        "united states": "United States of America",
+        "united states of america": "United States of America",
+        "uk": "United Kingdom",
+        "united kingdom": "United Kingdom",
+        "uae": "United Arab Emirates",
+        "united arab emirates": "United Arab Emirates",
+        "virgin islands, u.s.": "US Virgin Islands",
+        "u.s. virgin islands": "US Virgin Islands",
+        "us virgin islands": "US Virgin Islands"
     };
 
     function normalizeCountry(name, lat, lng) {
         if (!name) return "Unknown";
         let target = name;
-        if (COUNTRY_ALIAS_MAP[name]) {
-            const mapping = COUNTRY_ALIAS_MAP[name];
+        const aliasKey = String(name).trim().toLowerCase();
+        if (COUNTRY_ALIAS_MAP[aliasKey]) {
+            const mapping = COUNTRY_ALIAS_MAP[aliasKey];
             if (typeof mapping === 'function') {
                 target = mapping(parseFloat(lat), parseFloat(lng));
             } else {
@@ -2651,22 +2935,14 @@
      * Checks both exact distance matches and fuzzy name matches (Region/Road).
      */
     function evaluateProximityMetas() {
-        const curLat = parseFloat(currentLocationData.lat);
-        const curLng = parseFloat(currentLocationData.lng);
+        const curLat = normalizeCoordinate(currentLocationData.lat);
+        const curLng = normalizeCoordinate(currentLocationData.lng);
         const curCountry = normalizeCountry(currentLocationData.country, curLat, curLng);
         const curNomCountry = normalizeCountry(currentLocationData.nominatimCountry, curLat, curLng);
         const curRegion = currentLocationData.region;
         const curCity = currentLocationData.city;
-        const curRoad = (currentLocationData.road || '').toLowerCase().trim();
         
-        const curRoads = [];
-        if (currentLocationData.road) {
-            if (Array.isArray(currentLocationData.road)) {
-                currentLocationData.road.forEach(r => curRoads.push(r.toLowerCase().trim()));
-            } else {
-                curRoads.push(String(currentLocationData.road).toLowerCase().trim());
-            }
-        }
+        const curRoads = getNormalizedRoadNames(currentLocationData.road);
 
         if (isNaN(curLat) || isNaN(curLng)) return [];
 
@@ -2675,7 +2951,7 @@
 
         // Helper: Check meta match against location
         const checkMatch = (scope, entryLat, entryLng, entryCountry, entryRegion, entryCity, entryRoads) => {
-             scope = (scope || '').toLowerCase();
+             scope = normalizeScope(scope);
              
              // 1. Distance Match
              const distLimit = getDistanceForScope(scope);
@@ -2721,8 +2997,8 @@
             const metaIds = getLocationMetaIds(entry);
             
             // Normalize Entry Data
-            const eLat = entry.lat ? parseFloat(entry.lat) : null;
-            const eLng = entry.lng ? parseFloat(entry.lng) : null;
+            const eLat = normalizeCoordinate(entry.lat);
+            const eLng = normalizeCoordinate(entry.lng);
             const eCountry = normalizeCountry(entry.country, eLat, eLng); 
             // entry.nominatimCountry might exist
             const finalECountry = normalizeCountry(entry.nominatimCountry || eCountry, eLat, eLng);
@@ -2730,14 +3006,7 @@
             const eRegion = entry.region;
             const eCity = entry.city; // New field, might be undefined in old entries
             
-            const eRoads = [];
-            if (entry.road) {
-                if (Array.isArray(entry.road)) {
-                    entry.road.forEach(r => eRoads.push(String(r).toLowerCase().trim()));
-                } else {
-                    eRoads.push(String(entry.road).toLowerCase().trim());
-                }
-            }
+            const eRoads = getNormalizedRoadNames(entry.road);
 
             metaIds.forEach(id => {
                  if (matchedMetaIds.has(id)) return; // Already matched
@@ -2757,19 +3026,12 @@
              if (matchedMetaIds.has(meta.id)) return;
 
              // Meta Static Data
-             const mLat = meta.lat ? parseFloat(meta.lat) : null;
-             const mLng = meta.lng ? parseFloat(meta.lng) : null;
+             const mLat = normalizeCoordinate(meta.lat);
+             const mLng = normalizeCoordinate(meta.lng);
              const mCountry = normalizeCountry(meta.country, mLat, mLng);
              const mRegion = meta.region;
              const mCity = meta.city;
-             const mRoads = [];
-             if (meta.road) {
-                 if (Array.isArray(meta.road)) {
-                     meta.road.forEach(r => mRoads.push(String(r).toLowerCase().trim()));
-                 } else {
-                     mRoads.push(String(meta.road).toLowerCase().trim());
-                 }
-             }
+             const mRoads = getNormalizedRoadNames(meta.road);
 
              if (checkMatch(meta.scope, mLat, mLng, mCountry, mRegion, mCity, mRoads)) {
                  matchedMetaIds.add(meta.id);
@@ -3074,6 +3336,7 @@
         }
 
         const { address, country, region, road, lat, lng } = currentLocationData;
+        const roadLabel = Array.isArray(road) ? road.join(', ') : road;
         
         if (!lat || !lng) {
             console.log('[BetterMetas] updateLocationUI: Missing lat/lng, hiding box.');
@@ -3084,26 +3347,26 @@
         box.innerHTML = `
             <div class="gg-loc-row">
                 <div class="gg-loc-label">Address:</div>
-                <div class="gg-loc-val">${address || 'N/A'}</div>
+                <div class="gg-loc-val">${escapeHtml(address || 'N/A')}</div>
             </div>
              <div class="gg-loc-row">
                 <div class="gg-loc-label">Country:</div>
-                <div class="gg-loc-val gg-loc-val-country">${country || 'N/A'}</div>
+                <div class="gg-loc-val gg-loc-val-country">${escapeHtml(country || 'N/A')}</div>
             </div>
             ${region ? `
             <div class="gg-loc-row">
                 <div class="gg-loc-label">Region:</div>
-                <div class="gg-loc-val">${region}</div>
+                <div class="gg-loc-val">${escapeHtml(region)}</div>
             </div>` : ''}
             ${currentLocationData.city ? `
             <div class="gg-loc-row">
                 <div class="gg-loc-label">City:</div>
-                <div class="gg-loc-val">${currentLocationData.city}</div>
+                <div class="gg-loc-val">${escapeHtml(currentLocationData.city)}</div>
             </div>` : ''}
-            ${road ? `
+            ${roadLabel ? `
             <div class="gg-loc-row">
                 <div class="gg-loc-label">Road:</div>
-                <div class="gg-loc-val">${Array.isArray(road) ? road.join(', ') : road}</div>
+                <div class="gg-loc-val">${escapeHtml(roadLabel)}</div>
             </div>` : ''}
         `;
         box.style.display = 'block';
@@ -3117,7 +3380,7 @@
     }
 
     function encodeGitHubJsonContent(content) {
-        return window.btoa(unescape(encodeURIComponent(JSON.stringify(content, null, 2))));
+        return window.btoa(unescape(encodeURIComponent(stringifyJsonContent(content))));
     }
 
     function parseGitHubApiError(response) {
@@ -3139,6 +3402,7 @@
                     'X-GitHub-Api-Version': '2022-11-28',
                     'Content-Type': 'application/json'
                 },
+                timeout: DATA_FETCH_TIMEOUT_MS,
                 data: body ? JSON.stringify(body) : null,
                 onload: (response) => {
                     if (response.status >= 200 && response.status < 300) {
@@ -3151,7 +3415,8 @@
                         reject(parseGitHubApiError(response));
                     }
                 },
-                onerror: reject
+                onerror: () => reject(new Error(`GitHub API request failed: ${url}`)),
+                ontimeout: () => reject(new Error(`GitHub API request timed out: ${url}`))
             });
         });
     }
@@ -3184,217 +3449,162 @@
         return getGitHubJsonFile(apiUrl, token).then(file => file.content);
     }
 
+    function wait(ms) {
+        return new Promise(resolve => setTimeout(resolve, ms));
+    }
+
+    function requestRawText(url, label) {
+        return new Promise((resolve, reject) => {
+            GM_xmlhttpRequest({
+                method: "GET",
+                url,
+                timeout: DATA_FETCH_TIMEOUT_MS,
+                onload: resolve,
+                onerror: () => reject(new Error(`${label} request failed`)),
+                ontimeout: () => reject(new Error(`${label} request timed out`))
+            });
+        });
+    }
+
+    async function fetchRawJsonWithRetry(urlFactory, label, normalize, defaultValue, options = {}) {
+        let lastError = null;
+
+        for (let attempt = 1; attempt <= DATA_FETCH_MAX_ATTEMPTS; attempt++) {
+            try {
+                const response = await requestRawText(urlFactory(), label);
+                if (response.status === 200) {
+                    return normalize(JSON.parse(response.responseText));
+                }
+
+                if (options.allowMissing && (response.status === 404 || response.status === 204)) {
+                    return defaultValue;
+                }
+
+                throw new Error(`${label} HTTP ${response.status}: ${response.statusText || 'unknown error'}`);
+            } catch (err) {
+                lastError = err;
+                if (attempt < DATA_FETCH_MAX_ATTEMPTS) {
+                    console.warn(`[BetterMetas] ${label} load failed (attempt ${attempt}/${DATA_FETCH_MAX_ATTEMPTS}), retrying:`, err);
+                    await wait(DATA_FETCH_RETRY_DELAY_MS * attempt);
+                }
+            }
+        }
+
+        if (options.allowMissing) {
+            console.warn(`[BetterMetas] ${label} unavailable after retries, continuing with empty data:`, lastError);
+            return defaultValue;
+        }
+
+        throw lastError || new Error(`${label} load failed`);
+    }
+
+    async function loadUserLocationsData(token) {
+        if (token) {
+            try {
+                const locations = await fetchGitHubContentJson(API_USER_LOCATIONS_URL, token);
+                console.log(`[BetterMetas] Loaded ${Object.keys(normalizeLocationMap(locations)).length} user location mappings from GitHub API.`);
+                return normalizeLocationMap(locations);
+            } catch (err) {
+                console.warn('[BetterMetas] GitHub API user_locations fetch failed, falling back to raw:', err);
+            }
+        }
+
+        const locations = await fetchRawJsonWithRetry(getRawUserLocationsUrl, 'user_locations.json', normalizeLocationMap, {}, { allowMissing: true });
+        console.log(`[BetterMetas] Loaded ${Object.keys(locations).length} user location mappings from raw.`);
+        return locations;
+    }
+
+    async function loadUserMetasData(token) {
+        if (token) {
+            try {
+                const metas = await fetchGitHubContentJson(API_USER_METAS_URL, token);
+                console.log(`[BetterMetas] Loaded ${normalizeUserMetas(metas).length} user metas from GitHub API.`);
+                return normalizeUserMetas(metas);
+            } catch (err) {
+                console.warn('[BetterMetas] GitHub API user_metas fetch failed, falling back to raw:', err);
+            }
+        }
+
+        const metas = await fetchRawJsonWithRetry(getRawUserMetasUrl, 'user_metas.json', normalizeUserMetas, [], { allowMissing: true });
+        console.log(`[BetterMetas] Loaded ${metas.length} user metas from raw.`);
+        return metas;
+    }
+
+    async function loadSystemLocationsData() {
+        const locations = await fetchRawJsonWithRetry(getRawSystemLocationsUrl, 'plonkit_locations.json', normalizeLocationMap, {});
+        console.log(`[BetterMetas] Loaded ${Object.keys(locations).length} system location mappings.`);
+        return locations;
+    }
+
+    async function loadSystemMetasData() {
+        const metas = await fetchRawJsonWithRetry(getRawSystemMetasUrl, 'plonkit_metas.json', value => normalizeSystemMetas(value), []);
+        console.log(`[BetterMetas] Loaded ${metas.length} system metas.`);
+        return metas;
+    }
+
 
     // --- Data Fetching ---
-    function fetchLocationData() {
+    async function fetchLocationData() {
         console.log('[BetterMetas] Fetching data...');
-        updateStatus('Loading DB...');
+        updateStatus(metasData.length > 0 ? 'Refreshing DB...' : 'Loading DB...');
         const token = getSettingsTokenValue();
+        const loadId = ++dataLoadSequence;
 
-        let userLocLoaded = false;
-        let systemLocLoaded = false;
-        let userMetasLoaded = false;
-        let systemMetasLoaded = false;
+        try {
+            const [loadedUserLocationMap, loadedSystemLocationMap, loadedUserMetas, loadedSystemMetas] = await Promise.all([
+                loadUserLocationsData(token),
+                loadSystemLocationsData(),
+                loadUserMetasData(token),
+                loadSystemMetasData()
+            ]);
 
-        let tempUserMetas = [];
-        let tempSystemMetas = [];
-
-        // Fetch User Locations Map
-        loadUserLocations();
-
-        // Fetch System Locations Map (Plonkit links)
-        GM_xmlhttpRequest({
-            method: "GET",
-            url: getRawSystemLocationsUrl(),
-            onload: function(response) {
-                if (response.status === 200) {
-                    try {
-                        systemLocationMap = JSON.parse(response.responseText);
-                        console.log(`[BetterMetas] Loaded ${Object.keys(systemLocationMap).length} system location mappings.`);
-                        systemLocLoaded = true;
-                        checkAllLoaded();
-                    } catch (e) {
-                        console.error('[BetterMetas] Error parsing plonkit_locations.json:', e);
-                        useFallback("System Locations Parse Error");
-                    }
-                } else {
-                    console.warn('[BetterMetas] System locations file missing, continuing without Plonkit location links.');
-                    systemLocationMap = {};
-                    systemLocLoaded = true;
-                    checkAllLoaded();
-                }
-            },
-            onerror: function(err) {
-                console.error('[BetterMetas] System locations request error:', err);
-                useFallback("Network Error (System Locations)");
-            }
-        });
-
-        // Fetch User Metas Collection
-        loadUserMetas();
-
-        // Fetch System Metas Collection (Plonkit)
-        GM_xmlhttpRequest({
-            method: "GET",
-            url: getRawSystemMetasUrl(),
-            onload: function(response) {
-                if (response.status === 200) {
-                    try {
-                        const rawData = JSON.parse(response.responseText);
-                        tempSystemMetas = [];
-                        rawData.forEach(countryObj => {
-                            if (countryObj.metas) {
-                                tempSystemMetas.push(...countryObj.metas);
-                            }
-                        });
-                        console.log(`[BetterMetas] Loaded ${tempSystemMetas.length} system metas.`);
-                        systemMetasLoaded = true;
-                        checkAllLoaded();
-                    } catch (e) {
-                        console.error('[BetterMetas] Error parsing plonkit_metas.json:', e);
-                        useFallback("System Metas Parse Error");
-                    }
-                } else {
-                    console.error('[BetterMetas] Failed to fetch system metas:', response.statusText);
-                    useFallback("System Metas 404");
-                }
-            }
-        });
-
-        function loadUserLocations() {
-            if (token) {
-                fetchGitHubContentJson(API_USER_LOCATIONS_URL, token)
-                    .then(locations => {
-                        userLocationMap = locations && typeof locations === 'object' && !Array.isArray(locations) ? locations : {};
-                        console.log(`[BetterMetas] Loaded ${Object.keys(userLocationMap).length} user location mappings from GitHub API.`);
-                        userLocLoaded = true;
-                        checkAllLoaded();
-                    })
-                    .catch(err => {
-                        console.warn('[BetterMetas] GitHub API user_locations fetch failed, falling back to raw:', err);
-                        loadRawUserLocations();
-                    });
+            if (loadId !== dataLoadSequence) {
+                console.log('[BetterMetas] Ignoring stale DB load result.');
                 return;
             }
 
-            loadRawUserLocations();
-        }
+            const applied = applyDataSnapshot({
+                userLocationMap: loadedUserLocationMap,
+                systemLocationMap: loadedSystemLocationMap,
+                userMetas: loadedUserMetas,
+                systemMetas: loadedSystemMetas
+            }, { prunePending: true });
 
-        function loadRawUserLocations() {
-            GM_xmlhttpRequest({
-                method: "GET",
-                url: getRawUserLocationsUrl(),
-                onload: function(response) {
-                    if (response.status === 200) {
-                        try {
-                            userLocationMap = JSON.parse(response.responseText);
-                            console.log(`[BetterMetas] Loaded ${Object.keys(userLocationMap).length} user location mappings from raw.`);
-                            userLocLoaded = true;
-                            checkAllLoaded();
-                        } catch (e) {
-                            console.error('[BetterMetas] Error parsing user_locations.json:', e);
-                            useFallback("User Locations Parse Error");
-                        }
-                    } else {
-                        console.log('[BetterMetas] User locations file empty or 404, proceeding...');
-                        userLocationMap = {};
-                        userLocLoaded = true;
-                        checkAllLoaded();
-                    }
-                },
-                onerror: function(err) {
-                    console.error('[BetterMetas] User locations request error:', err);
-                    useFallback("Network Error (User Locations)");
-                }
+            saveDataSnapshotCache({
+                userLocationMap: loadedUserLocationMap,
+                systemLocationMap: loadedSystemLocationMap,
+                userMetas: loadedUserMetas,
+                systemMetas: loadedSystemMetas
             });
-        }
 
-        function loadUserMetas() {
-            if (token) {
-                fetchGitHubContentJson(API_USER_METAS_URL, token)
-                    .then(metas => {
-                        tempUserMetas = Array.isArray(metas) ? metas : [];
-                        console.log(`[BetterMetas] Loaded ${tempUserMetas.length} user metas from GitHub API.`);
-                        userMetasLoaded = true;
-                        checkAllLoaded();
-                    })
-                    .catch(err => {
-                        console.warn('[BetterMetas] GitHub API user_metas fetch failed, falling back to raw:', err);
-                        loadRawUserMetas();
-                    });
-                return;
+            const locCount = Object.keys(locationMap).length;
+            const userLocCount = Object.keys(userLocationMap).length;
+            const systemLocCount = Object.keys(systemLocationMap).length;
+            const pendingLocCount = Object.keys(applied.pending.locations).length;
+            console.log(`[BetterMetas] DB Ready: ${locCount} locs (${userLocCount} user, ${systemLocCount} system), ${metasData.length} unique metas (${userMetaIds.size} user, ${systemMetaIds.size} system). Pending local merge: ${applied.pending.metas.length} metas, ${pendingLocCount} locs.`);
+
+            syncPanoidForUserAction('DB ready');
+
+            if (currentPanoid) {
+                 updateStatus(`ID: ${currentPanoid.substring(0,12)}...`);
+                 refreshDisplay();
+            } else {
+                 updateStatus(`DB Ready (${metasData.length} metas)`);
             }
-
-            loadRawUserMetas();
-        }
-
-        function loadRawUserMetas() {
-            GM_xmlhttpRequest({
-                method: "GET",
-                url: getRawUserMetasUrl(),
-                onload: function(response) {
-                    if (response.status === 200) {
-                        try {
-                            tempUserMetas = JSON.parse(response.responseText);
-                            console.log(`[BetterMetas] Loaded ${tempUserMetas.length} user metas from raw.`);
-                            userMetasLoaded = true;
-                            checkAllLoaded();
-                        } catch (e) {
-                            console.error('[BetterMetas] Error parsing user_metas.json:', e);
-                            useFallback("User Metas Parse Error");
-                        }
-                    } else {
-                        console.log('[BetterMetas] User metas file empty or 404, proceeding...');
-                        userMetasLoaded = true;
-                        checkAllLoaded();
-                    }
-                },
-                onerror: function(err) {
-                    console.error('[BetterMetas] User metas request error:', err);
-                    useFallback("Network Error (User Metas)");
-                }
-            });
-        }
-
-        function checkAllLoaded() {
-            if (userLocLoaded && systemLocLoaded && userMetasLoaded && systemMetasLoaded) {
-                const rawUserMetas = tempUserMetas.slice();
-                const rawUserLocationMap = { ...userLocationMap };
-                pruneConfirmedPendingLocalChanges(rawUserMetas, rawUserLocationMap);
-                const pending = mergePendingLocalChangesInto(tempUserMetas, userLocationMap);
-
-                locationMap = mergeLocationMaps(systemLocationMap, userLocationMap);
-                userMetaIds = new Set(tempUserMetas.map(m => m.id).filter(Boolean));
-                systemMetaIds = new Set(tempSystemMetas.map(m => m.id).filter(Boolean));
-
-                const combined = [...tempUserMetas, ...tempSystemMetas];
-                const seen = new Set();
-                metasData = combined.filter(m => {
-                    if (!m.id || seen.has(m.id)) return false;
-                    seen.add(m.id);
-                    return true;
-                });
-
-                const locCount = Object.keys(locationMap).length;
-                const userLocCount = Object.keys(userLocationMap).length;
-                const systemLocCount = Object.keys(systemLocationMap).length;
-                const pendingLocCount = Object.keys(pending.locations).length;
-                console.log(`[BetterMetas] DB Ready: ${locCount} locs (${userLocCount} user, ${systemLocCount} system), ${metasData.length} unique metas (${tempUserMetas.length} user, ${tempSystemMetas.length} system). Pending local merge: ${pending.metas.length} metas, ${pendingLocCount} locs.`);
-
-                syncPanoidForUserAction('DB ready');
-                
-                if (currentPanoid) {
-                     updateStatus(`ID: ${currentPanoid.substring(0,12)}...`);
-                     refreshDisplay();
-                } else {
-                     updateStatus(`DB Ready (${metasData.length} metas)`);
-                }
-            }
+        } catch (err) {
+            if (loadId !== dataLoadSequence) return;
+            useFallback(err && err.message ? err.message : 'Data Load Error');
         }
     }
 
     function useFallback(reason) {
         console.warn(`[BetterMetas] Could not load data. Reason: ${reason}`);
+        if (metasData.length > 0) {
+            updateStatus(`Using cached DB (${metasData.length} metas)`);
+            refreshDisplay();
+            return;
+        }
+
         updateStatus(`Offline (${reason})`);
     }
 
@@ -3566,7 +3776,7 @@
              if (e.code === 'Space' || e.key === ' ') {
                  // Only hide if currently visible (on result screen)
                  // And ensure we aren't typing in an input
-                 const activeTag = document.activeElement.tagName.toLowerCase();
+                 const activeTag = document.activeElement?.tagName?.toLowerCase() || '';
                  if (activeTag === 'input' || activeTag === 'textarea') return;
 
                  if (isRoundResult()) {
@@ -3584,16 +3794,17 @@
          document.addEventListener('click', (e) => {
              // Look for buttons that might be "Next" or "Play Again"
              // This is a best-effort heuristic based on common button texts or classes
-             const target = e.target;
-             if (target.tagName !== 'BUTTON' && !target.closest('button')) return;
+             const target = getEventElementTarget(e);
+             const button = target ? target.closest('button') : null;
+             if (!button) return;
              
              // Check if we are on result screen
              if (isRoundResult()) {
                   // If we click ANY button on result screen that isn't inside our HUD or modals, hide HUD
                   // Exclude: HUD, Settings Modal, Add Meta Modal
-                  if (!target.closest('#gg-meta-hud') && 
-                      !target.closest('#gg-settings-modal') && 
-                      !target.closest('#gg-meta-modal')) {
+                  if (!button.closest('#gg-meta-hud') &&
+                      !button.closest('#gg-settings-modal') &&
+                      !button.closest('#gg-meta-modal')) {
                        
                        // Close HUD
                        const hud = document.getElementById('gg-meta-hud');
@@ -3612,12 +3823,38 @@
     }
 
     // --- Initialization ---
-    function init() {
+    function initUI() {
+        if (uiInitialized) return true;
+        if (!document.body) return false;
+
+        uiInitialized = true;
         console.log('[Geoguessr Meta] Initializing UI...');
         addStyles();
         createHUD();
-        startObserver();
+        applyCachedDataSnapshot();
         fetchLocationData();
+        return true;
+    }
+
+    function scheduleUIInit() {
+        if (initUI()) return;
+
+        const tryInit = () => {
+            if (initUI()) {
+                document.removeEventListener('DOMContentLoaded', tryInit);
+            }
+        };
+
+        document.addEventListener('DOMContentLoaded', tryInit, { once: true });
+        const timer = setInterval(() => {
+            if (initUI()) clearInterval(timer);
+        }, 25);
+    }
+
+    function init() {
+        console.log('[Geoguessr Meta] Initializing...');
+        startObserver();
+        scheduleUIInit();
     }
 
     init();

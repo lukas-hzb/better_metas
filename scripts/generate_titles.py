@@ -6,11 +6,12 @@ This script analyzes each description and generates meaningful,
 concise titles following GeoGuessr meta conventions.
 """
 
-import json
 import re
-from pathlib import Path
 
-JSON_FILE_PATH = Path(__file__).parent.parent / "data" / "plonkit_metas.json"
+try:
+    from .data_utils import load_plonkit_metas, save_plonkit_metas
+except ImportError:
+    from data_utils import load_plonkit_metas, save_plonkit_metas
 
 
 def generate_title(desc: str, country: str) -> str:
@@ -357,12 +358,12 @@ def generate_title(desc: str, country: str) -> str:
     
     # Town-specific markers
     city_patterns = [
-        (r"in\s+([A-Z][a-z]+(?:-[A-Z][a-z]+)?)", "city"),
-        (r"([A-Z][a-z]+(?:-[A-Z][a-z]+)?)\s+is\s+", "city"),
-        (r"around\s+([A-Z][a-z]+(?:-[A-Z][a-z]+)?)", "city"),
+        r"in\s+([A-Z][a-z]+(?:-[A-Z][a-z]+)?)",
+        r"([A-Z][a-z]+(?:-[A-Z][a-z]+)?)\s+is\s+",
+        r"around\s+([A-Z][a-z]+(?:-[A-Z][a-z]+)?)",
     ]
     
-    for pattern, ptype in city_patterns:
+    for pattern in city_patterns:
         match = re.search(pattern, desc)
         if match:
             city = match.group(1)
@@ -418,8 +419,7 @@ def generate_title(desc: str, country: str) -> str:
 
 def main():
     print("Loading plonkit_metas.json...")
-    with open(JSON_FILE_PATH, 'r', encoding='utf-8') as f:
-        data = json.load(f)
+    data = load_plonkit_metas()
     
     count = 0
     for country_data in data:
@@ -438,8 +438,7 @@ def main():
     print(f"\nGenerated {count} titles")
     
     print("Saving to plonkit_metas.json...")
-    with open(JSON_FILE_PATH, 'w', encoding='utf-8') as f:
-        json.dump(data, f, indent=2, ensure_ascii=False)
+    save_plonkit_metas(data)
     
     print("Done!")
 

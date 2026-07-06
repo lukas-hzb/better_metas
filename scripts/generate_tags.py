@@ -17,11 +17,12 @@ Available tags:
 - structures: silos, water towers, strange buildings, non-architecture landmarks
 """
 
-import json
 import re
-from pathlib import Path
 
-JSON_FILE_PATH = Path(__file__).parent.parent / "data" / "plonkit_metas.json"
+try:
+    from .data_utils import load_plonkit_metas, save_plonkit_metas
+except ImportError:
+    from data_utils import load_plonkit_metas, save_plonkit_metas
 
 # Tag detection patterns
 TAG_PATTERNS = {
@@ -174,8 +175,7 @@ def determine_tags(title: str, desc: str, note: str) -> list:
 
 def main():
     print("Loading plonkit_metas.json...")
-    with open(JSON_FILE_PATH, 'r', encoding='utf-8') as f:
-        data = json.load(f)
+    data = load_plonkit_metas()
     
     stats = {tag: 0 for tag in TAG_PATTERNS.keys()}
     stats["(none)"] = 0
@@ -212,8 +212,7 @@ def main():
     print(f"Total: {count} metas processed\n")
     
     print("Saving to plonkit_metas.json...")
-    with open(JSON_FILE_PATH, 'w', encoding='utf-8') as f:
-        json.dump(data, f, indent=2, ensure_ascii=False)
+    save_plonkit_metas(data)
     
     print("Done!")
 
