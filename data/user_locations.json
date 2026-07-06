@@ -586,5 +586,17 @@
     "region": "Pskovskaya oblast'",
     "city": "Strugokrasnenskiy Rayon",
     "road": "58K-366"
+  },
+  "fCnLWtBN1gK0KFYtXpNbUg": {
+    "metas": [
+      "meta_japan_kk8b"
+    ],
+    "lat": 33.14808,
+    "lng": 130.57414,
+    "country": "Japan",
+    "nominatimCountry": "Japan",
+    "region": "Fukuoka",
+    "city": "Yame",
+    "road": null
   }
 }
