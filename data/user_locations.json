@@ -682,5 +682,17 @@
     "region": "Rheinland-Pfalz",
     "city": "Leinsweiler",
     "road": "L508"
+  },
+  "f4PmlmpdFA_JN6egYXA22w": {
+    "metas": [
+      "meta_brazil_xjGP"
+    ],
+    "lat": -16.7856,
+    "lng": -49.87543,
+    "country": "Brazil",
+    "nominatimCountry": "Brazil",
+    "region": "Goi\u00e1s",
+    "city": "Palmeiras de Goi\u00e1s",
+    "road": "Avenida Santos Dumont"
   }
 }
