@@ -610,5 +610,17 @@
     "region": "Tlaxcala",
     "city": "San Jos\u00e9 Cuamantzingo",
     "road": "Calle Benito Ju\u00e1rez"
+  },
+  "jw3ZNWk9ToOV6IKXHtEVBA": {
+    "metas": [
+      "meta_south_africa_58eY"
+    ],
+    "lat": -29.83183,
+    "lng": 30.72003,
+    "country": "South Africa",
+    "nominatimCountry": "South Africa",
+    "region": "KwaZulu-Natal",
+    "city": "Clifton Canyon",
+    "road": "Mr551 Road"
   }
 }
