@@ -32,11 +32,7 @@ Since this is a specific Userscript, you need a Userscript manager for your brow
 3. Tampermonkey will ask if you want to add the script. Confirm by clicking "Install".
 4. Open Geoguessr and start a game – the HUD should appear automatically.
 
-<<<<<<< HEAD
-### Development Setup
-=======
 ### Setup for Developers
->>>>>>> 5147ad4 (Update README.md)
 
 The data pipeline is Node.js based and does not require Python. Install npm metadata once:
 
@@ -44,11 +40,7 @@ The data pipeline is Node.js based and does not require Python. Install npm meta
 npm install
 ```
 
-<<<<<<< HEAD
-## Usage
-=======
 ## Development
->>>>>>> 5147ad4 (Update README.md)
 
 ### Scraping Metas, their Locations, and generating new Titles
 
