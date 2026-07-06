@@ -718,5 +718,17 @@
     "region": "Rangpur Division",
     "city": "Thakurgaon District",
     "road": "Akhanagar"
+  },
+  "GUeAUE1pG1d_vwpxine_8A": {
+    "metas": [
+      "meta_mexico_3nP6"
+    ],
+    "lat": 28.69555,
+    "lng": -111.71438,
+    "country": "Mexico",
+    "nominatimCountry": "Mexico",
+    "region": "Sonora",
+    "city": "Narciso Mendoza",
+    "road": null
   }
 }
