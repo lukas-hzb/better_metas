@@ -13,6 +13,7 @@ function parseArgs(argv) {
         model: getArg(argv, '--model=') || null,
         limit: parseIntArg(argv, '--limit='),
         country: (getArg(argv, '--country=') || '').toLowerCase() || null,
+        saveEvery: parseIntArg(argv, '--save-every=') || 100,
         dryRun: argv.includes('--dry-run'),
         force: argv.includes('--force'),
     };
@@ -31,7 +32,7 @@ function parseIntArg(argv, prefix) {
 }
 
 function buildPrompt(meta) {
-    return `You write concise GeoGuessr meta titles.
+    return `You improve concise GeoGuessr meta titles.
 
 Return ONLY valid JSON in this shape:
 {"title":"Short Title"}
@@ -42,11 +43,15 @@ Rules:
 - Title Case.
 - No country name unless needed to disambiguate.
 - No punctuation except hyphen when natural.
-- Describe the visual clue, not the whole sentence.
+- Preserve the exact meaning of the current title and description.
+- If the current title is already accurate and concise, return it unchanged.
+- Describe the specific visual clue, not the whole country, region, or sentence.
+- Do not make the clue broader, vaguer, or more regional than the description.
 - Do not invent information.
 
 Country: ${meta.country}
 Section: ${meta.section}
+Current title: ${meta.title || ''}
 Description: ${meta.description}
 Note: ${meta.note || ''}`;
 }
@@ -72,6 +77,75 @@ function cleanTitle(title) {
     if (cleaned.length > 48) throw new Error(`Title too long: ${cleaned}`);
     if (cleaned.split(/\s+/).length > 7) throw new Error(`Title has too many words: ${cleaned}`);
     return cleaned;
+}
+
+function tokenize(value) {
+    return String(value || '')
+        .toLowerCase()
+        .replace(/[^a-z0-9\s-]/g, ' ')
+        .split(/\s+/)
+        .map((token) => token.trim())
+        .filter(Boolean);
+}
+
+const ALLOWED_NEW_WORDS = new Set([
+    'a', 'an', 'and', 'at', 'between', 'by', 'for', 'from', 'in', 'near', 'of', 'on', 'the', 'to', 'with',
+    'without', 'north', 'south', 'east', 'west', 'central', 'northern', 'southern', 'eastern', 'western',
+    'road', 'roads', 'route', 'routes', 'street', 'streets', 'area', 'areas', 'region', 'regions',
+    'use', 'uses', 'using', 'only', 'into', 'through', 'over', 'under',
+]);
+const UNPROTECTED_TITLE_WORDS = new Set([
+    ...ALLOWED_NEW_WORDS,
+    'meta', 'clue', 'view',
+]);
+
+function extractProtectedTokens(title) {
+    const protectedTokens = new Set();
+    const routeMatches = String(title || '').match(/\b[A-Z]{1,3}[-\s]?\d+[A-Z]?\b/g) || [];
+    routeMatches.forEach((token) => protectedTokens.add(token.toLowerCase().replace(/\s+/g, '')));
+
+    const wordMatches = String(title || '').match(/\b[A-Z][a-z]{1,3}\b/g) || [];
+    wordMatches.forEach((token) => {
+        const normalized = token.toLowerCase();
+        if (!UNPROTECTED_TITLE_WORDS.has(normalized)) protectedTokens.add(normalized);
+    });
+
+    return protectedTokens;
+}
+
+function validateGeneratedTitle(meta, oldTitle, newTitle) {
+    const normalizedNew = newTitle.toLowerCase().replace(/\s+/g, ' ').trim();
+    const normalizedOld = String(oldTitle || '').toLowerCase().replace(/\s+/g, ' ').trim();
+    if (normalizedNew === normalizedOld) return newTitle;
+
+    const newRouteTokens = new Set((newTitle.match(/\b[A-Z]{1,3}[-\s]?\d+[A-Z]?\b/g) || [])
+        .map((token) => token.toLowerCase().replace(/\s+/g, '')));
+    for (const token of extractProtectedTokens(oldTitle)) {
+        if (!newRouteTokens.has(token) && !tokenize(newTitle).includes(token)) {
+            throw new Error(`Rejected title missing protected token "${token}": ${newTitle}`);
+        }
+    }
+
+    const sourceTokens = new Set(tokenize([
+        oldTitle,
+        meta.description,
+        meta.note,
+        meta.country,
+        meta.section,
+    ].join(' ')));
+
+    const unknownWords = tokenize(newTitle).filter((token) => {
+        if (token.length <= 3) return false;
+        if (ALLOWED_NEW_WORDS.has(token)) return false;
+        if (/^[a-z]{1,3}\d+[a-z]?$/.test(token)) return false;
+        return !sourceTokens.has(token);
+    });
+
+    if (unknownWords.length > 0) {
+        throw new Error(`Rejected title with unsupported word(s) ${unknownWords.join(', ')}: ${newTitle}`);
+    }
+
+    return newTitle;
 }
 
 async function generateWithOllama(meta, model) {
@@ -175,6 +249,7 @@ async function main() {
     console.log(`Provider: ${args.provider}`);
     console.log(`Model: ${args.model || (args.provider === 'openai' ? DEFAULT_OPENAI_MODEL : DEFAULT_OLLAMA_MODEL)}`);
     console.log(`Targets: ${targets.length}`);
+    console.log(`Save every: ${args.dryRun ? 'dry-run' : args.saveEvery}`);
 
     let generated = 0;
     let failed = 0;
@@ -184,11 +259,16 @@ async function main() {
         const oldTitle = meta.title || '';
         try {
             const title = await generateTitle(meta, args);
-            meta.title = title;
+            meta.title = validateGeneratedTitle(meta, oldTitle, title);
             generated += 1;
-            console.log(`[${index + 1}/${targets.length}] ${meta.country}: ${oldTitle || '(empty)'} -> ${title}`);
+            console.log(`[${index + 1}/${targets.length}] ${meta.country}: ${oldTitle || '(empty)'} -> ${meta.title}`);
+            if (!args.dryRun && generated % args.saveEvery === 0) {
+                fs.writeFileSync(PLONKIT_METAS_PATH, stringifyJsonAscii(data));
+                console.log(`Checkpoint saved after ${generated} generated titles.`);
+            }
         } catch (err) {
             failed += 1;
+            meta.title = oldTitle;
             console.error(`[${index + 1}/${targets.length}] ${meta.country}: ${err.message}`);
         }
     }
