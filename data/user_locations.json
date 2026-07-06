@@ -334,5 +334,17 @@
     "region": "Provincia de Buenos Aires",
     "city": "Estancia San Ramon",
     "road": null
+  },
+  "a7HFv2o06xL9BzSqodq05g": {
+    "metas": [
+      "meta_russia_LP1h"
+    ],
+    "lat": 55.06333,
+    "lng": 74.93788,
+    "country": "Russia",
+    "nominatimCountry": "Russia",
+    "region": "Omskaya oblast'",
+    "city": "Kalachinsky District",
+    "road": "P-254"
   }
 }
