@@ -10,13 +10,11 @@
     "scrape:test": "node scraper.js --test",
     "locations:plonkit": "node scripts/extract_guide_locations.js",
     "locations:plonkit:dry-run": "node scripts/extract_guide_locations.js --dry-run",
+    "enrich:tags": "node scripts/enrich_tags.js",
+    "enrich:tags:dry-run": "node scripts/enrich_tags.js --dry-run",
+    "enrich:scopes": "node scripts/enrich_scopes.js",
+    "enrich:scopes:dry-run": "node scripts/enrich_scopes.js --dry-run",
     "enrich:titles": "node scripts/generate_titles_ai.js",
-    "enrich:titles:rules": "python3 scripts/generate_titles.py",
     "update:plonkit": "node scraper.js && node scripts/extract_guide_locations.js && node scripts/generate_titles_ai.js"
-  },
-  "dependencies": {
-    "axios": "^1.6.0",
-    "cheerio": "^1.0.0-rc.12",
-    "puppeteer": "^21.0.0"
   }
 }

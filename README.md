@@ -13,12 +13,12 @@ BetterMetas is a powerful Userscript for Geoguessr that helps you recognize and 
 
 ### Screenshots
 
-|                                  Main HUD Preview                                  |                                   Predicted Metas                                   |
-| :-------------------------------------------------------------------------------: | :-------------------------------------------------------------------------------: |
+| Main HUD Preview                                                | Predicted Metas                                                          |
+| :-------------------------------------------------------------: | :----------------------------------------------------------------------: |
 | <img src="images/hud_preview.png" alt="Main HUD" width="400" /> | <img src="images/hud_preview_2.png" alt="Predicted Metas" width="400" /> |
 
-|                                  Add Meta Dialog                                  |                                   Settings Menu                                   |
-| :-------------------------------------------------------------------------------: | :-------------------------------------------------------------------------------: |
+| Add Meta Dialog                                                     | Settings Menu                                                     |
+| :-----------------------------------------------------------------: | :---------------------------------------------------------------: |
 | <img src="images/add_meta_dialog.png" alt="Add Meta" width="400" /> | <img src="images/settings_menu.png" alt="Settings" width="400" /> |
 
 ## Installation
@@ -32,14 +32,87 @@ Since this is a specific Userscript, you need a Userscript manager for your brow
 3. Tampermonkey will ask if you want to add the script. Confirm by clicking "Install".
 4. Open Geoguessr and start a game – the HUD should appear automatically.
 
+## Usage
+
+### Scraping Metas, their Locations, and generating new Titles
+
+The data pipeline is Node.js based and does not require Python. Install npm metadata once:
+
+```bash
+npm install
+```
+
+Use the dry-runs before writing data:
+
+```bash
+npm run scrape:dry-run
+npm run locations:plonkit:dry-run
+npm run enrich:tags:dry-run
+npm run enrich:scopes:dry-run
+```
+
+Update Plonk It metas from the live guide pages:
+
+```bash
+npm run scrape
+```
+
+This keeps existing data and IDs where possible, adds new Plonk It metas, removes obsolete `imageLink` fields, and keeps location links intact through canonical meta IDs:
+
+- Plonk It metas: `meta_<country_slug>_<plonkitId>`
+- local retained metas: `meta_<country_slug>_local_<suffix>`
+
+Extract Google Maps-linked Plonk It locations:
+
+```bash
+npm run locations:plonkit
+```
+
+This reads Google Maps links from the Plonk It guide data, resolves coordinates, reverse-geocodes them with Nominatim, and writes the links to `data/plonkit_locations.json`. The extractor is rate-limited, so a full run can take a while.
+
+Optionally recompute tags and scopes with the JS enrichment scripts:
+
+```bash
+npm run enrich:tags
+npm run enrich:scopes
+```
+
+These scripts overwrite the `tags` or `scope` fields in `data/plonkit_metas.json`, so run the dry-run variants first and review the diff before committing.
+
+Generate titles for metas that do not have one yet:
+
+```bash
+npm run enrich:titles
+```
+
+By default this uses local Ollama (`gemma4:e2b`) and only fills missing titles. To use another local model:
+
+```bash
+node scripts/generate_titles_ai.js --model=qwen3.5:0.8b
+```
+
+To regenerate all titles, add `--force`, but treat that as a review workflow, not a blind update:
+
+```bash
+node scripts/generate_titles_ai.js --force --dry-run --limit=50
+```
+
+The AI script has guardrails and keeps the old title when a generated title looks unsafe, but existing curated titles are often better than model rewrites. For regular updates, prefer the default non-force mode.
+
+Run the regular update pipeline:
+
+```bash
+npm run update:plonkit
+```
+
 ## Tech Stack
 
-| Layer              | Technology  | Version |
-| :----------------- | :---------- | :------ |
-| **Frontend**  | Userscript (JS)       | -   |
-| **Data Scraper** | Node.js      | 1.0.0    |
-| **APIs** | Google Maps, Nominatim  | -       |
-| **Knowledge Base**      | Plonk It  | -   |
+| Layer              | Technology             | Version |
+| :----------------- | :--------------------- | :------ |
+| **Frontend**       | Userscript (JS)        | -       |
+| **Data Scraper**   | Node.js                | 1.0.0   |
+| **APIs**           | Google Maps, Nominatim | -       |
+| **Knowledge Base** | Plonk It               | -       |
 
 ## Credits
 
