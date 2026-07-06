@@ -466,5 +466,17 @@
     "region": "Central Region",
     "city": "Jukwa Breman",
     "road": "R82"
+  },
+  "5S7Rt-iQEUs34FK7p6TDrw": {
+    "metas": [
+      "meta_philippines_YkcX"
+    ],
+    "lat": 8.67653,
+    "lng": 125.85127,
+    "country": "Philippines",
+    "nominatimCountry": "Philippines",
+    "region": "Caraga",
+    "city": "Prosperidad",
+    "road": "Bayugan - Cantilan - Tandag Road"
   }
 }
