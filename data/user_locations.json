@@ -298,5 +298,17 @@
     "region": "Minas Gerais",
     "city": "Prata",
     "road": "BR-464"
+  },
+  "CUKq2WCCksE8ops0M_mTCg": {
+    "metas": [
+      "meta_spain_OutB"
+    ],
+    "lat": 42.48571,
+    "lng": -2.29208,
+    "country": "Spain",
+    "nominatimCountry": "Spain",
+    "region": "Navarre",
+    "city": "Lazagurr\u00eda",
+    "road": "Bargota"
   }
 }
