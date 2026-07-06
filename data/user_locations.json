@@ -658,5 +658,17 @@
     "region": "Rangpur Division",
     "city": "Kursha",
     "road": "Kursha"
+  },
+  "MTL1k8JOMypxVdIY0ueWqA": {
+    "metas": [
+      "meta_argentina_HidJ"
+    ],
+    "lat": -30.60505,
+    "lng": -61.30945,
+    "country": "Argentina",
+    "nominatimCountry": "Argentina",
+    "region": "Santa Fe",
+    "city": "San Crist\u00f3bal",
+    "road": "Ruta Provincial 13"
   }
 }
