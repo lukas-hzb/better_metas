@@ -454,5 +454,17 @@
     "region": "B\u00edo B\u00edo",
     "city": "Guallali",
     "road": "Comunidad Vegas de Ralco"
+  },
+  "OKe4rgTmfIqh8ez-ACrfIA": {
+    "metas": [
+      "meta_ghana_H4D5"
+    ],
+    "lat": 5.27993,
+    "lng": -1.35461,
+    "country": "Ghana",
+    "nominatimCountry": "Ghana",
+    "region": "Central Region",
+    "city": "Jukwa Breman",
+    "road": "R82"
   }
 }
