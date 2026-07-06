@@ -250,5 +250,17 @@
     "region": "Guerrero",
     "city": "La Palma",
     "road": "Ayutla - Tierra Colorada"
+  },
+  "gCYZNt0kdY1Zu_qDRGwtFQ": {
+    "metas": [
+      "meta_brazil_JlDz"
+    ],
+    "lat": -27.63387,
+    "lng": -49.892,
+    "country": "Brazil",
+    "nominatimCountry": "Brazil",
+    "region": "Santa Catarina",
+    "city": "Otac\u00edlio Costa",
+    "road": "S\u00edtio Gramados"
   }
 }
