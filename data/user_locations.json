@@ -226,5 +226,17 @@
     "region": "Sardinia",
     "city": "Castiadas",
     "road": "Via Sarmentus"
+  },
+  "hxzuEUpKnNNV-pYUOaIoww": {
+    "metas": [
+      "meta_bangladesh_QJgl"
+    ],
+    "lat": 25.19057,
+    "lng": 89.49035,
+    "country": "Bangladesh",
+    "nominatimCountry": "Bangladesh",
+    "region": "Rangpur Division",
+    "city": "Krorgachha",
+    "road": "Harirampur"
   }
 }
