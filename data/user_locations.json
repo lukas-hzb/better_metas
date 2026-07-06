@@ -514,5 +514,17 @@
     "region": "Mato Grosso do Sul",
     "city": "Ribas do Rio Pardo",
     "road": "BR-262"
+  },
+  "TQAqer7W2NJ5OqmgKYtlmg": {
+    "metas": [
+      "meta_israel_west_bank_bTSZ"
+    ],
+    "lat": 31.76003,
+    "lng": 35.49362,
+    "country": "90",
+    "nominatimCountry": "Palestinian Territories",
+    "region": "Judea and Samaria",
+    "city": "Megilot Yam HaMelakh Regional Council",
+    "road": "Al Bahr Al Mayet"
   }
 }
