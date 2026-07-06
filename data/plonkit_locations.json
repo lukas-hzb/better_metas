@@ -34215,5 +34215,17 @@
     "region": "Al Wakrah",
     "city": null,
     "road": null
+  },
+  "5P2hk5tB6EGjpFNgBXEaTQ": {
+    "metas": [
+      "meta_1769520862728_nayqj"
+    ],
+    "lat": -20.648276,
+    "lng": 17.081067,
+    "country": "Namibia",
+    "region": "Otjozondjupa",
+    "city": null,
+    "road": "C22",
+    "nominatimCountry": "Namibia"
   }
 }

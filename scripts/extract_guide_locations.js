@@ -1,275 +1,316 @@
-
 const fs = require('fs');
-const path = require('path');
-const puppeteer = require('puppeteer');
 const https = require('https');
+const path = require('path');
 const { stringifyJsonAscii } = require('./json_utils');
 
+const BASE_URL = 'https://www.plonkit.net';
+const GUIDE_URL = `${BASE_URL}/guide`;
 const PLONKIT_DATA_PATH = path.join(__dirname, '../data/plonkit_metas.json');
 const LOCATIONS_DATA_PATH = path.join(__dirname, '../data/plonkit_locations.json');
+const NOMINATIM_RATE_LIMIT_MS = 1200;
 
-// --- Configuration ---
-const NOMINATIM_RATE_LIMIT_MS = 1200; // Limit to 1 request per 1.2s to be safe
+const VALID_GUIDE_CATEGORIES = new Set([
+    'Africa',
+    'Antarctica',
+    'Asia',
+    'Europe',
+    'North America',
+    'Oceania',
+    'South America',
+]);
+
+function parseArgs(argv) {
+    const args = {
+        dryRun: argv.includes('--dry-run'),
+        country: null,
+        limit: null,
+    };
+
+    const countryArg = argv.find((arg) => arg.startsWith('--country='));
+    if (countryArg) args.country = countryArg.split('=').slice(1).join('=').trim().toLowerCase();
+
+    const limitArg = argv.find((arg) => arg.startsWith('--limit='));
+    if (limitArg) args.limit = Number.parseInt(limitArg.split('=')[1], 10);
+
+    return args;
+}
+
+function fetchText(url, headers = {}) {
+    return new Promise((resolve, reject) => {
+        https.get(url, {
+            headers: {
+                'User-Agent': 'BetterMetasLocationExtractor/1.0',
+                ...headers,
+            },
+        }, (res) => {
+            if (res.statusCode >= 300 && res.statusCode < 400 && res.headers.location) {
+                const nextUrl = new URL(res.headers.location, url).toString();
+                res.resume();
+                fetchText(nextUrl, headers).then(resolve, reject);
+                return;
+            }
+
+            if (res.statusCode !== 200) {
+                res.resume();
+                reject(new Error(`GET ${url} failed with HTTP ${res.statusCode}`));
+                return;
+            }
+
+            let body = '';
+            res.setEncoding('utf8');
+            res.on('data', (chunk) => { body += chunk; });
+            res.on('end', () => resolve(body));
+        }).on('error', reject);
+    });
+}
+
+function extractPreloadedData(html, url) {
+    const match = html.match(/<script id="__PRELOADED_DATA__" type="application\/json">\s*([\s\S]*?)\s*<\/script>/);
+    if (!match) throw new Error(`No __PRELOADED_DATA__ found in ${url}`);
+
+    const payload = JSON.parse(match[1]);
+    if (!payload.success) throw new Error(`Plonkit payload was not successful for ${url}`);
+    return payload.data;
+}
+
+function isGuideEntry(entry) {
+    return Array.isArray(entry.cat) && entry.cat.some((cat) => VALID_GUIDE_CATEGORIES.has(cat));
+}
+
+function stableMetaId(slug, itemId) {
+    return `meta_${slug}_${itemId}`.replace(/[^a-zA-Z0-9_]+/g, '_');
+}
+
+function normalizeImagePath(url) {
+    if (!url) return '';
+    return new URL(url, BASE_URL).pathname;
+}
+
+function isMapsUrl(url) {
+    return /(?:google\.com\/maps|goo\.gl\/maps|maps\.app\.goo\.gl)/.test(url || '');
+}
+
+function loadJsonFile(filePath, fallback) {
+    if (!fs.existsSync(filePath)) return fallback;
+    return JSON.parse(fs.readFileSync(filePath, 'utf8'));
+}
+
+function buildMetaLookup(plonkitData) {
+    const lookup = new Map();
+
+    for (const country of plonkitData) {
+        const slug = country.slug || new URL(country.url).pathname.split('/').filter(Boolean).pop();
+        for (const meta of country.metas || []) {
+            if (meta.plonkitId && slug) lookup.set(`${slug}/${meta.plonkitId}`, meta.id);
+            if (meta.imageUrl) lookup.set(`${slug}/image:${normalizeImagePath(meta.imageUrl)}`, meta.id);
+        }
+    }
+
+    return lookup;
+}
+
+async function scrapeGuideIndex() {
+    const html = await fetchText(GUIDE_URL);
+    return extractPreloadedData(html, GUIDE_URL).filter(isGuideEntry);
+}
+
+async function scrapeLocationTasks(entry, metaLookup) {
+    const url = `${BASE_URL}/${entry.slug}`;
+    const html = await fetchText(url);
+    const guide = extractPreloadedData(html, url).public;
+    const tasks = [];
+
+    for (const step of guide.steps || []) {
+        for (const item of step.items || []) {
+            if (item.kind !== 'tip' || !item.id || !item.data?.image?.imageLink) continue;
+
+            const mapsUrl = new URL(item.data.image.imageLink, BASE_URL).toString();
+            if (!isMapsUrl(mapsUrl)) continue;
+
+            const metaId = metaLookup.get(`${guide.slug}/${item.id}`)
+                || metaLookup.get(`${guide.slug}/image:${normalizeImagePath(item.data.image.imageUrl)}`);
+
+            if (!metaId) continue;
+
+            tasks.push({
+                country: guide.title,
+                metaId,
+                mapsUrl,
+            });
+        }
+    }
+
+    return tasks;
+}
+
+async function resolveUrl(url) {
+    if (!url.includes('goo.gl') && !url.includes('maps.app.goo.gl')) return url;
+    return new Promise((resolve) => {
+        https.get(url, { headers: { 'User-Agent': 'BetterMetasLocationExtractor/1.0' } }, (res) => {
+            if (res.statusCode >= 300 && res.statusCode < 400 && res.headers.location) {
+                resolve(new URL(res.headers.location, url).toString());
+            } else {
+                resolve(res.responseUrl || url);
+            }
+            res.resume();
+        }).on('error', () => resolve(url));
+    });
+}
+
+function extractMapsLocation(url) {
+    let panoid = null;
+    let lat = null;
+    let lng = null;
+
+    const decoded = decodeURIComponent(url);
+
+    const panoidMatch = decoded.match(/[!&]1s([^!&?]+)/) || decoded.match(/[?&]pano=([^&#]+)/);
+    if (panoidMatch) panoid = panoidMatch[1];
+
+    const latLngMatch = decoded.match(/@(-?\d+(?:\.\d+)?),(-?\d+(?:\.\d+)?)/)
+        || decoded.match(/[?&]viewpoint=(-?\d+(?:\.\d+)?),(-?\d+(?:\.\d+)?)/)
+        || decoded.match(/[?&]viewpoint=(-?\d+(?:\.\d+)?)%2C(-?\d+(?:\.\d+)?)/i);
+
+    if (latLngMatch) {
+        lat = Number.parseFloat(latLngMatch[1]);
+        lng = Number.parseFloat(latLngMatch[2]);
+    }
+
+    if (!panoid || !Number.isFinite(lat) || !Number.isFinite(lng)) return null;
+    return { panoid, lat, lng };
+}
+
+async function reverseGeocode(lat, lng) {
+    const url = `https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}&accept-language=en`;
+    try {
+        return JSON.parse(await fetchText(url, {
+            'User-Agent': 'BetterMetasLocationExtractor/1.0 (local project script)',
+        }));
+    } catch (err) {
+        return null;
+    }
+}
+
+function formatLocation(task, parsed, nomData) {
+    let road = null;
+    let region = null;
+    let city = null;
+    let nominatimCountry = null;
+
+    if (nomData?.address) {
+        const a = nomData.address;
+        const roadName = a.road || a.pedestrian || a.highway || a.street || a.suburb || a.hamlet || a.village || null;
+        road = roadName && roadName.includes(';') ? roadName.split(';').map((s) => s.trim()) : roadName;
+        region = a.state || a.region || a.province || a.county || a.district || null;
+        city = a.city || a.town || a.village || a.hamlet || a.municipality || null;
+        nominatimCountry = a.country || null;
+    }
+
+    return {
+        lat: parsed.lat,
+        lng: parsed.lng,
+        country: task.country,
+        region,
+        city,
+        road,
+        nominatimCountry,
+    };
+}
+
+function mergeLocation(locationsData, panoid, task, location) {
+    const existing = locationsData[panoid] || {};
+    const metas = Array.isArray(existing.metas) ? existing.metas : [];
+    if (!metas.includes(task.metaId)) metas.push(task.metaId);
+
+    locationsData[panoid] = {
+        metas,
+        ...existing,
+        ...location,
+        country: task.country,
+    };
+}
 
 async function main() {
-    console.log('Starting Optimized Extraction...');
+    const args = parseArgs(process.argv.slice(2));
+    const plonkitData = loadJsonFile(PLONKIT_DATA_PATH, []);
+    const locationsData = loadJsonFile(LOCATIONS_DATA_PATH, {});
+    const metaLookup = buildMetaLookup(plonkitData);
 
-    // 1. Load Data
-    const plonkitData = JSON.parse(fs.readFileSync(PLONKIT_DATA_PATH, 'utf8'));
-    let locationsData = {};
-    if (fs.existsSync(LOCATIONS_DATA_PATH)) {
-        try {
-            locationsData = JSON.parse(fs.readFileSync(LOCATIONS_DATA_PATH, 'utf8'));
-        } catch (e) {
-            console.error('Error parsing plonkit_locations.json, starting fresh.', e);
-        }
+    let entries = await scrapeGuideIndex();
+    if (args.country) {
+        entries = entries.filter((entry) => (
+            entry.slug.toLowerCase() === args.country
+            || entry.title.toLowerCase() === args.country
+        ));
+        if (entries.length === 0) throw new Error(`No guide entry matched --country=${args.country}`);
     }
+    if (Number.isInteger(args.limit) && args.limit > 0) entries = entries.slice(0, args.limit);
 
-    // 2. Identify Missing Locations (Tasks)
-    // We scrape *all* links first to build a task list.
     const tasks = [];
-    
-    // Optional: User filter
-    const targetCountry = process.argv.find(arg => arg.startsWith('--country='))?.split('=')[1];
-
-    console.log('Launching Puppeteer for scraping links (HEADLESS)...');
-    
-    // Attempt to locate system chrome
-    const systemChromePath = '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome'; // Mac default
-
-    const browser = await puppeteer.launch({
-        headless: "new",
-        executablePath: fs.existsSync(systemChromePath) ? systemChromePath : undefined,
-        args: ['--no-sandbox', '--disable-setuid-sandbox', '--disable-dev-shm-usage']
-    });
-
-    try {
-        for (const countryEntry of plonkitData) {
-            if (targetCountry && countryEntry.country.toLowerCase() !== targetCountry.toLowerCase()) continue;
-
-            console.log(`Scraping links for ${countryEntry.country}...`);
-            const page = await browser.newPage();
-            
-            try {
-                // Use networkidle2 to ensure page loads fully
-                await page.goto(countryEntry.url, { waitUntil: 'networkidle2', timeout: 60000 });
-                
-                // Extract Links
-                const potentialLinks = await page.evaluate(() => {
-                    // Get all anchors first, then filter
-                    // This is more robust than a complex CSS selector if the DOM is weird
-                    const anchors = Array.from(document.querySelectorAll('a'));
-                    return anchors.map(a => {
-                        const href = a.href;
-                        const img = a.querySelector('img');
-                        
-                        // Check if it's a maps link
-                        const isMaps = href.includes('google.com/maps') || href.includes('goo.gl/maps') || href.includes('maps.app.goo.gl');
-                        
-                        if (!isMaps || !img) return null;
-                        
-                        return {
-                            mapsUrl: href,
-                            imgSrc: img.src
-                        };
-                    }).filter(item => item !== null);
-                });
-                
-                // Match to Metas immediately
-                for (const link of potentialLinks) {
-                     const matchingMeta = countryEntry.metas.find(meta => {
-                         if (!meta.imageUrl) return false;
-                         return link.imgSrc.includes(meta.imageUrl) || meta.imageUrl.includes(link.imgSrc);
-                    });
-
-                    if (matchingMeta) {
-                        // Check if we need to process this
-                        // Useful to re-process if road is null or "Unknown", or if user forced it.
-                        // Assuming we want to ensure coverage.
-                        tasks.push({
-                            country: countryEntry.country,
-                            metaId: matchingMeta.id,
-                            mapsUrl: link.mapsUrl, // Might be short link
-                            status: 'pending'
-                        });
-                    }
-                }
-                console.log(`  Found ${potentialLinks.length} potential links -> ${tasks.length} total tasks so far.`);
-
-            } catch (e) {
-                console.error(`  Error scraping ${countryEntry.country}:`, e.message);
-            } finally {
-                await page.close();
-            }
-        }
-    } finally {
-        await browser.close();
-        console.log('Scraping finished. Closing browser.');
+    for (const [index, entry] of entries.entries()) {
+        console.log(`[${index + 1}/${entries.length}] Reading Plonkit links for ${entry.title}...`);
+        tasks.push(...await scrapeLocationTasks(entry, metaLookup));
     }
 
-    console.log(`Total Tasks to process: ${tasks.length}`);
+    console.log(`Found ${tasks.length} Google Maps-linked Plonkit metas.`);
 
-    // 3. Process Tasks sequentially to respect Nominatim rate limits.
-    
-    // We need a helper to resolving short links via HEAD request (or GET)
-    async function resolveUrl(url) {
-        return new Promise((resolve, reject) => {
-            if (!url.includes('goo.gl') && !url.includes('maps.app.goo.gl')) {
-                return resolve(url);
-            }
-            https.get(url, (res) => {
-                if (res.statusCode >= 300 && res.statusCode < 400 && res.headers.location) {
-                    resolve(res.headers.location);
-                } else {
-                    // Sometimes it returns 200 with JS redirect? 
-                    // Maps short links usually 302 redirect.
-                    resolve(res.responseUrl || url); 
-                }
-            }).on('error', (e) => resolve(url)); // Fallback
-        });
-    }
-
-    // Nominatim Helper
-    async function geocodeNominatim(lat, lng) {
-        return new Promise((resolve) => {
-            const url = `https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}&accept-language=en`;
-            const req = https.get(url, {
-                headers: { 'User-Agent': 'GeoguessrMetaScript/1.0 (contact: github_issue)' } // Etiquette
-            }, (res) => {
-                let data = '';
-                res.on('data', chunk => data += chunk);
-                res.on('end', () => {
-                    try {
-                        resolve(JSON.parse(data));
-                    } catch (e) { resolve(null); }
-                });
-            });
-            req.on('error', () => resolve(null));
-        });
-    }
-
-    // Processing Loop
     let lastNomRequestTime = 0;
-    let skippedCount = 0;
-    let processedCount = 0;
-
-    console.log('\n--- Processing Tasks ---');
+    let resolved = 0;
+    let linkedCached = 0;
+    let failed = 0;
 
     for (const [index, task] of tasks.entries()) {
-        const progress = `[${index + 1}/${tasks.length}]`;
-        
-        try {
-            // A. Resolve Link
-            let finalUrl = await resolveUrl(task.mapsUrl);
-            if (finalUrl.includes('goo.gl')) finalUrl = await resolveUrl(finalUrl);
+        const finalUrl = await resolveUrl(await resolveUrl(task.mapsUrl));
+        const parsed = extractMapsLocation(finalUrl);
+        if (!parsed) {
+            failed += 1;
+            continue;
+        }
 
-            // B. Extract Panoid / LatLng
-            let panoid = null;
-            let lat = null;
-            let lng = null;
+        const existing = locationsData[parsed.panoid];
+        if (existing && Number.isFinite(Number(existing.lat)) && Number.isFinite(Number(existing.lng))) {
+            mergeLocation(locationsData, parsed.panoid, task, {
+                lat: parsed.lat,
+                lng: parsed.lng,
+                country: task.country,
+                region: existing.region ?? null,
+                city: existing.city ?? null,
+                road: existing.road ?? null,
+                nominatimCountry: existing.nominatimCountry ?? null,
+            });
+            linkedCached += 1;
+            continue;
+        }
 
-            const panoidMatch = finalUrl.match(/!1s([^!]+)/);
-            if (panoidMatch) panoid = panoidMatch[1];
+        const now = Date.now();
+        const waitMs = NOMINATIM_RATE_LIMIT_MS - (now - lastNomRequestTime);
+        if (waitMs > 0) await new Promise((resolve) => setTimeout(resolve, waitMs));
+        lastNomRequestTime = Date.now();
 
-            const latLngMatch = finalUrl.match(/@(-?\d+\.\d+),(-?\d+\.\d+)/);
-            if (latLngMatch) {
-                lat = parseFloat(latLngMatch[1]);
-                lng = parseFloat(latLngMatch[2]);
-            }
+        const nomData = await reverseGeocode(parsed.lat, parsed.lng);
+        mergeLocation(locationsData, parsed.panoid, task, formatLocation(task, parsed, nomData));
+        resolved += 1;
 
-            if (panoid && lat && lng) {
-                // SKIP CHECK: If we already have this panoid with valid road/region, skip geocoding
-                const existing = locationsData[panoid];
-                if (existing && existing.road && existing.region && Object.prototype.hasOwnProperty.call(existing, 'city')) {
-                    let needsUpdate = false;
-                    if (!Array.isArray(existing.metas)) {
-                        existing.metas = [];
-                        needsUpdate = true;
-                    }
-                    
-                    // Link meta if missing
-                    if (!existing.metas.includes(task.metaId)) {
-                        existing.metas.push(task.metaId);
-                        needsUpdate = true;
-                    }
-                    
-                    // PROACTIVE FIX: Update country to Plonkit context if it mismatches
-                    if (existing.country !== task.country) {
-                        existing.nominatimCountry = existing.country; // Move old to backup
-                        existing.country = task.country;
-                        needsUpdate = true;
-                    }
+        if (!args.dryRun && resolved % 25 === 0) {
+            fs.writeFileSync(LOCATIONS_DATA_PATH, stringifyJsonAscii(locationsData));
+        }
 
-                    if (needsUpdate) {
-                        fs.writeFileSync(LOCATIONS_DATA_PATH, stringifyJsonAscii(locationsData));
-                    }
-                    
-                    skippedCount++;
-                    process.stdout.write(`\r\x1b[36m${progress} Skipped (Cached/Fixed): ${panoid}\x1b[0m\x1b[K`);
-                    continue;
-                }
-
-                // C. Geocode (Nominatim)
-                const now = Date.now();
-                const timeSinceLast = now - lastNomRequestTime;
-                if (timeSinceLast < NOMINATIM_RATE_LIMIT_MS) {
-                    await new Promise(r => setTimeout(r, NOMINATIM_RATE_LIMIT_MS - timeSinceLast));
-                }
-                lastNomRequestTime = Date.now();
-
-                const nomData = await geocodeNominatim(lat, lng);
-                
-                let road = null;
-                let region = null;
-                let city = null;
-                let country = task.country; 
-                let nominatimCountry = null;
-
-                if (nomData && nomData.address) {
-                    const a = nomData.address;
-                    const roadName = a.road || a.pedestrian || a.highway || a.street || a.suburb || a.hamlet || a.village || null;
-                    if (roadName) {
-                        road = roadName.includes(';') ? roadName.split(';').map(s => s.trim()) : roadName;
-                    }
-                    region = a.state || a.region || a.province || a.county || a.district || null;
-                    city = a.city || a.town || a.village || a.hamlet || a.municipality || null;
-                    nominatimCountry = a.country || null;
-                }
-
-                // D. Update Data
-                if (!locationsData[panoid]) {
-                    locationsData[panoid] = { metas: [], lat, lng, country, region, city, road, nominatimCountry };
-                } else {
-                    locationsData[panoid] = { ...locationsData[panoid], lat, lng, country, region, city, road, nominatimCountry };
-                }
-
-                if (!Array.isArray(locationsData[panoid].metas)) {
-                    locationsData[panoid].metas = [];
-                }
-
-                if (!locationsData[panoid].metas.includes(task.metaId)) {
-                    locationsData[panoid].metas.push(task.metaId);
-                }
-                
-                processedCount++;
-                const displayRoad = Array.isArray(road) ? road.join(', ') : (road || 'null');
-                process.stdout.write(`\r\x1b[32m${progress} Resolved: ${displayRoad} | ${region || 'null'}\x1b[0m\x1b[K`);
-
-                fs.writeFileSync(LOCATIONS_DATA_PATH, stringifyJsonAscii(locationsData));
-
-            } else {
-                process.stdout.write(`\r\x1b[33m${progress} Failed URL: ${finalUrl.substring(0, 30)}...\x1b[0m\x1b[K`);
-            }
-
-        } catch (e) {
-            console.log(`\n\x1b[31mError processing ${task.metaId}: ${e.message}\x1b[0m`);
+        if ((index + 1) % 100 === 0) {
+            console.log(`[${index + 1}/${tasks.length}] resolved=${resolved}, cached=${linkedCached}, failed=${failed}`);
         }
     }
 
-    console.log(`\n\n--- Summary ---`);
-    console.log(`\x1b[32mProcessed: ${processedCount}\x1b[0m`);
-    console.log(`\x1b[36mSkipped (Cached): ${skippedCount}\x1b[0m`);
-    console.log(`Done.`);
+    console.log(`Resolved with geocoding: ${resolved}`);
+    console.log(`Linked from cache: ${linkedCached}`);
+    console.log(`Failed to parse: ${failed}`);
+
+    if (args.dryRun) {
+        console.log('Dry run: no files written.');
+        return;
+    }
+
+    fs.writeFileSync(LOCATIONS_DATA_PATH, stringifyJsonAscii(locationsData));
+    console.log(`Saved ${Object.keys(locationsData).length} locations to ${LOCATIONS_DATA_PATH}`);
 }
 
 main().catch((err) => {

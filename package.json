@@ -4,7 +4,15 @@
   "description": "BetterMetas data scraper and generator scripts",
   "main": "scraper.js",
   "scripts": {
-    "start": "node scraper.js"
+    "start": "node scraper.js",
+    "scrape": "node scraper.js",
+    "scrape:dry-run": "node scraper.js --dry-run",
+    "scrape:test": "node scraper.js --test",
+    "locations:plonkit": "node scripts/extract_guide_locations.js",
+    "locations:plonkit:dry-run": "node scripts/extract_guide_locations.js --dry-run",
+    "enrich:titles": "node scripts/generate_titles_ai.js",
+    "enrich:titles:rules": "python3 scripts/generate_titles.py",
+    "update:plonkit": "node scraper.js && node scripts/extract_guide_locations.js && node scripts/generate_titles_ai.js"
   },
   "dependencies": {
     "axios": "^1.6.0",
