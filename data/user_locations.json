@@ -370,5 +370,17 @@
     "region": "Beja",
     "city": "Beja",
     "road": "Estrada Municipal 521"
+  },
+  "ODu-NrdnokpVNPqGvf0YCg": {
+    "metas": [
+      "meta_brazil_JlDz"
+    ],
+    "lat": -25.86269,
+    "lng": -53.52194,
+    "country": "Brazil",
+    "nominatimCountry": "Brazil",
+    "region": "Paran\u00e1",
+    "city": "Amp\u00e9re",
+    "road": null
   }
 }
