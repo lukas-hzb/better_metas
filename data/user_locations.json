@@ -418,5 +418,17 @@
     "region": "Galicia",
     "city": "Regalados",
     "road": "Remisqueira"
+  },
+  "d33chKUEyhR8SmIKaAeF2w": {
+    "metas": [
+      "meta_nigeria_Pu6a"
+    ],
+    "lat": 7.47738,
+    "lng": 8.93937,
+    "country": "Nigeria",
+    "nominatimCountry": "Nigeria",
+    "region": "Benue",
+    "city": "Numor",
+    "road": "Gboko-Makurdi Road"
   }
 }
