@@ -490,5 +490,17 @@
     "region": "Okinawa",
     "city": "Yaese",
     "road": null
+  },
+  "56E69N03RGIc7TRz1IYQ2g": {
+    "metas": [
+      "meta_brazil_FOZn"
+    ],
+    "lat": -3.1883,
+    "lng": -40.45936,
+    "country": "Brazil",
+    "nominatimCountry": "Brazil",
+    "region": "Cear\u00e1",
+    "city": "Senador S\u00e1",
+    "road": "Estrada Par\u00e1 C\u00f3rrego Verde"
   }
 }
