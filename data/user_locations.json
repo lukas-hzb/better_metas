@@ -502,5 +502,17 @@
     "region": "Cear\u00e1",
     "city": "Senador S\u00e1",
     "road": "Estrada Par\u00e1 C\u00f3rrego Verde"
+  },
+  "8cI5YsxSR67ZSeMrRhwFrw": {
+    "metas": [
+      "meta_brazil_Dz8D"
+    ],
+    "lat": -20.47354,
+    "lng": -53.64069,
+    "country": "Brazil",
+    "nominatimCountry": "Brazil",
+    "region": "Mato Grosso do Sul",
+    "city": "Ribas do Rio Pardo",
+    "road": "BR-262"
   }
 }
