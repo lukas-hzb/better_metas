@@ -346,5 +346,17 @@
     "region": "Omskaya oblast'",
     "city": "Kalachinsky District",
     "road": "P-254"
+  },
+  "h7RqWQxyLWj6NG6ZTpOCvQ": {
+    "metas": [
+      "meta_mexico_8Ipc"
+    ],
+    "lat": 18.27677,
+    "lng": -96.18462,
+    "country": "Mexico",
+    "nominatimCountry": "Mexico",
+    "region": "Veracruz",
+    "city": "Tres Valles",
+    "road": "Sayula de Alem\u00e1n - Tierra Blanca"
   }
 }
