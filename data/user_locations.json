@@ -598,5 +598,17 @@
     "region": "Fukuoka",
     "city": "Yame",
     "road": null
+  },
+  "pWEf_nIaODegg7BwcxW20Q": {
+    "metas": [
+      "meta_mexico_X6cJ"
+    ],
+    "lat": 19.5139,
+    "lng": -98.25409,
+    "country": "Mexico",
+    "nominatimCountry": "Mexico",
+    "region": "Tlaxcala",
+    "city": "San Jos\u00e9 Cuamantzingo",
+    "road": "Calle Benito Ju\u00e1rez"
   }
 }
