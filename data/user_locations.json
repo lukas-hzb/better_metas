@@ -778,5 +778,17 @@
     "region": "Tlaxcala",
     "city": "Sais",
     "road": null
+  },
+  "NP-UKjO1pd5-fRdFUcjsJA": {
+    "metas": [
+      "meta_philippines_lS7l"
+    ],
+    "lat": 8.00012,
+    "lng": 125.06767,
+    "country": "Philippines",
+    "nominatimCountry": "Philippines",
+    "region": "Northern Mindanao",
+    "city": "Lantapan",
+    "road": "Bantuanon"
   }
 }
