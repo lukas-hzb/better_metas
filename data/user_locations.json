@@ -694,5 +694,17 @@
     "region": "Goi\u00e1s",
     "city": "Palmeiras de Goi\u00e1s",
     "road": "Avenida Santos Dumont"
+  },
+  "v0m0yumglHi3wR0Lhqlr-Q": {
+    "metas": [
+      "meta_norway_HfAL"
+    ],
+    "lat": 60.4109,
+    "lng": 10.36725,
+    "country": "Norway",
+    "nominatimCountry": "Norway",
+    "region": "Innlandet",
+    "city": "Tingelstad",
+    "road": "M\u00f8rkgonga"
   }
 }
