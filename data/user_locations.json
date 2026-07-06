@@ -802,5 +802,17 @@
     "region": "Central Visayas",
     "city": "Medellin",
     "road": "Dalingding Sur"
+  },
+  "ZhqOgrPFJ7qZ5n4nnpCK9A": {
+    "metas": [
+      "meta_philippines_GaHP"
+    ],
+    "lat": 9.67304,
+    "lng": 122.90604,
+    "country": "Philippines",
+    "nominatimCountry": "Philippines",
+    "region": "Central Visayas",
+    "city": "Mabinay",
+    "road": "Pantao - Himocdongon Road"
   }
 }
