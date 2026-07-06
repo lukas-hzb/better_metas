@@ -706,5 +706,17 @@
     "region": "Innlandet",
     "city": "Tingelstad",
     "road": "M\u00f8rkgonga"
+  },
+  "73I5J2qhvK-V4IJWB3K2bg": {
+    "metas": [
+      "meta_bangladesh_QJgl"
+    ],
+    "lat": 26.13588,
+    "lng": 88.37437,
+    "country": "Bangladesh",
+    "nominatimCountry": "Bangladesh",
+    "region": "Rangpur Division",
+    "city": "Thakurgaon District",
+    "road": "Akhanagar"
   }
 }
