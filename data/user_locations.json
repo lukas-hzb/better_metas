@@ -526,5 +526,17 @@
     "region": "Judea and Samaria",
     "city": "Megilot Yam HaMelakh Regional Council",
     "road": "Al Bahr Al Mayet"
+  },
+  "VHFE4emStfDLgDwK7xcVuw": {
+    "metas": [
+      "meta_brazil_FOZn"
+    ],
+    "lat": -5.22699,
+    "lng": -37.31857,
+    "country": "Brazil",
+    "nominatimCountry": "Brazil",
+    "region": "Rio Grande do Norte",
+    "city": "Mossor\u00f3",
+    "road": "Rua Herondina Cavalcante Dantas"
   }
 }
