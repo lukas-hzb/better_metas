@@ -766,5 +766,17 @@
     "region": "Kagoshima",
     "city": "Minamikyushu",
     "road": null
+  },
+  "i-ahmtlpl3xZOnlPLbSqAw": {
+    "metas": [
+      "meta_mexico_vZJe"
+    ],
+    "lat": 19.20891,
+    "lng": -98.11209,
+    "country": "Mexico",
+    "nominatimCountry": "Mexico",
+    "region": "Tlaxcala",
+    "city": "Sais",
+    "road": null
   }
 }
