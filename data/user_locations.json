@@ -670,5 +670,17 @@
     "region": "Santa Fe",
     "city": "San Crist\u00f3bal",
     "road": "Ruta Provincial 13"
+  },
+  "yTQk_lG53Ct9L5ngwAJB1w": {
+    "metas": [
+      "meta_germany_gUz2"
+    ],
+    "lat": 49.18446,
+    "lng": 8.0258,
+    "country": "Germany",
+    "nominatimCountry": "Germany",
+    "region": "Rheinland-Pfalz",
+    "city": "Leinsweiler",
+    "road": "L508"
   }
 }
