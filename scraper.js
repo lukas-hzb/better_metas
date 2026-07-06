@@ -155,6 +155,24 @@ function stableMetaId(slug, itemId) {
     return `meta_${slug}_${itemId}`.replace(/[^a-zA-Z0-9_]+/g, '_');
 }
 
+function stableLocalMetaId(slug, meta) {
+    const canonicalPrefix = stableMetaId(slug, 'local');
+    if (String(meta.id || '').startsWith(`${canonicalPrefix}_`)) return meta.id;
+
+    const randomSuffix = String(meta.id || '').match(/^meta_\d+_([a-z0-9]+)$/i)?.[1];
+    const suffix = randomSuffix || simpleHash(`${meta.id || ''}|${meta.title || ''}|${meta.description || ''}`);
+    return stableMetaId(slug, `local_${suffix}`);
+}
+
+function simpleHash(value) {
+    let hash = 2166136261;
+    for (const char of String(value)) {
+        hash ^= char.charCodeAt(0);
+        hash = Math.imul(hash, 16777619);
+    }
+    return (hash >>> 0).toString(36);
+}
+
 function fallbackScopeForSection(section) {
     const stepNumber = Number.parseInt(String(section).replace('Step ', ''), 10);
     if (stepNumber === 2) return 'region';
@@ -309,6 +327,7 @@ function mergeMeta(existingMeta, scrapedMeta) {
 
     const merged = {
         ...existingMeta,
+        id: scrapedMeta.plonkitId ? scrapedMeta.id : existingMeta.id,
         country: scrapedMeta.country,
         section: scrapedMeta.section,
         description: scrapedMeta.description,
@@ -345,6 +364,7 @@ function mergeCountry(existingCountry, scrapedCountry, stats) {
     for (const existingMeta of existingMetas) {
         if (!usedExisting.has(existingMeta)) {
             const localOnlyMeta = { ...existingMeta };
+            if (!localOnlyMeta.plonkitId) localOnlyMeta.id = stableLocalMetaId(scrapedCountry.slug, localOnlyMeta);
             delete localOnlyMeta.imageLink;
             mergedMetas.push(orderMetaFields(localOnlyMeta));
             stats.keptLocalOnly += 1;

@@ -1,7 +1,7 @@
 {
   "_0X7MWhqnsw0AtEw4Bw_qg": {
     "metas": [
-      "meta_1769520967604_r84ll"
+      "meta_russia_ys4b"
     ],
     "lat": 43.57744,
     "lng": 39.73195,
@@ -13,7 +13,7 @@
   },
   "MNUo0WygqjMDL1pzfOo5zQ": {
     "metas": [
-      "meta_1769520914473_bn9l5"
+      "meta_philippines_2cMP"
     ],
     "lat": 7.26303,
     "lng": 125.61377,
@@ -25,9 +25,9 @@
   },
   "z8Xc0B7QB3yR1rT6ToCiKQ": {
     "metas": [
-      "meta_1769520990434_0igv0"
+      "meta_mexico_gyjK"
     ],
-    "lat": 30.75810,
+    "lat": 30.7581,
     "lng": -112.49378,
     "country": "Mexico",
     "nominatimCountry": "Mexico",
@@ -37,7 +37,7 @@
   },
   "SkoR5OQxRJ0PACc9VNa-SA": {
     "metas": [
-      "meta_1769520990434_lsdi2"
+      "meta_mexico_Ok3w"
     ],
     "lat": 18.63931,
     "lng": -87.72938,
@@ -49,7 +49,7 @@
   },
   "suGXMAMIf0IeUqIEzGI7NA": {
     "metas": [
-      "meta_1769520890252_lindo"
+      "meta_bangladesh_dQuW"
     ],
     "lat": 24.20462,
     "lng": 91.43099,
@@ -61,7 +61,7 @@
   },
   "o3BfUvCBFQkkkKsPvwQQbg": {
     "metas": [
-      "meta_1769521017889_majdc"
+      "meta_peru_CeBf"
     ],
     "lat": -7.72241,
     "lng": -79.21619,
@@ -73,9 +73,9 @@
   },
   "iK1sv4OtRh90_XAUjQgwLA": {
     "metas": [
-      "meta_1769521008671_t2nc1"
+      "meta_argentina_BjEa"
     ],
-    "lat": -27.58540,
+    "lat": -27.5854,
     "lng": -58.90689,
     "country": "Argentina",
     "nominatimCountry": "Argentina",
@@ -85,7 +85,7 @@
   },
   "iSGmZeT0PIxZc5pk-H-_0w": {
     "metas": [
-      "meta_1769520890252_hwae6"
+      "meta_bangladesh_QXjW"
     ],
     "lat": 25.11486,
     "lng": 88.58729,
@@ -97,9 +97,9 @@
   },
   "BegUjvrACscXLV3Ns5v88g": {
     "metas": [
-      "meta_1769521017889_ofq4x"
+      "meta_peru_CeXj"
     ],
-    "lat": -6.76720,
+    "lat": -6.7672,
     "lng": -79.90027,
     "country": "Peru",
     "nominatimCountry": "Peru",
@@ -109,7 +109,7 @@
   },
   "SajzOxi5-Pa6gjZ3X1oNQA": {
     "metas": [
-      "meta_1769520990434_lsdi2"
+      "meta_mexico_Ok3w"
     ],
     "lat": 18.34517,
     "lng": -87.80877,
@@ -121,10 +121,10 @@
   },
   "F-bGqXvJ6SDxF72cVUd_6A": {
     "metas": [
-      "meta_1769521010977_fnkax"
+      "meta_brazil_local_fnkax"
     ],
     "lat": -5.31197,
-    "lng": -61.98620,
+    "lng": -61.9862,
     "country": "Brazil",
     "nominatimCountry": "Brazil",
     "region": "Amazonas",
@@ -133,7 +133,7 @@
   },
   "nfZLreXfUrLGUjo20Sgu6A": {
     "metas": [
-      "meta_1769520965321_j0aa0"
+      "meta_portugal_MPGC"
     ],
     "lat": 37.14439,
     "lng": -8.40469,
@@ -145,7 +145,7 @@
   },
   "-czNtELgCkZ7-vq4Tqlf_g": {
     "metas": [
-      "meta_1769520973301_0b723"
+      "meta_spain_oi9R"
     ],
     "lat": 40.50551,
     "lng": 0.29482,
@@ -157,7 +157,7 @@
   },
   "QV386BFPBA7JMSKCthx7Qg": {
     "metas": [
-      "meta_1769520990434_swv6h"
+      "meta_mexico_9nVQ"
     ],
     "lat": 28.89879,
     "lng": -111.12228,
@@ -169,7 +169,7 @@
   },
   "yg_C0Mji4kRpPWU6RpbyCg": {
     "metas": [
-      "meta_1769520940948_bte3g"
+      "meta_germany_fnjg"
     ],
     "lat": 48.64408,
     "lng": 11.60615,
@@ -181,7 +181,7 @@
   },
   "cR4ZLtSIhf-EOkI73xVZVQ": {
     "metas": [
-      "meta_1769520963039_z5gpy"
+      "meta_norway_FTW1"
     ],
     "lat": "60.06464",
     "lng": "10.54595",
@@ -193,14 +193,14 @@
   },
   "JgtJuutpShC0wGxjk0U-ew": {
     "metas": [
-      "meta_1769520973301_7eyv8"
+      "meta_spain_FT9W"
     ],
     "lat": "39.28373",
     "lng": "-7.12749",
     "country": "Spain",
     "nominatimCountry": "Spain",
     "region": "Extremadura",
-    "city": "San Vicente de Alcántara",
+    "city": "San Vicente de Alc\u00e1ntara",
     "road": "BA-132"
   }
 }
