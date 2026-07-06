@@ -238,5 +238,17 @@
     "region": "Rangpur Division",
     "city": "Krorgachha",
     "road": "Harirampur"
+  },
+  "EhSy3ugQ4dm8OgHP5qp6yg": {
+    "metas": [
+      "meta_mexico_jCer"
+    ],
+    "lat": 17.07893,
+    "lng": -99.50729,
+    "country": "Mexico",
+    "nominatimCountry": "Mexico",
+    "region": "Guerrero",
+    "city": "La Palma",
+    "road": "Ayutla - Tierra Colorada"
   }
 }
