@@ -826,5 +826,17 @@
     "region": "Provincia de Chiriqu\u00ed",
     "city": "Remedios",
     "road": "Carretera Panamericana"
+  },
+  "IknPR4UYJhvB4v5rUyrZeQ": {
+    "metas": [
+      "meta_brazil_6UVb"
+    ],
+    "lat": -20.25791,
+    "lng": -41.36391,
+    "country": "Brazil",
+    "nominatimCountry": "Brazil",
+    "region": "Esp\u00edrito Santo",
+    "city": "Muniz Freire",
+    "road": "Rodovia Governador Eur\u00edco Rezende"
   }
 }
