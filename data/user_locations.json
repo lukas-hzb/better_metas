@@ -286,5 +286,17 @@
     "region": "Rangpur Division",
     "city": "Ramnathpur",
     "road": "Chowtrahut - Chander Bazar Road"
+  },
+  "4TtcXgY50_c0A5d7kY8FwA": {
+    "metas": [
+      "meta_brazil_6UVb"
+    ],
+    "lat": -19.20971,
+    "lng": -49.10696,
+    "country": "Brazil",
+    "nominatimCountry": "Brazil",
+    "region": "Minas Gerais",
+    "city": "Prata",
+    "road": "BR-464"
   }
 }
