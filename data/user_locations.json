@@ -274,5 +274,17 @@
     "region": "Provincia de Buenos Aires",
     "city": "La Trinidad",
     "road": "Camino Secundario 035-04"
+  },
+  "FwhXgtIFCrjzBL-F4wFaRg": {
+    "metas": [
+      "meta_bangladesh_CFUU"
+    ],
+    "lat": 25.37395,
+    "lng": 89.30049,
+    "country": "Bangladesh",
+    "nominatimCountry": "Bangladesh",
+    "region": "Rangpur Division",
+    "city": "Ramnathpur",
+    "road": "Chowtrahut - Chander Bazar Road"
   }
 }
