@@ -742,5 +742,17 @@
     "region": "Nouvelle-Aquitaine",
     "city": "Val-de-Livenne",
     "road": "Route des Vignerons"
+  },
+  "h4x4czuyM6Co6lrrgZT59g": {
+    "metas": [
+      "meta_indonesia_local_f662g"
+    ],
+    "lat": -7.05915,
+    "lng": 107.33967,
+    "country": "Indonesia",
+    "nominatimCountry": "Indonesia",
+    "region": "Jawa Barat",
+    "city": "Kabupaten Bandung",
+    "road": "Jalan Lebakmuncang"
   }
 }
