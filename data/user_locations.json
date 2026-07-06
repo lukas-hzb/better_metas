@@ -754,5 +754,17 @@
     "region": "Jawa Barat",
     "city": "Kabupaten Bandung",
     "road": "Jalan Lebakmuncang"
+  },
+  "ydfVI6tQQV7vZ8zX7-4jNA": {
+    "metas": [
+      "meta_japan_nLH3"
+    ],
+    "lat": 31.26717,
+    "lng": 130.52276,
+    "country": "Japan",
+    "nominatimCountry": "Japan",
+    "region": "Kagoshima",
+    "city": "Minamikyushu",
+    "road": null
   }
 }
