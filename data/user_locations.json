@@ -790,5 +790,17 @@
     "region": "Northern Mindanao",
     "city": "Lantapan",
     "road": "Bantuanon"
+  },
+  "gQ6_wfkTn5-6JNtfOASEKg": {
+    "metas": [
+      "meta_philippines_9hUv"
+    ],
+    "lat": 11.16825,
+    "lng": 123.98152,
+    "country": "Philippines",
+    "nominatimCountry": "Philippines",
+    "region": "Central Visayas",
+    "city": "Medellin",
+    "road": "Dalingding Sur"
   }
 }
