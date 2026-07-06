@@ -562,5 +562,17 @@
     "region": "Murmansk Oblast",
     "city": "Murmashi",
     "road": "\u00ab\u041a\u043e\u043b\u0430\u00bb \u041f\u043e\u0434\u044a\u0435\u0437\u0434 \u043a \u0430\u044d\u0440\u043e\u043f\u043e\u0440\u0442\u0443 \u041c\u0443\u0440\u043c\u0430\u043d\u0441\u043a"
+  },
+  "OoE8u8HElohKfQAIJTUhzw": {
+    "metas": [
+      "meta_portugal_1SD6"
+    ],
+    "lat": 38.45801,
+    "lng": -8.15705,
+    "country": "Portugal",
+    "nominatimCountry": "Portugal",
+    "region": "Distrito de \u00c9vora",
+    "city": "Alc\u00e1\u00e7ovas",
+    "road": "N2"
   }
 }
