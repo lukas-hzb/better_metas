@@ -262,5 +262,17 @@
     "region": "Santa Catarina",
     "city": "Otac\u00edlio Costa",
     "road": "S\u00edtio Gramados"
+  },
+  "SZ6meXdNYl9k5cazYstfTA": {
+    "metas": [
+      "meta_argentina_DZIL"
+    ],
+    "lat": -34.09335,
+    "lng": -61.14151,
+    "country": "Argentina",
+    "nominatimCountry": "Argentina",
+    "region": "Provincia de Buenos Aires",
+    "city": "La Trinidad",
+    "road": "Camino Secundario 035-04"
   }
 }
