@@ -32,11 +32,7 @@ Since this is a specific Userscript, you need a Userscript manager for your brow
 3. Tampermonkey will ask if you want to add the script. Confirm by clicking "Install".
 4. Open Geoguessr and start a game – the HUD should appear automatically.
 
-<<<<<<< HEAD
-### Development Setup
-=======
 ### Setup for Developers
->>>>>>> 5147ad4 (Update README.md)
 
 The data pipeline is Node.js based and does not require Python. Install npm metadata once:
 
@@ -44,24 +40,11 @@ The data pipeline is Node.js based and does not require Python. Install npm meta
 npm install
 ```
 
-<<<<<<< HEAD
-## Usage
-=======
 ## Development
->>>>>>> 5147ad4 (Update README.md)
 
-### Scraping Metas, their Locations, and generating new Titles
+The following scripts overwrite the metas, so run the dry-run variants first and review the diff before committing.
 
-Use the dry-runs before writing data:
-
-```bash
-npm run scrape:dry-run
-npm run locations:plonkit:dry-run
-npm run enrich:tags:dry-run
-npm run enrich:scopes:dry-run
-```
-
-Update Plonk It metas from the live guide pages:
+#### Update Plonk It metas from the live guide pages:
 
 ```bash
 npm run scrape
@@ -72,7 +55,7 @@ This keeps existing data and IDs where possible, adds new Plonk It metas, remove
 - Plonk It metas: `meta_<country_slug>_<plonkitId>`
 - local retained metas: `meta_<country_slug>_local_<suffix>`
 
-Extract Google Maps-linked Plonk It locations:
+#### Extract Google Maps-linked Plonk It locations:
 
 ```bash
 npm run locations:plonkit
@@ -87,9 +70,7 @@ npm run enrich:tags
 npm run enrich:scopes
 ```
 
-These scripts overwrite the `tags` or `scope` fields in `data/plonkit_metas.json`, so run the dry-run variants first and review the diff before committing.
-
-Generate titles for metas that do not have one yet:
+#### Generate titles for metas that do not have one yet:
 
 ```bash
 npm run enrich:titles
@@ -98,12 +79,12 @@ npm run enrich:titles
 By default this uses local Ollama (`gemma4:e2b`) and only fills missing titles. To use another local model:
 
 ```bash
-node scripts/generate_titles_ai.js --model=qwen3.5:0.8b
+node scripts/generate_titles_ai.js --model=qwen3.5:2b
 ```
 
-To regenerate all titles, add `--force`, but treat that as a review workflow, not a blind update. Existing curated titles are often better than model rewrites. For regular updates, prefer the default non-force mode.
+To regenerate all titles, add `--force`, but treat that as a review workflow, NOT a blind update. Existing curated titles are often better than model rewrites. For regular updates, prefer the default non-force mode. Use with caution!
 
-Run the regular update pipeline:
+#### Run the regular update pipeline to do all of the above:
 
 ```bash
 npm run update:plonkit
