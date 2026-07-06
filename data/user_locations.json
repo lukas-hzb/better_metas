@@ -394,5 +394,17 @@
     "region": "Estado de M\u00e9xico",
     "city": "San Bartolom\u00e9 Actopan",
     "road": null
+  },
+  "hH1lGyAIqNl0m749FL2EcA": {
+    "metas": [
+      "meta_chile_jabn"
+    ],
+    "lat": -20.48269,
+    "lng": -69.68116,
+    "country": "Chile",
+    "nominatimCountry": "Chile",
+    "region": "Tarapac\u00e1",
+    "city": "Tamarugal",
+    "road": "Panamericana Norte"
   }
 }
