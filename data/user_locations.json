@@ -574,5 +574,17 @@
     "region": "Distrito de \u00c9vora",
     "city": "Alc\u00e1\u00e7ovas",
     "road": "N2"
+  },
+  "5fiZIhVapFGZ-1mvhVZLXA": {
+    "metas": [
+      "meta_russia_mt14"
+    ],
+    "lat": 58.13849,
+    "lng": 28.88708,
+    "country": "Russia",
+    "nominatimCountry": "Russia",
+    "region": "Pskovskaya oblast'",
+    "city": "Strugokrasnenskiy Rayon",
+    "road": "58K-366"
   }
 }
