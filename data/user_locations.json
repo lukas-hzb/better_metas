@@ -550,5 +550,17 @@
     "region": "Par\u00e1",
     "city": "Marituba",
     "road": "Rua dos Navegantes"
+  },
+  "8vfD1K6niU7nc90PL0hXhA": {
+    "metas": [
+      "meta_russia_mt14"
+    ],
+    "lat": 68.78655,
+    "lng": 32.77393,
+    "country": "Russia",
+    "nominatimCountry": "Russia",
+    "region": "Murmansk Oblast",
+    "city": "Murmashi",
+    "road": "\u00ab\u041a\u043e\u043b\u0430\u00bb \u041f\u043e\u0434\u044a\u0435\u0437\u0434 \u043a \u0430\u044d\u0440\u043e\u043f\u043e\u0440\u0442\u0443 \u041c\u0443\u0440\u043c\u0430\u043d\u0441\u043a"
   }
 }
