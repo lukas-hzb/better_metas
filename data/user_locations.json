@@ -183,8 +183,8 @@
     "metas": [
       "meta_norway_FTW1"
     ],
-    "lat": "60.06464",
-    "lng": "10.54595",
+    "lat": 60.06464,
+    "lng": 10.54595,
     "country": "Norway",
     "nominatimCountry": "Norway",
     "region": "Buskerud",
@@ -195,12 +195,24 @@
     "metas": [
       "meta_spain_FT9W"
     ],
-    "lat": "39.28373",
-    "lng": "-7.12749",
+    "lat": 39.28373,
+    "lng": -7.12749,
     "country": "Spain",
     "nominatimCountry": "Spain",
     "region": "Extremadura",
     "city": "San Vicente de Alc\u00e1ntara",
     "road": "BA-132"
+  },
+  "WTGYSS1fIcIF38dqhp3_Rg": {
+    "metas": [
+      "meta_mexico_Cits"
+    ],
+    "lat": 29.06159,
+    "lng": -114.09493,
+    "country": "Mexico",
+    "nominatimCountry": "Mexico",
+    "region": "Baja California",
+    "city": "San Juan",
+    "road": "Bah\u00eda de los \u00c1ngeles - Punta Prieta"
   }
 }
