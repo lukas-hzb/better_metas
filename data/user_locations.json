@@ -442,5 +442,17 @@
     "region": "Tacna",
     "city": "Tacna",
     "road": "Carretera Panamericana Sur"
+  },
+  "Ev7zlnp3SbptmkqyhgrAUg": {
+    "metas": [
+      "meta_chile_Jl4B"
+    ],
+    "lat": -37.9522,
+    "lng": -71.33388,
+    "country": "Chile",
+    "nominatimCountry": "Chile",
+    "region": "B\u00edo B\u00edo",
+    "city": "Guallali",
+    "road": "Comunidad Vegas de Ralco"
   }
 }
