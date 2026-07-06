@@ -538,5 +538,17 @@
     "region": "Rio Grande do Norte",
     "city": "Mossor\u00f3",
     "road": "Rua Herondina Cavalcante Dantas"
+  },
+  "Rv33dYMiUAInDjN-q2nE7Q": {
+    "metas": [
+      "meta_brazil_j038"
+    ],
+    "lat": -1.37994,
+    "lng": -48.28664,
+    "country": "Brazil",
+    "nominatimCountry": "Brazil",
+    "region": "Par\u00e1",
+    "city": "Marituba",
+    "road": "Rua dos Navegantes"
   }
 }
