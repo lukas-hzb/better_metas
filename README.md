@@ -42,7 +42,7 @@ npm install
 
 ## Development
 
-The following scripts overwrite the metas, so run the dry-run variants first and review the diff before committing.
+The following scripts overwrite existing metas, so run the dry-run variants first and review the diff before committing.
 
 #### Update Plonk It metas from the live guide pages:
 
