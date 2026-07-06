@@ -730,5 +730,17 @@
     "region": "Sonora",
     "city": "Narciso Mendoza",
     "road": null
+  },
+  "0XqQ0gHLgGk_un0RK-x6jw": {
+    "metas": [
+      "meta_france_jPuX"
+    ],
+    "lat": 45.27959,
+    "lng": -0.547,
+    "country": "France",
+    "nominatimCountry": "France",
+    "region": "Nouvelle-Aquitaine",
+    "city": "Val-de-Livenne",
+    "road": "Route des Vignerons"
   }
 }
