@@ -322,5 +322,17 @@
     "region": "Sakhalinskaya oblast'",
     "city": "Aleksandrovsk-Sakhalinskiy",
     "road": "64H-4"
+  },
+  "XkRHYBRW4GXrjaJjr-PmBQ": {
+    "metas": [
+      "meta_argentina_DZIL"
+    ],
+    "lat": -37.1171,
+    "lng": -59.76187,
+    "country": "Argentina",
+    "nominatimCountry": "Argentina",
+    "region": "Provincia de Buenos Aires",
+    "city": "Estancia San Ramon",
+    "road": null
   }
 }
