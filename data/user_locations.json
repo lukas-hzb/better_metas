@@ -1258,5 +1258,17 @@
     "region": "Otago Region",
     "city": "Dunedin",
     "road": "Castlewood Road"
+  },
+  "M_N3ylwD0wEZ140_ez7A4g": {
+    "metas": [
+      "meta_north_macedonia_local_pjiea"
+    ],
+    "lat": 41.98644,
+    "lng": 21.30436,
+    "country": "North Macedonia",
+    "nominatimCountry": "North Macedonia",
+    "region": "Greater Skopje",
+    "city": "Arnacija",
+    "road": "Mother Teresa"
   }
 }
