@@ -1030,5 +1030,17 @@
     "region": "South Cotabato",
     "city": "General Santos",
     "road": "Motokling"
+  },
+  "dQLB0ustGq4Tqqt8y5ggyA": {
+    "metas": [
+      "meta_portugal_1SD6"
+    ],
+    "lat": 37.88026,
+    "lng": -7.86955,
+    "country": "Portugal",
+    "nominatimCountry": "Portugal",
+    "region": "Beja",
+    "city": "Beja",
+    "road": "EN 122"
   }
 }
