@@ -970,5 +970,17 @@
     "region": "Mato Grosso",
     "city": "Planalto da Serra",
     "road": "MT-140"
+  },
+  "Tj0qS0Kn21u6-A8W2l1hZw": {
+    "metas": [
+      "meta_northern_mariana_islands_c1Di"
+    ],
+    "lat": 15.21562,
+    "lng": 145.71839,
+    "country": "Northern Mariana Islands",
+    "nominatimCountry": "United States of America",
+    "region": "Saipan",
+    "city": "Garapan",
+    "road": "Coral Tree Avenue"
   }
 }
