@@ -1090,5 +1090,17 @@
     "region": "South District",
     "city": "Beersheba",
     "road": "90"
+  },
+  "cSqzJmfOltNqX5S8FR1keQ": {
+    "metas": [
+      "meta_philippines_2cMP"
+    ],
+    "lat": 7.4553,
+    "lng": 125.71032,
+    "country": "Philippines",
+    "nominatimCountry": "Philippines",
+    "region": "Davao del Norte",
+    "city": "Braulio E. Dujali",
+    "road": "Balisong"
   }
 }
