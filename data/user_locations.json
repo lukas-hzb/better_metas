@@ -1054,17 +1054,5 @@
     "region": "Kaliningrad",
     "city": "\u041a\u0440\u0443\u0448\u0438\u043d\u0438\u043d\u043e",
     "road": "27\u041a-162"
-  },
-  "Sk_00aDSEB3PLW1BDz3fgQ": {
-    "metas": [
-      "meta_cambodia_TMCo"
-    ],
-    "lat": 13.67233,
-    "lng": 107.30176,
-    "country": "Cambodia",
-    "nominatimCountry": "Cambodia",
-    "region": "Ratanakiri Province",
-    "city": "Ou Ya Dav",
-    "road": "National Road 78"
   }
 }
