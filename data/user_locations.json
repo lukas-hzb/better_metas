@@ -1066,5 +1066,17 @@
     "region": "Rangpur Division",
     "city": "Baliadangi",
     "road": "Bhanor"
+  },
+  "5T_nsPJN0jyjDM0xCYAmDA": {
+    "metas": [
+      "meta_eswatini_NeZB"
+    ],
+    "lat": -26.02316,
+    "lng": 31.20625,
+    "country": "Eswatini",
+    "nominatimCountry": "Eswatini",
+    "region": "Hhohho Region",
+    "city": "Piggs Peak",
+    "road": "MR1"
   }
 }
