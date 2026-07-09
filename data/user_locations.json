@@ -874,5 +874,17 @@
     "region": "Provincia de Buenos Aires",
     "city": "Las Toscas",
     "road": "Ruta Provincial 70"
+  },
+  "tWx8mD2EPpbYa5vJNWQh4w": {
+    "metas": [
+      "meta_guatemala_urVz"
+    ],
+    "lat": 15.61254,
+    "lng": -88.39506,
+    "country": "Guatemala",
+    "nominatimCountry": "Guatemala",
+    "region": "Izabal",
+    "city": "Puerto Barrios",
+    "road": "Carretera Centroamericana 13"
   }
 }
