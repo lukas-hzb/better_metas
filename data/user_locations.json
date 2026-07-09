@@ -898,5 +898,17 @@
     "region": "Tucum\u00e1n",
     "city": "Tala Pozo",
     "road": "RP317"
+  },
+  "WarBV71vrN0u9_eoQ4iGVQ": {
+    "metas": [
+      "meta_eswatini_NeZB"
+    ],
+    "lat": -26.56928,
+    "lng": 30.81331,
+    "country": "Eswatini",
+    "nominatimCountry": "Eswatini",
+    "region": "Manzini",
+    "city": null,
+    "road": "MR19"
   }
 }
