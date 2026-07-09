@@ -1102,5 +1102,17 @@
     "region": "Davao del Norte",
     "city": "Braulio E. Dujali",
     "road": "Balisong"
+  },
+  "IZ_SyHY1Ovi3zo2VLyEp6Q": {
+    "metas": [
+      "meta_mexico_8Ipc"
+    ],
+    "lat": 19.47659,
+    "lng": -96.46435,
+    "country": "Mexico",
+    "nominatimCountry": "Mexico",
+    "region": "Veracruz",
+    "city": "Santa Rosa",
+    "road": "Santa Rosa (General Pinz\u00f3n)"
   }
 }
