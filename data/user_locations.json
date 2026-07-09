@@ -1030,5 +1030,17 @@
     "region": "Beja",
     "city": "Beja",
     "road": "EN 122"
+  },
+  "JgtJuutpShC0wGxjk0U-ew": {
+    "metas": [
+      "meta_spain_FT9W"
+    ],
+    "lat": 39.28373,
+    "lng": -7.12749,
+    "country": "Spain",
+    "nominatimCountry": "Spain",
+    "region": "Extremadura",
+    "city": "San Vicente de Alc\u00e1ntara",
+    "road": "Carretera de San Vicente de Alc\u00e1ntara a La Codosera"
   }
 }
