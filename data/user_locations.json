@@ -1198,5 +1198,17 @@
     "region": "Benue State",
     "city": "Peyer",
     "road": "Makurdi to Zaki Biam Road"
+  },
+  "DjXZV15nR2TubmMZQo6gHw": {
+    "metas": [
+      "meta_spain_5Z5E"
+    ],
+    "lat": 37.22008,
+    "lng": -6.28776,
+    "country": "Spain",
+    "nominatimCountry": "Spain",
+    "region": "Andalusia",
+    "city": "Villamanrique de la Condesa",
+    "road": "Villamanrique de la Condesa"
   }
 }
