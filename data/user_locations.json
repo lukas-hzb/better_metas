@@ -922,5 +922,17 @@
     "region": "Distrito de \u00c9vora",
     "city": "Campo",
     "road": "Caminho do Ronc\u00e3o Del Rei"
+  },
+  "WsPR5S5p7WCzeR2EzyhTJg": {
+    "metas": [
+      "meta_spain_5Z5E"
+    ],
+    "lat": 37.58709,
+    "lng": -5.9297,
+    "country": "Spain",
+    "nominatimCountry": "Spain",
+    "region": "Andaluc\u00eda",
+    "city": "Burguillos",
+    "road": "Diseminado"
   }
 }
