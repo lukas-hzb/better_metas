@@ -1078,5 +1078,17 @@
     "region": "Hhohho Region",
     "city": "Piggs Peak",
     "road": "MR1"
+  },
+  "ifdl-yNhAlPjPNnbSg0W7A": {
+    "metas": [
+      "meta_israel_west_bank_bTSZ"
+    ],
+    "lat": 29.80773,
+    "lng": 35.02745,
+    "country": "Israel",
+    "nominatimCountry": "Israel",
+    "region": "South District",
+    "city": "Beersheba",
+    "road": "90"
   }
 }
