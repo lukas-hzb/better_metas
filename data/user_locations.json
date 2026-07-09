@@ -214,5 +214,713 @@
     "region": "Baja California",
     "city": "San Juan",
     "road": "Bah\u00eda de los \u00c1ngeles - Punta Prieta"
+  },
+  "ZfEV0Qb9vdxjpv-VTNcNAQ": {
+    "metas": [
+      "meta_italy_dfcb"
+    ],
+    "lat": 39.21146,
+    "lng": 9.53288,
+    "country": "Italy",
+    "nominatimCountry": "Italy",
+    "region": "Sardinia",
+    "city": "Castiadas",
+    "road": "Via Sarmentus"
+  },
+  "hxzuEUpKnNNV-pYUOaIoww": {
+    "metas": [
+      "meta_bangladesh_QJgl"
+    ],
+    "lat": 25.19057,
+    "lng": 89.49035,
+    "country": "Bangladesh",
+    "nominatimCountry": "Bangladesh",
+    "region": "Rangpur Division",
+    "city": "Krorgachha",
+    "road": "Harirampur"
+  },
+  "EhSy3ugQ4dm8OgHP5qp6yg": {
+    "metas": [
+      "meta_mexico_jCer"
+    ],
+    "lat": 17.07893,
+    "lng": -99.50729,
+    "country": "Mexico",
+    "nominatimCountry": "Mexico",
+    "region": "Guerrero",
+    "city": "La Palma",
+    "road": "Ayutla - Tierra Colorada"
+  },
+  "gCYZNt0kdY1Zu_qDRGwtFQ": {
+    "metas": [
+      "meta_brazil_JlDz"
+    ],
+    "lat": -27.63387,
+    "lng": -49.892,
+    "country": "Brazil",
+    "nominatimCountry": "Brazil",
+    "region": "Santa Catarina",
+    "city": "Otac\u00edlio Costa",
+    "road": "S\u00edtio Gramados"
+  },
+  "SZ6meXdNYl9k5cazYstfTA": {
+    "metas": [
+      "meta_argentina_DZIL"
+    ],
+    "lat": -34.09335,
+    "lng": -61.14151,
+    "country": "Argentina",
+    "nominatimCountry": "Argentina",
+    "region": "Provincia de Buenos Aires",
+    "city": "La Trinidad",
+    "road": "Camino Secundario 035-04"
+  },
+  "FwhXgtIFCrjzBL-F4wFaRg": {
+    "metas": [
+      "meta_bangladesh_CFUU"
+    ],
+    "lat": 25.37395,
+    "lng": 89.30049,
+    "country": "Bangladesh",
+    "nominatimCountry": "Bangladesh",
+    "region": "Rangpur Division",
+    "city": "Ramnathpur",
+    "road": "Chowtrahut - Chander Bazar Road"
+  },
+  "4TtcXgY50_c0A5d7kY8FwA": {
+    "metas": [
+      "meta_brazil_6UVb"
+    ],
+    "lat": -19.20971,
+    "lng": -49.10696,
+    "country": "Brazil",
+    "nominatimCountry": "Brazil",
+    "region": "Minas Gerais",
+    "city": "Prata",
+    "road": "BR-464"
+  },
+  "CUKq2WCCksE8ops0M_mTCg": {
+    "metas": [
+      "meta_spain_OutB"
+    ],
+    "lat": 42.48571,
+    "lng": -2.29208,
+    "country": "Spain",
+    "nominatimCountry": "Spain",
+    "region": "Navarre",
+    "city": "Lazagurr\u00eda",
+    "road": "Bargota"
+  },
+  "TMPJGVJaxaD6fkKmStA0Qw": {
+    "metas": [
+      "meta_russia_8PIl"
+    ],
+    "lat": 50.92218,
+    "lng": 142.18642,
+    "country": "Russia",
+    "nominatimCountry": "Russia",
+    "region": "Sakhalinskaya oblast'",
+    "city": "Aleksandrovsk-Sakhalinskiy",
+    "road": "64H-4"
+  },
+  "XkRHYBRW4GXrjaJjr-PmBQ": {
+    "metas": [
+      "meta_argentina_DZIL"
+    ],
+    "lat": -37.1171,
+    "lng": -59.76187,
+    "country": "Argentina",
+    "nominatimCountry": "Argentina",
+    "region": "Provincia de Buenos Aires",
+    "city": "Estancia San Ramon",
+    "road": null
+  },
+  "a7HFv2o06xL9BzSqodq05g": {
+    "metas": [
+      "meta_russia_LP1h"
+    ],
+    "lat": 55.06333,
+    "lng": 74.93788,
+    "country": "Russia",
+    "nominatimCountry": "Russia",
+    "region": "Omskaya oblast'",
+    "city": "Kalachinsky District",
+    "road": "P-254"
+  },
+  "h7RqWQxyLWj6NG6ZTpOCvQ": {
+    "metas": [
+      "meta_mexico_8Ipc"
+    ],
+    "lat": 18.27677,
+    "lng": -96.18462,
+    "country": "Mexico",
+    "nominatimCountry": "Mexico",
+    "region": "Veracruz",
+    "city": "Tres Valles",
+    "road": "Sayula de Alem\u00e1n - Tierra Blanca"
+  },
+  "GQDYwxgQBczJmpnK1nsT_g": {
+    "metas": [
+      "meta_portugal_rEuU"
+    ],
+    "lat": 38.12573,
+    "lng": -7.8224,
+    "country": "Portugal",
+    "nominatimCountry": "Portugal",
+    "region": "Beja",
+    "city": "Beja",
+    "road": "Estrada Municipal 521"
+  },
+  "ODu-NrdnokpVNPqGvf0YCg": {
+    "metas": [
+      "meta_brazil_JlDz"
+    ],
+    "lat": -25.86269,
+    "lng": -53.52194,
+    "country": "Brazil",
+    "nominatimCountry": "Brazil",
+    "region": "Paran\u00e1",
+    "city": "Amp\u00e9re",
+    "road": null
+  },
+  "8svjqCeEu0lKpK5Ery8PrA": {
+    "metas": [
+      "meta_mexico_X6cJ"
+    ],
+    "lat": 19.83128,
+    "lng": -98.84172,
+    "country": "Mexico",
+    "nominatimCountry": "Mexico",
+    "region": "Estado de M\u00e9xico",
+    "city": "San Bartolom\u00e9 Actopan",
+    "road": null
+  },
+  "hH1lGyAIqNl0m749FL2EcA": {
+    "metas": [
+      "meta_chile_jabn"
+    ],
+    "lat": -20.48269,
+    "lng": -69.68116,
+    "country": "Chile",
+    "nominatimCountry": "Chile",
+    "region": "Tarapac\u00e1",
+    "city": "Tamarugal",
+    "road": "Panamericana Norte"
+  },
+  "8lWUsSEc88TDgwQgaENF-A": {
+    "metas": [
+      "meta_spain_pPsk"
+    ],
+    "lat": 43.16765,
+    "lng": -8.92523,
+    "country": "Spain",
+    "nominatimCountry": "Spain",
+    "region": "Galicia",
+    "city": "Regalados",
+    "road": "Remisqueira"
+  },
+  "d33chKUEyhR8SmIKaAeF2w": {
+    "metas": [
+      "meta_nigeria_Pu6a"
+    ],
+    "lat": 7.47738,
+    "lng": 8.93937,
+    "country": "Nigeria",
+    "nominatimCountry": "Nigeria",
+    "region": "Benue",
+    "city": "Numor",
+    "road": "Gboko-Makurdi Road"
+  },
+  "5n7kv-GIcve1cVQhU_JtLQ": {
+    "metas": [
+      "meta_peru_j7qH"
+    ],
+    "lat": -17.81265,
+    "lng": -70.57788,
+    "country": "Peru",
+    "nominatimCountry": "Peru",
+    "region": "Tacna",
+    "city": "Tacna",
+    "road": "Carretera Panamericana Sur"
+  },
+  "Ev7zlnp3SbptmkqyhgrAUg": {
+    "metas": [
+      "meta_chile_Jl4B"
+    ],
+    "lat": -37.9522,
+    "lng": -71.33388,
+    "country": "Chile",
+    "nominatimCountry": "Chile",
+    "region": "B\u00edo B\u00edo",
+    "city": "Guallali",
+    "road": "Comunidad Vegas de Ralco"
+  },
+  "OKe4rgTmfIqh8ez-ACrfIA": {
+    "metas": [
+      "meta_ghana_H4D5"
+    ],
+    "lat": 5.27993,
+    "lng": -1.35461,
+    "country": "Ghana",
+    "nominatimCountry": "Ghana",
+    "region": "Central Region",
+    "city": "Jukwa Breman",
+    "road": "R82"
+  },
+  "5S7Rt-iQEUs34FK7p6TDrw": {
+    "metas": [
+      "meta_philippines_YkcX"
+    ],
+    "lat": 8.67653,
+    "lng": 125.85127,
+    "country": "Philippines",
+    "nominatimCountry": "Philippines",
+    "region": "Caraga",
+    "city": "Prosperidad",
+    "road": "Bayugan - Cantilan - Tandag Road"
+  },
+  "N2CEJPbzqCMBEBCU2D0XNw": {
+    "metas": [
+      "meta_japan_1FK1"
+    ],
+    "lat": 26.13122,
+    "lng": 127.71258,
+    "country": "Japan",
+    "nominatimCountry": "Japan",
+    "region": "Okinawa",
+    "city": "Yaese",
+    "road": null
+  },
+  "56E69N03RGIc7TRz1IYQ2g": {
+    "metas": [
+      "meta_brazil_FOZn"
+    ],
+    "lat": -3.1883,
+    "lng": -40.45936,
+    "country": "Brazil",
+    "nominatimCountry": "Brazil",
+    "region": "Cear\u00e1",
+    "city": "Senador S\u00e1",
+    "road": "Estrada Par\u00e1 C\u00f3rrego Verde"
+  },
+  "8cI5YsxSR67ZSeMrRhwFrw": {
+    "metas": [
+      "meta_brazil_Dz8D"
+    ],
+    "lat": -20.47354,
+    "lng": -53.64069,
+    "country": "Brazil",
+    "nominatimCountry": "Brazil",
+    "region": "Mato Grosso do Sul",
+    "city": "Ribas do Rio Pardo",
+    "road": "BR-262"
+  },
+  "TQAqer7W2NJ5OqmgKYtlmg": {
+    "metas": [
+      "meta_israel_west_bank_bTSZ"
+    ],
+    "lat": 31.76003,
+    "lng": 35.49362,
+    "country": "90",
+    "nominatimCountry": "Palestinian Territories",
+    "region": "Judea and Samaria",
+    "city": "Megilot Yam HaMelakh Regional Council",
+    "road": "Al Bahr Al Mayet"
+  },
+  "VHFE4emStfDLgDwK7xcVuw": {
+    "metas": [
+      "meta_brazil_FOZn"
+    ],
+    "lat": -5.22699,
+    "lng": -37.31857,
+    "country": "Brazil",
+    "nominatimCountry": "Brazil",
+    "region": "Rio Grande do Norte",
+    "city": "Mossor\u00f3",
+    "road": "Rua Herondina Cavalcante Dantas"
+  },
+  "Rv33dYMiUAInDjN-q2nE7Q": {
+    "metas": [
+      "meta_brazil_j038"
+    ],
+    "lat": -1.37994,
+    "lng": -48.28664,
+    "country": "Brazil",
+    "nominatimCountry": "Brazil",
+    "region": "Par\u00e1",
+    "city": "Marituba",
+    "road": "Rua dos Navegantes"
+  },
+  "8vfD1K6niU7nc90PL0hXhA": {
+    "metas": [
+      "meta_russia_mt14"
+    ],
+    "lat": 68.78655,
+    "lng": 32.77393,
+    "country": "Russia",
+    "nominatimCountry": "Russia",
+    "region": "Murmansk Oblast",
+    "city": "Murmashi",
+    "road": "\u00ab\u041a\u043e\u043b\u0430\u00bb \u041f\u043e\u0434\u044a\u0435\u0437\u0434 \u043a \u0430\u044d\u0440\u043e\u043f\u043e\u0440\u0442\u0443 \u041c\u0443\u0440\u043c\u0430\u043d\u0441\u043a"
+  },
+  "OoE8u8HElohKfQAIJTUhzw": {
+    "metas": [
+      "meta_portugal_1SD6"
+    ],
+    "lat": 38.45801,
+    "lng": -8.15705,
+    "country": "Portugal",
+    "nominatimCountry": "Portugal",
+    "region": "Distrito de \u00c9vora",
+    "city": "Alc\u00e1\u00e7ovas",
+    "road": "N2"
+  },
+  "5fiZIhVapFGZ-1mvhVZLXA": {
+    "metas": [
+      "meta_russia_mt14"
+    ],
+    "lat": 58.13849,
+    "lng": 28.88708,
+    "country": "Russia",
+    "nominatimCountry": "Russia",
+    "region": "Pskovskaya oblast'",
+    "city": "Strugokrasnenskiy Rayon",
+    "road": "58K-366"
+  },
+  "fCnLWtBN1gK0KFYtXpNbUg": {
+    "metas": [
+      "meta_japan_kk8b"
+    ],
+    "lat": 33.14808,
+    "lng": 130.57414,
+    "country": "Japan",
+    "nominatimCountry": "Japan",
+    "region": "Fukuoka",
+    "city": "Yame",
+    "road": null
+  },
+  "pWEf_nIaODegg7BwcxW20Q": {
+    "metas": [
+      "meta_mexico_X6cJ"
+    ],
+    "lat": 19.5139,
+    "lng": -98.25409,
+    "country": "Mexico",
+    "nominatimCountry": "Mexico",
+    "region": "Tlaxcala",
+    "city": "San Jos\u00e9 Cuamantzingo",
+    "road": "Calle Benito Ju\u00e1rez"
+  },
+  "jw3ZNWk9ToOV6IKXHtEVBA": {
+    "metas": [
+      "meta_south_africa_58eY"
+    ],
+    "lat": -29.83183,
+    "lng": 30.72003,
+    "country": "South Africa",
+    "nominatimCountry": "South Africa",
+    "region": "KwaZulu-Natal",
+    "city": "Clifton Canyon",
+    "road": "Mr551 Road"
+  },
+  "4VXR2PUq8Tq6SnoWNtquOw": {
+    "metas": [
+      "meta_france_DwIX"
+    ],
+    "lat": 43.75008,
+    "lng": 6.05912,
+    "country": "France",
+    "nominatimCountry": "France",
+    "region": "Provence-Alpes-C\u00f4te d'Azur",
+    "city": "Esparron-de-Verdon",
+    "road": "Chemin de Beau Regard"
+  },
+  "iVej_ZWZFevKJJPyxlW8yA": {
+    "metas": [
+      "meta_mexico_7E67"
+    ],
+    "lat": 18.03135,
+    "lng": -94.76426,
+    "country": "Mexico",
+    "nominatimCountry": "Mexico",
+    "region": "Veracruz",
+    "city": "Rancho Viejo",
+    "road": "La Palma"
+  },
+  "PuD4hGsDtWK3jhtZCLwKLw": {
+    "metas": [
+      "meta_bangladesh_oHUw"
+    ],
+    "lat": 25.79479,
+    "lng": 88.99664,
+    "country": "Bangladesh",
+    "nominatimCountry": "Bangladesh",
+    "region": "Rangpur Division",
+    "city": "Kursha",
+    "road": "Kursha"
+  },
+  "MTL1k8JOMypxVdIY0ueWqA": {
+    "metas": [
+      "meta_argentina_HidJ"
+    ],
+    "lat": -30.60505,
+    "lng": -61.30945,
+    "country": "Argentina",
+    "nominatimCountry": "Argentina",
+    "region": "Santa Fe",
+    "city": "San Crist\u00f3bal",
+    "road": "Ruta Provincial 13"
+  },
+  "yTQk_lG53Ct9L5ngwAJB1w": {
+    "metas": [
+      "meta_germany_gUz2"
+    ],
+    "lat": 49.18446,
+    "lng": 8.0258,
+    "country": "Germany",
+    "nominatimCountry": "Germany",
+    "region": "Rheinland-Pfalz",
+    "city": "Leinsweiler",
+    "road": "L508"
+  },
+  "f4PmlmpdFA_JN6egYXA22w": {
+    "metas": [
+      "meta_brazil_xjGP"
+    ],
+    "lat": -16.7856,
+    "lng": -49.87543,
+    "country": "Brazil",
+    "nominatimCountry": "Brazil",
+    "region": "Goi\u00e1s",
+    "city": "Palmeiras de Goi\u00e1s",
+    "road": "Avenida Santos Dumont"
+  },
+  "v0m0yumglHi3wR0Lhqlr-Q": {
+    "metas": [
+      "meta_norway_HfAL"
+    ],
+    "lat": 60.4109,
+    "lng": 10.36725,
+    "country": "Norway",
+    "nominatimCountry": "Norway",
+    "region": "Innlandet",
+    "city": "Tingelstad",
+    "road": "M\u00f8rkgonga"
+  },
+  "73I5J2qhvK-V4IJWB3K2bg": {
+    "metas": [
+      "meta_bangladesh_QJgl"
+    ],
+    "lat": 26.13588,
+    "lng": 88.37437,
+    "country": "Bangladesh",
+    "nominatimCountry": "Bangladesh",
+    "region": "Rangpur Division",
+    "city": "Thakurgaon District",
+    "road": "Akhanagar"
+  },
+  "GUeAUE1pG1d_vwpxine_8A": {
+    "metas": [
+      "meta_mexico_3nP6"
+    ],
+    "lat": 28.69555,
+    "lng": -111.71438,
+    "country": "Mexico",
+    "nominatimCountry": "Mexico",
+    "region": "Sonora",
+    "city": "Narciso Mendoza",
+    "road": null
+  },
+  "0XqQ0gHLgGk_un0RK-x6jw": {
+    "metas": [
+      "meta_france_jPuX"
+    ],
+    "lat": 45.27959,
+    "lng": -0.547,
+    "country": "France",
+    "nominatimCountry": "France",
+    "region": "Nouvelle-Aquitaine",
+    "city": "Val-de-Livenne",
+    "road": "Route des Vignerons"
+  },
+  "h4x4czuyM6Co6lrrgZT59g": {
+    "metas": [
+      "meta_indonesia_local_f662g"
+    ],
+    "lat": -7.05915,
+    "lng": 107.33967,
+    "country": "Indonesia",
+    "nominatimCountry": "Indonesia",
+    "region": "Jawa Barat",
+    "city": "Kabupaten Bandung",
+    "road": "Jalan Lebakmuncang"
+  },
+  "ydfVI6tQQV7vZ8zX7-4jNA": {
+    "metas": [
+      "meta_japan_nLH3"
+    ],
+    "lat": 31.26717,
+    "lng": 130.52276,
+    "country": "Japan",
+    "nominatimCountry": "Japan",
+    "region": "Kagoshima",
+    "city": "Minamikyushu",
+    "road": null
+  },
+  "i-ahmtlpl3xZOnlPLbSqAw": {
+    "metas": [
+      "meta_mexico_vZJe"
+    ],
+    "lat": 19.20891,
+    "lng": -98.11209,
+    "country": "Mexico",
+    "nominatimCountry": "Mexico",
+    "region": "Tlaxcala",
+    "city": "Sais",
+    "road": null
+  },
+  "NP-UKjO1pd5-fRdFUcjsJA": {
+    "metas": [
+      "meta_philippines_lS7l"
+    ],
+    "lat": 8.00012,
+    "lng": 125.06767,
+    "country": "Philippines",
+    "nominatimCountry": "Philippines",
+    "region": "Northern Mindanao",
+    "city": "Lantapan",
+    "road": "Bantuanon"
+  },
+  "gQ6_wfkTn5-6JNtfOASEKg": {
+    "metas": [
+      "meta_philippines_9hUv"
+    ],
+    "lat": 11.16825,
+    "lng": 123.98152,
+    "country": "Philippines",
+    "nominatimCountry": "Philippines",
+    "region": "Central Visayas",
+    "city": "Medellin",
+    "road": "Dalingding Sur"
+  },
+  "ZhqOgrPFJ7qZ5n4nnpCK9A": {
+    "metas": [
+      "meta_philippines_GaHP"
+    ],
+    "lat": 9.67304,
+    "lng": 122.90604,
+    "country": "Philippines",
+    "nominatimCountry": "Philippines",
+    "region": "Central Visayas",
+    "city": "Mabinay",
+    "road": "Pantao - Himocdongon Road"
+  },
+  "xKP-q2uqPUkz8VeZOqEKyA": {
+    "metas": [
+      "meta_panama_osKk"
+    ],
+    "lat": 8.2706,
+    "lng": -81.85843,
+    "country": "Panama",
+    "nominatimCountry": "Panama",
+    "region": "Provincia de Chiriqu\u00ed",
+    "city": "Remedios",
+    "road": "Carretera Panamericana"
+  },
+  "IknPR4UYJhvB4v5rUyrZeQ": {
+    "metas": [
+      "meta_brazil_6UVb"
+    ],
+    "lat": -20.25791,
+    "lng": -41.36391,
+    "country": "Brazil",
+    "nominatimCountry": "Brazil",
+    "region": "Esp\u00edrito Santo",
+    "city": "Muniz Freire",
+    "road": "Rodovia Governador Eur\u00edco Rezende"
+  },
+  "NcU4vYkHMDaofUUdW0T3NQ": {
+    "metas": [
+      "meta_mexico_Ok3w"
+    ],
+    "lat": 18.50033,
+    "lng": -87.76105,
+    "country": "Mexico",
+    "nominatimCountry": "Mexico",
+    "region": "Quintana Roo",
+    "city": null,
+    "road": "Camino Xcalak"
+  },
+  "_0BwmtnsWyU-L-J04wvlbg": {
+    "metas": [
+      "meta_portugal_1SD6"
+    ],
+    "lat": 38.61294,
+    "lng": -7.51956,
+    "country": "Portugal",
+    "nominatimCountry": "Portugal",
+    "region": "\u00c9vora District",
+    "city": "Redondo",
+    "road": "EM 512"
+  },
+  "-dFLdMQmNHanl4FJFDKY9g": {
+    "metas": [
+      "meta_argentina_HidJ"
+    ],
+    "lat": -35.35562,
+    "lng": -61.75457,
+    "country": "Argentina",
+    "nominatimCountry": "Argentina",
+    "region": "Provincia de Buenos Aires",
+    "city": "Las Toscas",
+    "road": "Ruta Provincial 70"
+  },
+  "tWx8mD2EPpbYa5vJNWQh4w": {
+    "metas": [
+      "meta_guatemala_urVz"
+    ],
+    "lat": 15.61254,
+    "lng": -88.39506,
+    "country": "Guatemala",
+    "nominatimCountry": "Guatemala",
+    "region": "Izabal",
+    "city": "Puerto Barrios",
+    "road": "Carretera Centroamericana 13"
+  },
+  "KesjRGevmqEI0HxrPPFkMw": {
+    "metas": [
+      "meta_argentina_uYP9"
+    ],
+    "lat": -26.73523,
+    "lng": -64.83708,
+    "country": "Argentina",
+    "nominatimCountry": "Argentina",
+    "region": "Tucum\u00e1n",
+    "city": "Tala Pozo",
+    "road": "RP317"
+  },
+  "WarBV71vrN0u9_eoQ4iGVQ": {
+    "metas": [
+      "meta_eswatini_NeZB"
+    ],
+    "lat": -26.56928,
+    "lng": 30.81331,
+    "country": "Eswatini",
+    "nominatimCountry": "Eswatini",
+    "region": "Manzini",
+    "city": null,
+    "road": "MR19"
+  },
+  "EhCRxO20l9tO7bnrS8kZ8Q": {
+    "metas": [
+      "meta_portugal_1SD6"
+    ],
+    "lat": 38.30442,
+    "lng": -7.47553,
+    "country": "Portugal",
+    "nominatimCountry": "Portugal",
+    "region": "Distrito de \u00c9vora",
+    "city": "Campo",
+    "road": "Caminho do Ronc\u00e3o Del Rei"
   }
 }
