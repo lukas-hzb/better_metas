@@ -1042,5 +1042,17 @@
     "region": "Extremadura",
     "city": "San Vicente de Alc\u00e1ntara",
     "road": "Carretera de San Vicente de Alc\u00e1ntara a La Codosera"
+  },
+  "sX7BGUVbK4mZF4VDq16_4w": {
+    "metas": [
+      "meta_russia_lb3J"
+    ],
+    "lat": 54.51099,
+    "lng": 21.77572,
+    "country": "Russia",
+    "nominatimCountry": "Russia",
+    "region": "Kaliningrad",
+    "city": "\u041a\u0440\u0443\u0448\u0438\u043d\u0438\u043d\u043e",
+    "road": "27\u041a-162"
   }
 }
