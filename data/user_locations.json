@@ -886,5 +886,17 @@
     "region": "Izabal",
     "city": "Puerto Barrios",
     "road": "Carretera Centroamericana 13"
+  },
+  "KesjRGevmqEI0HxrPPFkMw": {
+    "metas": [
+      "meta_argentina_uYP9"
+    ],
+    "lat": -26.73523,
+    "lng": -64.83708,
+    "country": "Argentina",
+    "nominatimCountry": "Argentina",
+    "region": "Tucum\u00e1n",
+    "city": "Tala Pozo",
+    "road": "RP317"
   }
 }
