@@ -958,5 +958,17 @@
     "region": "Tbong Khmum Province",
     "city": "Suong",
     "road": null
+  },
+  "uvwSzvyQuumvkRXbJLgCBg": {
+    "metas": [
+      "meta_brazil_xjGP"
+    ],
+    "lat": -14.50132,
+    "lng": -54.86836,
+    "country": "Brazil",
+    "nominatimCountry": "Brazil",
+    "region": "Mato Grosso",
+    "city": "Planalto da Serra",
+    "road": "MT-140"
   }
 }
