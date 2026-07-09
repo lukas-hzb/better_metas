@@ -1006,5 +1006,17 @@
     "region": "Estado de M\u00e9xico",
     "city": "San Marcos",
     "road": null
+  },
+  "MNcCV8h9T-mF2KWXDWKXGA": {
+    "metas": [
+      "meta_philippines_lS7l"
+    ],
+    "lat": 7.71654,
+    "lng": 124.95881,
+    "country": "Philippines",
+    "nominatimCountry": "Philippines",
+    "region": "Northern Mindanao",
+    "city": "Don Carlos",
+    "road": null
   }
 }
