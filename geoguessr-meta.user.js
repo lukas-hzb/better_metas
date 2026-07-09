@@ -57,6 +57,13 @@
     const DATA_FETCH_TIMEOUT_MS = 8000;
     const DATA_FETCH_MAX_ATTEMPTS = 3;
     const DATA_FETCH_RETRY_DELAY_MS = 400;
+    const GITHUB_CONTENT_UPDATE_MAX_ATTEMPTS = 8;
+    const GITHUB_CONTENT_UPDATE_RETRY_DELAY_MS = 500;
+    const GITHUB_WRITE_LOCK_STORAGE_KEY = 'gg_github_write_lock';
+    const GITHUB_WRITE_LOCK_TTL_MS = 60000;
+    const GITHUB_WRITE_LOCK_MAX_WAIT_MS = 45000;
+    const GITHUB_WRITE_LOCK_POLL_MS = 150;
+    const GITHUB_WRITE_LOCK_OWNER = `${Date.now()}_${Math.random().toString(36).slice(2)}`;
     const DATA_CACHE_MAX_AGE_MS = 12 * 60 * 60 * 1000;
     const STREETVIEW_RETRY_DELAY_MS = 500;
     const RESULT_SCREEN_GRACE_MS = 500;
@@ -1848,7 +1855,7 @@
                 <div class="gg-modal-header">Add metas to location</div>
                 
                 <div class="gg-form-group">
-                    <input type="text" id="meta-search" class="gg-form-input" placeholder="Filter by country, title or tags (e.g. Kenya;snorkel)">
+                    <input type="text" id="meta-search" class="gg-form-input" placeholder="Filter by country, title or tags (e.g. Kenya; snorkel)">
                 </div>
                 <div id="gg-existing-metas"></div>
 
@@ -2000,10 +2007,13 @@
             showMetaModal();
             document.getElementById('meta-main-view').classList.remove('gg-hidden');
             document.getElementById('meta-details-view').classList.add('gg-hidden');
+            const searchInput = document.getElementById('meta-search');
+            searchInput.value = '';
             document.getElementById('gg-json-output').style.display = 'none';
             selectedMetaIds.clear();
             updateLinkSelectedBtn();
             renderExistingMetas(); // Populate existing metas list
+            requestAnimationFrame(() => searchInput.focus());
         });
 
         document.getElementById('gg-settings-btn').addEventListener('click', () => {
@@ -2265,8 +2275,8 @@
         const container = document.getElementById('gg-existing-metas');
         if (!container) return;
 
-        // Support multi-term search (split by ';')
-        const terms = searchTerm.toLowerCase().split(';').map(s => s.trim()).filter(s => s);
+        // Support multi-term search split by semicolon or comma.
+        const terms = searchTerm.toLowerCase().split(/[;,]/).map(s => s.trim()).filter(s => s);
 
         const filtered = metasData.filter(m => {
             if (terms.length === 0) return true;
@@ -2448,15 +2458,14 @@
                 throw new Error(`Unknown meta IDs: ${unknownMetaIds.join(', ')}`);
             }
 
-            const locationsFile = await getGitHubJsonFile(API_USER_LOCATIONS_URL, token);
-            const locations = normalizeLocationMap(locationsFile.content);
-            addMetaIdsToLocationMap(locations, panoid, metaIds);
-
-            await putGitHubJsonFile(
+            await updateGitHubJsonFile(
                 API_USER_LOCATIONS_URL,
                 token,
-                locationsFile.sha,
-                locations,
+                normalizeLocationMap,
+                locations => {
+                    addMetaIdsToLocationMap(locations, panoid, metaIds);
+                    return locations;
+                },
                 `Link ${metaIds.length} metas to ${panoid} via BetterMetas`
             );
 
@@ -2555,29 +2564,31 @@
         output.style.display = 'none';
 
         try {
-            // 1. Fetch both user files
-            updateStatus('Fetching user_metas.json...');
-            const metasFile = await getGitHubJsonFile(API_USER_METAS_URL, token);
-            
-            updateStatus('Fetching user_locations.json...');
-            const locsFile = await getGitHubJsonFile(API_USER_LOCATIONS_URL, token);
-
-            const metas = normalizeUserMetas(metasFile.content);
-            const locations = normalizeLocationMap(locsFile.content);
-
-            // 2. Add meta to user_metas.json
-            metas.push(newMeta);
-
-            // 3. Link panoid in user_locations.json
-            addMetaIdsToLocationMap(locations, panoid, [newMeta.id]);
-
-            // 4. Commit user_metas.json
             updateStatus('Saving user_metas.json...');
-            await putGitHubJsonFile(API_USER_METAS_URL, token, metasFile.sha, metas, `Add meta ${newMeta.id} via BetterMetas`);
+            await updateGitHubJsonFile(
+                API_USER_METAS_URL,
+                token,
+                normalizeUserMetas,
+                metas => {
+                    if (!metas.some(meta => meta.id === newMeta.id)) {
+                        metas.push(newMeta);
+                    }
+                    return metas;
+                },
+                `Add meta ${newMeta.id} via BetterMetas`
+            );
 
-            // 5. Commit user_locations.json
             updateStatus('Saving user_locations.json...');
-            await putGitHubJsonFile(API_USER_LOCATIONS_URL, token, locsFile.sha, locations, `Link ${panoid} to ${newMeta.id} via BetterMetas`);
+            await updateGitHubJsonFile(
+                API_USER_LOCATIONS_URL,
+                token,
+                normalizeLocationMap,
+                locations => {
+                    addMetaIdsToLocationMap(locations, panoid, [newMeta.id]);
+                    return locations;
+                },
+                `Link ${panoid} to ${newMeta.id} via BetterMetas`
+            );
 
             applyLocalSavedMeta(newMeta, panoid);
             updateStatus('Saved!');
@@ -2613,13 +2624,20 @@
         btn.disabled = true;
 
         try {
-            // 1. Get SHAs
-            const metasSha = await getGitHubFileSha(API_USER_METAS_URL, token);
-            const locsSha = await getGitHubFileSha(API_USER_LOCATIONS_URL, token);
-
-            // 2. Overwrite with empty
-            await putGitHubJsonFile(API_USER_METAS_URL, token, metasSha, [], "Clear own BetterMetas metas");
-            await putGitHubJsonFile(API_USER_LOCATIONS_URL, token, locsSha, {}, "Clear own BetterMetas location links");
+            await updateGitHubJsonFile(
+                API_USER_METAS_URL,
+                token,
+                normalizeUserMetas,
+                () => [],
+                "Clear own BetterMetas metas"
+            );
+            await updateGitHubJsonFile(
+                API_USER_LOCATIONS_URL,
+                token,
+                normalizeLocationMap,
+                () => ({}),
+                "Clear own BetterMetas location links"
+            );
 
             alert("Own BetterMetas data cleared!");
             location.reload();
@@ -3388,7 +3406,10 @@
         try {
             details = JSON.parse(response.responseText).message || details;
         } catch(e) {}
-        return new Error(`GitHub API ${response.status}: ${details}`);
+        const error = new Error(`GitHub API ${response.status}: ${details}`);
+        error.status = response.status;
+        error.details = details;
+        return error;
     }
 
     function githubApiRequest(url, token, method = 'GET', body = null) {
@@ -3400,7 +3421,8 @@
                     'Authorization': `Bearer ${token}`,
                     'Accept': 'application/vnd.github.v3+json',
                     'X-GitHub-Api-Version': '2022-11-28',
-                    'Content-Type': 'application/json'
+                    'Content-Type': 'application/json',
+                    'Cache-Control': 'no-cache'
                 },
                 timeout: DATA_FETCH_TIMEOUT_MS,
                 data: body ? JSON.stringify(body) : null,
@@ -3426,15 +3448,6 @@
         return { sha: data.sha, content: decodeGitHubJsonContent(data.content) };
     }
 
-    async function getGitHubFileSha(apiUrl, token) {
-        try {
-            const data = await githubApiRequest(getApiUrlForBranch(apiUrl), token);
-            return data.sha;
-        } catch (e) {
-            return null;
-        }
-    }
-
     async function putGitHubJsonFile(apiUrl, token, sha, content, message) {
         const body = {
             message,
@@ -3443,6 +3456,117 @@
         };
         if (sha) body.sha = sha;
         return githubApiRequest(apiUrl, token, 'PUT', body);
+    }
+
+    function isGitHubContentConflict(error) {
+        return Boolean(error && (error.status === 409 || /^GitHub API 409:/.test(error.message || '')));
+    }
+
+    function readGitHubWriteLock() {
+        try {
+            const value = typeof GM_getValue === 'function'
+                ? GM_getValue(GITHUB_WRITE_LOCK_STORAGE_KEY, null)
+                : localStorage.getItem(GITHUB_WRITE_LOCK_STORAGE_KEY);
+            return value ? JSON.parse(value) : null;
+        } catch (error) {
+            console.warn('[BetterMetas] Could not read GitHub write lock:', error);
+            return null;
+        }
+    }
+
+    function writeGitHubWriteLock(value) {
+        const serialized = JSON.stringify(value);
+        if (typeof GM_setValue === 'function') {
+            GM_setValue(GITHUB_WRITE_LOCK_STORAGE_KEY, serialized);
+            return;
+        }
+
+        localStorage.setItem(GITHUB_WRITE_LOCK_STORAGE_KEY, serialized);
+    }
+
+    function clearGitHubWriteLock() {
+        if (typeof GM_setValue === 'function') {
+            GM_setValue(GITHUB_WRITE_LOCK_STORAGE_KEY, null);
+        }
+
+        localStorage.removeItem(GITHUB_WRITE_LOCK_STORAGE_KEY);
+    }
+
+    async function acquireGitHubWriteLock(label) {
+        const deadline = Date.now() + GITHUB_WRITE_LOCK_MAX_WAIT_MS;
+
+        while (Date.now() < deadline) {
+            const now = Date.now();
+            const lock = readGitHubWriteLock();
+            const lockExpired = !lock || !lock.expiresAt || lock.expiresAt <= now;
+            const ownLock = lock && lock.owner === GITHUB_WRITE_LOCK_OWNER;
+
+            if (lockExpired || ownLock) {
+                writeGitHubWriteLock({
+                    owner: GITHUB_WRITE_LOCK_OWNER,
+                    label,
+                    expiresAt: now + GITHUB_WRITE_LOCK_TTL_MS
+                });
+
+                await wait(25);
+                const confirmed = readGitHubWriteLock();
+                if (confirmed && confirmed.owner === GITHUB_WRITE_LOCK_OWNER) {
+                    return () => {
+                        const current = readGitHubWriteLock();
+                        if (current && current.owner === GITHUB_WRITE_LOCK_OWNER) {
+                            clearGitHubWriteLock();
+                        }
+                    };
+                }
+            }
+
+            await wait(GITHUB_WRITE_LOCK_POLL_MS + Math.floor(Math.random() * GITHUB_WRITE_LOCK_POLL_MS));
+        }
+
+        throw new Error('Timed out waiting for another BetterMetas GitHub save to finish. Please try again.');
+    }
+
+    let githubWriteQueue = Promise.resolve();
+
+    function withGitHubWriteLock(label, operation) {
+        const run = githubWriteQueue.catch(() => {}).then(async () => {
+            const releaseLock = await acquireGitHubWriteLock(label);
+            try {
+                return await operation();
+            } finally {
+                releaseLock();
+            }
+        });
+
+        githubWriteQueue = run.catch(() => {});
+        return run;
+    }
+
+    async function updateGitHubJsonFile(apiUrl, token, normalizeContent, updateContent, message) {
+        return withGitHubWriteLock(message, async () => {
+            let lastError = null;
+
+            for (let attempt = 1; attempt <= GITHUB_CONTENT_UPDATE_MAX_ATTEMPTS; attempt++) {
+                const file = await getGitHubJsonFile(apiUrl, token);
+                const content = normalizeContent(file.content);
+                const updatedContent = updateContent(content) || content;
+
+                try {
+                    return await putGitHubJsonFile(apiUrl, token, file.sha, updatedContent, message);
+                } catch (error) {
+                    lastError = error;
+                    if (!isGitHubContentConflict(error) || attempt === GITHUB_CONTENT_UPDATE_MAX_ATTEMPTS) {
+                        throw error;
+                    }
+
+                    const delay = GITHUB_CONTENT_UPDATE_RETRY_DELAY_MS * attempt + Math.floor(Math.random() * GITHUB_CONTENT_UPDATE_RETRY_DELAY_MS);
+                    console.warn(`[BetterMetas] GitHub content conflict while saving ${apiUrl}; retrying with latest file (${attempt + 1}/${GITHUB_CONTENT_UPDATE_MAX_ATTEMPTS}) after ${delay}ms.`, error);
+                    await wait(delay);
+                }
+            }
+
+            throw lastError;
+        });
     }
 
     function fetchGitHubContentJson(apiUrl, token) {
