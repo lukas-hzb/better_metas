@@ -1162,5 +1162,17 @@
     "region": "Krasnodarskiy kray",
     "city": "Bolshoy Sochi",
     "road": "Batumskoe Shosse Street"
+  },
+  "8LgPq7KUdIsuv24eXsnVuQ": {
+    "metas": [
+      "meta_panama_uzMg"
+    ],
+    "lat": 9.41691,
+    "lng": -82.55469,
+    "country": "Panama",
+    "nominatimCountry": "Panama",
+    "region": "Bocas del Toro Province",
+    "city": "Changuinola",
+    "road": "Finca 30"
   }
 }
