@@ -1114,5 +1114,17 @@
     "region": "Veracruz",
     "city": "Santa Rosa",
     "road": "Santa Rosa (General Pinz\u00f3n)"
+  },
+  "VfVFMyRQ3j_30MPXpRDdQw": {
+    "metas": [
+      "meta_philippines_YkcX"
+    ],
+    "lat": 8.01229,
+    "lng": 126.11839,
+    "country": "Philippines",
+    "nominatimCountry": "Philippines",
+    "region": "Agusan del Sur",
+    "city": "Trento",
+    "road": "Cuevas-Bislig Road"
   }
 }
