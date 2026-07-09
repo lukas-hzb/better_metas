@@ -1138,5 +1138,17 @@
     "region": "Matam Region",
     "city": "Ranerou Ferlo",
     "road": "N3"
+  },
+  "vS-slR3EB_8pqq88UqM3kg": {
+    "metas": [
+      "meta_chile_Imir"
+    ],
+    "lat": -40.67796,
+    "lng": -72.00003,
+    "country": "Chile",
+    "nominatimCountry": "Chile",
+    "region": "Los Lagos",
+    "city": "Osorno",
+    "road": "Ruta 215"
   }
 }
