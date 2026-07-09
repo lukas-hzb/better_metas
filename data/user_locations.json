@@ -910,5 +910,17 @@
     "region": "Manzini",
     "city": null,
     "road": "MR19"
+  },
+  "EhCRxO20l9tO7bnrS8kZ8Q": {
+    "metas": [
+      "meta_portugal_1SD6"
+    ],
+    "lat": 38.30442,
+    "lng": -7.47553,
+    "country": "Portugal",
+    "nominatimCountry": "Portugal",
+    "region": "Distrito de \u00c9vora",
+    "city": "Campo",
+    "road": "Caminho do Ronc\u00e3o Del Rei"
   }
 }
