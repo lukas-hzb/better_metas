@@ -1126,5 +1126,17 @@
     "region": "Agusan del Sur",
     "city": "Trento",
     "road": "Cuevas-Bislig Road"
+  },
+  "PRSKxBH0W22IYA9Ffu0xVQ": {
+    "metas": [
+      "meta_senegal_2NXs"
+    ],
+    "lat": 15.22383,
+    "lng": -14.49328,
+    "country": "Senegal",
+    "nominatimCountry": "Senegal",
+    "region": "Matam Region",
+    "city": "Ranerou Ferlo",
+    "road": "N3"
   }
 }
