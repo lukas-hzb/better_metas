@@ -1174,5 +1174,17 @@
     "region": "Bocas del Toro Province",
     "city": "Changuinola",
     "road": "Finca 30"
+  },
+  "CB0cRYxi5QF0GXaFJWIHtw": {
+    "metas": [
+      "meta_panama_rBEB"
+    ],
+    "lat": 8.77741,
+    "lng": -82.62821,
+    "country": "Panama",
+    "nominatimCountry": "Panama",
+    "region": "Provincia de Chiriqu\u00ed",
+    "city": "Volc\u00e1n",
+    "road": "Manzana 040512"
   }
 }
