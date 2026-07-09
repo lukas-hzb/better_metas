@@ -982,5 +982,17 @@
     "region": "Saipan",
     "city": "Garapan",
     "road": "Coral Tree Avenue"
+  },
+  "qT9SLGn_Ojh9q7o1QBd0FA": {
+    "metas": [
+      "meta_new_zealand_f4UY"
+    ],
+    "lat": -41.86739,
+    "lng": 171.50224,
+    "country": "New Zealand",
+    "nominatimCountry": "New Zealand",
+    "region": "West Coast Region",
+    "city": "Virgin Flat",
+    "road": "State Highway 6"
   }
 }
