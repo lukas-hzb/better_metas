@@ -1210,5 +1210,17 @@
     "region": "Andalusia",
     "city": "Villamanrique de la Condesa",
     "road": "Villamanrique de la Condesa"
+  },
+  "gwoLNitVyGjG8K8HCj6w4g": {
+    "metas": [
+      "meta_portugal_JOnQ"
+    ],
+    "lat": 40.76689,
+    "lng": -8.19187,
+    "country": "Portugal",
+    "nominatimCountry": "Portugal",
+    "region": "Viseu",
+    "city": "S\u00e3o Pedro do Sul",
+    "road": "Boavista"
   }
 }
