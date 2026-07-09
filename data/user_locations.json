@@ -862,5 +862,17 @@
     "region": "\u00c9vora District",
     "city": "Redondo",
     "road": "EM 512"
+  },
+  "-dFLdMQmNHanl4FJFDKY9g": {
+    "metas": [
+      "meta_argentina_HidJ"
+    ],
+    "lat": -35.35562,
+    "lng": -61.75457,
+    "country": "Argentina",
+    "nominatimCountry": "Argentina",
+    "region": "Provincia de Buenos Aires",
+    "city": "Las Toscas",
+    "road": "Ruta Provincial 70"
   }
 }
