@@ -1234,5 +1234,17 @@
     "region": "Rio Grande do Sul",
     "city": "Tupanci do Sul",
     "road": "BR-470"
+  },
+  "fGlPH3M_52Qq0Wrmo5Tjsw": {
+    "metas": [
+      "meta_canada_c5Ap"
+    ],
+    "lat": 52.35733,
+    "lng": -113.38742,
+    "country": "Canada",
+    "nominatimCountry": "Canada",
+    "region": "Alberta",
+    "city": "Tees",
+    "road": "Range Road 243"
   }
 }
