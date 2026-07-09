@@ -1150,5 +1150,17 @@
     "region": "Los Lagos",
     "city": "Osorno",
     "road": "Ruta 215"
+  },
+  "mW63ZmU6t-IQD0muN0fSCg": {
+    "metas": [
+      "meta_russia_ys4b"
+    ],
+    "lat": 43.6556,
+    "lng": 39.66891,
+    "country": "Russia",
+    "nominatimCountry": "Russia",
+    "region": "Krasnodarskiy kray",
+    "city": "Bolshoy Sochi",
+    "road": "Batumskoe Shosse Street"
   }
 }
