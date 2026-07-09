@@ -207,6 +207,18 @@
         });
     }
 
+    function removeMetaIdsFromLocationMap(locations, panoid, metaIds) {
+        if (!locations || !locations[panoid]) return;
+
+        const idsToRemove = new Set(metaIds);
+        const entry = ensureLocationEntry(locations, panoid);
+        entry.metas = entry.metas.filter(id => !idsToRemove.has(id));
+
+        if (entry.metas.length === 0) {
+            delete locations[panoid];
+        }
+    }
+
     function normalizeLocationMap(value) {
         if (!value || typeof value !== 'object' || Array.isArray(value)) return {};
 
@@ -997,7 +1009,8 @@
 
         /* Modal Base Styles - GeoGuessr Native Style */
         #gg-meta-modal,
-        #gg-settings-modal .gg-modal-container {
+        #gg-settings-modal .gg-modal-container,
+        #gg-dialog-modal {
             position: fixed;
             top: 50%;
             left: 50%;
@@ -1021,6 +1034,40 @@
             z-index: 100000;
             width: 550px;
             transition: all 0.3s ease-in-out;
+        }
+
+        #gg-dialog-modal {
+            z-index: 100003;
+            width: 360px;
+            display: none;
+            box-sizing: border-box;
+        }
+
+        .gg-dialog-message {
+            color: rgba(255, 255, 255, 0.82);
+            font-size: 0.86rem;
+            font-weight: 500;
+            line-height: 1.45;
+            margin-bottom: var(--modal-spacing-md);
+            white-space: pre-wrap;
+        }
+
+        .gg-dialog-actions {
+            display: flex;
+            gap: 10px;
+            margin-top: var(--modal-spacing-md);
+        }
+
+        .gg-dialog-actions .gg-btn-primary,
+        .gg-dialog-actions .gg-btn-secondary,
+        .gg-dialog-actions .gg-btn-danger {
+            margin-top: 0;
+            flex: 1;
+        }
+
+        .gg-dialog-actions .gg-btn-primary:only-child,
+        .gg-dialog-actions .gg-btn-secondary:only-child {
+            flex: 0 0 100%;
         }
 
         .gg-modal-subview {
@@ -1159,6 +1206,22 @@
             display: flex;
             align-items: center;
             justify-content: center;
+            user-select: none;
+            -webkit-user-select: none;
+            -webkit-tap-highlight-color: transparent;
+            appearance: none;
+            -webkit-appearance: none;
+        }
+
+        .gg-btn-primary:focus,
+        .gg-btn-secondary:focus,
+        .gg-btn-danger:focus {
+            outline: none;
+        }
+
+        .gg-btn-primary:focus-visible {
+            outline: none;
+            box-shadow: 0 0 0 2px rgba(140, 212, 90, 0.35), 0 4px 12px rgba(0, 0, 0, 0.25);
         }
 
         .gg-btn-primary:hover {
@@ -1191,6 +1254,16 @@
             justify-content: center;
             text-transform: uppercase; /* Match layout style */
             letter-spacing: 0.03em;
+            user-select: none;
+            -webkit-user-select: none;
+            -webkit-tap-highlight-color: transparent;
+            appearance: none;
+            -webkit-appearance: none;
+        }
+
+        .gg-btn-secondary:focus-visible {
+            outline: none;
+            box-shadow: 0 0 0 2px rgba(150, 140, 200, 0.35);
         }
 
         .gg-btn-secondary:hover {
@@ -1216,6 +1289,16 @@
             display: flex;
             align-items: center;
             justify-content: center;
+            user-select: none;
+            -webkit-user-select: none;
+            -webkit-tap-highlight-color: transparent;
+            appearance: none;
+            -webkit-appearance: none;
+        }
+
+        .gg-btn-danger:focus-visible {
+            outline: none;
+            box-shadow: 0 0 0 2px rgba(249, 115, 22, 0.35);
         }
 
         .gg-btn-danger:hover {
@@ -1351,6 +1434,17 @@
             box-shadow: 0 2px 6px rgba(0, 0, 0, 0.25);
             text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.3);
             flex-shrink: 0;
+            user-select: none;
+            -webkit-user-select: none;
+        }
+
+        .gg-btn-link-meta:focus {
+            outline: none;
+        }
+
+        .gg-btn-link-meta:focus-visible {
+            outline: none;
+            box-shadow: 0 0 0 2px rgba(140, 212, 90, 0.35), 0 2px 6px rgba(0, 0, 0, 0.25);
         }
 
         .gg-btn-link-meta:hover {
@@ -1367,6 +1461,27 @@
         .gg-btn-link-meta.gg-tag-selected {
             background: var(--gg-primary-green);
             border-color: var(--gg-primary-border);
+        }
+
+        .gg-meta-linked-indicator {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            min-width: 58px;
+            padding: 4px 10px;
+            border: 1px solid rgba(140, 212, 90, 0.5);
+            border-radius: 12px;
+            background: rgba(140, 212, 90, 0.16);
+            color: #bdf29a;
+            font-size: 0.7rem;
+            font-weight: 800;
+            font-style: italic;
+            line-height: 1;
+            text-transform: uppercase;
+            letter-spacing: 0.03em;
+            flex-shrink: 0;
+            user-select: none;
+            -webkit-user-select: none;
         }
 
         /* JSON Output */
@@ -1649,6 +1764,12 @@
         savePendingLocalChanges(pending);
     }
 
+    function forgetLocalLocationLinks(panoid, metaIds) {
+        const pending = loadPendingLocalChanges();
+        removeMetaIdsFromLocationMap(pending.locations, panoid, metaIds);
+        savePendingLocalChanges(pending);
+    }
+
     function rememberLocalMeta(meta, panoid) {
         const pending = loadPendingLocalChanges();
         if (!pending.metas.some(existing => existing.id === meta.id)) {
@@ -1666,6 +1787,21 @@
         locationMap = mergeLocationMaps(systemLocationMap, userLocationMap);
         rememberLocalLocationLinks(panoid, metaIds);
         console.log('[BetterMetas] Applied local location links:', {
+            panoid,
+            metaIds,
+            linkedMetaIds: getLocationMetaIds(userLocationMap[panoid])
+        });
+        refreshDisplay();
+    }
+
+    function applyLocalLocationUnlinks(panoid, metaIds) {
+        currentPanoid = panoid;
+        nextPanoid = null;
+        updateStatus(`ID: ${panoid.substring(0,12)}...`);
+        removeMetaIdsFromLocationMap(userLocationMap, panoid, metaIds);
+        locationMap = mergeLocationMaps(systemLocationMap, userLocationMap);
+        forgetLocalLocationLinks(panoid, metaIds);
+        console.log('[BetterMetas] Applied local location unlinks:', {
             panoid,
             metaIds,
             linkedMetaIds: getLocationMetaIds(userLocationMap[panoid])
@@ -1740,6 +1876,60 @@
         if (previewPopup) previewPopup.classList.remove('gg-visible');
     }
 
+    function showToolDialog({
+        title = 'BetterMetas',
+        message = '',
+        confirmText = 'OK',
+        cancelText = '',
+        danger = false
+    } = {}) {
+        const dialog = document.getElementById('gg-dialog-modal');
+        const backdrop = document.getElementById('gg-modal-backdrop');
+        if (!dialog) return Promise.resolve(false);
+
+        const backdropWasVisible = Boolean(backdrop && backdrop.classList.contains('gg-visible'));
+        dialog.innerHTML = `
+            <div class="gg-modal-header">${escapeHtml(title)}</div>
+            <div class="gg-dialog-message">${escapeHtml(message)}</div>
+            <div class="gg-dialog-actions">
+                ${cancelText ? `<button class="gg-btn-secondary" id="gg-dialog-cancel">${escapeHtml(cancelText)}</button>` : ''}
+                <button class="${danger ? 'gg-btn-danger' : 'gg-btn-primary'}" id="gg-dialog-confirm">${escapeHtml(confirmText)}</button>
+            </div>
+        `;
+
+        showBackdrop();
+        dialog.style.display = 'block';
+
+        return new Promise(resolve => {
+            const close = (result) => {
+                dialog.style.display = 'none';
+                dialog.innerHTML = '';
+                if (!backdropWasVisible) hideBackdrop();
+                resolve(result);
+            };
+
+            const confirmBtn = dialog.querySelector('#gg-dialog-confirm');
+            const cancelBtn = dialog.querySelector('#gg-dialog-cancel');
+
+            confirmBtn.addEventListener('click', () => close(true), { once: true });
+            if (cancelBtn) cancelBtn.addEventListener('click', () => close(false), { once: true });
+
+            requestAnimationFrame(() => confirmBtn.focus());
+        });
+    }
+
+    function showToolAlert(title, message, confirmText = 'OK') {
+        return showToolDialog({ title, message, confirmText });
+    }
+
+    function showToolConfirm(title, message, {
+        confirmText = 'OK',
+        cancelText = 'Cancel',
+        danger = false
+    } = {}) {
+        return showToolDialog({ title, message, confirmText, cancelText, danger });
+    }
+
     // --- UI Construction ---
     function createHUD() {
         if (document.getElementById('gg-meta-hud')) return;
@@ -1789,6 +1979,10 @@
         const previewPopup = document.createElement('div');
         previewPopup.id = 'gg-meta-preview-popup';
         document.body.appendChild(previewPopup);
+
+        const dialogModal = document.createElement('div');
+        dialogModal.id = 'gg-dialog-modal';
+        document.body.appendChild(dialogModal);
         
         // Close preview on outside click
         document.addEventListener('click', (e) => {
@@ -2175,11 +2369,19 @@
         });
 
         document.getElementById('gg-reset-db').addEventListener('click', async () => {
-             if (confirm("ARE YOU SURE? This will DELETE your own metas and own location links from GitHub. Plonkit data will stay untouched.")) {
-                 if (confirm("Really sure? Your own data will be lost.")) {
-                     await resetDatabase();
-                 }
-             }
+            const confirmed = await showToolConfirm(
+                'Clear Own Data',
+                'This will delete your own metas and own location links from GitHub. Plonkit data will stay untouched.',
+                { confirmText: 'Continue', cancelText: 'Cancel', danger: true }
+            );
+            if (!confirmed) return;
+
+            const reallyConfirmed = await showToolConfirm(
+                'Delete Own Data?',
+                'Your own BetterMetas data will be lost.',
+                { confirmText: 'Delete', cancelText: 'Cancel', danger: true }
+            );
+            if (reallyConfirmed) await resetDatabase();
         });
 
         document.getElementById('meta-close-btn').addEventListener('click', () => {
@@ -2196,6 +2398,8 @@
         });
 
         backdrop.addEventListener('click', () => {
+            const dialog = document.getElementById('gg-dialog-modal');
+            if (dialog && window.getComputedStyle(dialog).display !== 'none') return;
             hideAllModals();
         });
 
@@ -2275,6 +2479,9 @@
         const container = document.getElementById('gg-existing-metas');
         if (!container) return;
 
+        const panoid = currentPanoid || MISSING_PANOID_PLACEHOLDER;
+        const linkedMetaIds = new Set(getLocationMetaIds(locationMap[panoid]));
+
         // Support multi-term search split by semicolon or comma.
         const terms = searchTerm.toLowerCase().split(/[;,]/).map(s => s.trim()).filter(s => s);
 
@@ -2303,9 +2510,10 @@
 
         const uniqueFiltered = [];
         groups.forEach(group => {
-             // If any meta in this group is currently selected, prefer showing it
+             // If any meta in this group is currently selected or already linked, prefer showing it.
+             const linked = group.find(m => linkedMetaIds.has(m.id));
              const selected = group.find(m => selectedMetaIds.has(m.id));
-             uniqueFiltered.push(selected || group[0]);
+             uniqueFiltered.push(linked || selected || group[0]);
         });
         
         if (uniqueFiltered.length === 0) {
@@ -2315,6 +2523,7 @@
 
         container.innerHTML = uniqueFiltered.map(m => {
             const isSelected = selectedMetaIds.has(m.id);
+            const isLinked = linkedMetaIds.has(m.id);
             const countryCode = getCountryCode(m.country);
             return `
                 <div class="gg-meta-list-item" data-meta-id="${escapeAttribute(m.id)}">
@@ -2325,9 +2534,12 @@
                             ${renderStaticTags(m.tags)}
                         </div>
                     </div>
-                    <button class="gg-btn-link-meta ${isSelected ? 'gg-tag-selected' : ''}" data-meta-id="${escapeAttribute(m.id)}">
-                        ${isSelected ? 'Selected' : 'Link'}
-                    </button>
+                    ${isLinked
+                        ? '<span class="gg-meta-linked-indicator" title="Already linked to this location">Linked</span>'
+                        : `<button class="gg-btn-link-meta ${isSelected ? 'gg-tag-selected' : ''}" data-meta-id="${escapeAttribute(m.id)}">
+                            ${isSelected ? 'Selected' : 'Link'}
+                        </button>`
+                    }
                 </div>
             `;
         }).join('');
@@ -2416,7 +2628,7 @@
     async function linkMultipleMetas(metaIds) {
         const panoid = syncPanoidForUserAction('link metas');
         if (!panoid || panoid === MISSING_PANOID_PLACEHOLDER) {
-            alert("No location detected! Please try on a game result screen.");
+            await showToolAlert('No Location Detected', 'Please try on a game result screen.');
             return;
         }
 
@@ -2440,10 +2652,9 @@
             const issueUrl = `https://github.com/${repo}/issues/new?title=${issueTitle}&body=${body}`;
             window.open(issueUrl, '_blank');
             
-            // Clear selection and close
             selectedMetaIds.clear();
-            hideMetaModal();
-            hideBackdrop();
+            updateLinkSelectedBtn();
+            renderExistingMetas(document.getElementById('meta-search')?.value || '');
             return;
         }
 
@@ -2472,13 +2683,72 @@
             applyLocalLocationLinks(panoid, metaIds);
             updateStatus('Linked!');
             selectedMetaIds.clear();
-            hideMetaModal();
-            hideBackdrop();
+            updateLinkSelectedBtn();
+            renderExistingMetas(document.getElementById('meta-search')?.value || '');
             setTimeout(fetchLocationData, DATA_REFRESH_AFTER_SAVE_MS);
         } catch (e) {
             console.error(e);
-            alert(`Error: ${e.message}`);
+            await showToolAlert('Link Failed', e.message);
             updateStatus('Link Failed');
+        }
+    }
+
+    async function unlinkMultipleMetas(metaIds) {
+        const panoid = syncPanoidForUserAction('unlink metas');
+        if (!panoid || panoid === MISSING_PANOID_PLACEHOLDER) {
+            await showToolAlert('No Location Detected', 'Please try on a game result screen.');
+            return;
+        }
+
+        const linkedUserMetaIds = new Set(getLocationMetaIds(userLocationMap[panoid]));
+        const removableMetaIds = metaIds.filter(id => linkedUserMetaIds.has(id));
+        if (removableMetaIds.length === 0) {
+            await showToolAlert('Cannot Remove Meta', 'This meta is not linked through your BetterMetas data and cannot be removed here.');
+            return;
+        }
+
+        const token = localStorage.getItem(GITHUB_TOKEN_STORAGE_KEY);
+        if (!token) {
+            const locationSnapshot = getCurrentLocationSnapshot();
+            const submission = {
+                action: "unlink_metas",
+                panoid: panoid,
+                metaIds: removableMetaIds,
+                targetFiles: {
+                    userLocations: removableMetaIds
+                },
+                ...locationSnapshot
+            };
+            const jsonStr = stringifyJsonContent(submission);
+            const repo = `${REPO_OWNER}/${REPO_NAME}`;
+            const issueTitle = encodeURIComponent(`[Meta Submission] ${panoid.substring(0,15)} (Unlink)`);
+            const body = encodeURIComponent(`## Unlink Metas\n\n\`\`\`json\n${jsonStr}\n\`\`\`\n\n_(Automated submission via BetterMetas Script)_`);
+            const issueUrl = `https://github.com/${repo}/issues/new?title=${issueTitle}&body=${body}`;
+            window.open(issueUrl, '_blank');
+            return;
+        }
+
+        updateStatus(`Removing ${removableMetaIds.length} meta${removableMetaIds.length === 1 ? '' : 's'}...`);
+
+        try {
+            await updateGitHubJsonFile(
+                API_USER_LOCATIONS_URL,
+                token,
+                normalizeLocationMap,
+                locations => {
+                    removeMetaIdsFromLocationMap(locations, panoid, removableMetaIds);
+                    return locations;
+                },
+                `Unlink ${removableMetaIds.length} metas from ${panoid} via BetterMetas`
+            );
+
+            applyLocalLocationUnlinks(panoid, removableMetaIds);
+            updateStatus('Removed!');
+            setTimeout(fetchLocationData, DATA_REFRESH_AFTER_SAVE_MS);
+        } catch (e) {
+            console.error(e);
+            await showToolAlert('Remove Failed', e.message);
+            updateStatus('Remove Failed');
         }
     }
 
@@ -2491,13 +2761,13 @@
         const scope = normalizeScope(document.getElementById('meta-scope').value);
         
         if (!title || !desc) {
-            alert('Please fill in Title and Description');
+            await showToolAlert('Missing Details', 'Please fill in Title and Description.');
             return;
         }
 
         const panoid = syncPanoidForUserAction('save meta') || MISSING_PANOID_PLACEHOLDER;
         if (panoid === MISSING_PANOID_PLACEHOLDER) {
-            alert("No location detected! Please try again on a game result screen.");
+            await showToolAlert('No Location Detected', 'Please try again on a game result screen.');
             return;
         }
 
@@ -2547,9 +2817,14 @@
             
             const issueUrl = `https://github.com/${repo}/issues/new?title=${issueTitle}&body=${body}`;
             
-            if (confirm("No GitHub Token found. Submit this as a Community Contribution via GitHub Issues?")) {
+            const submitIssue = await showToolConfirm(
+                'Submit Community Contribution?',
+                'No GitHub token was found. Submit this meta as a community contribution via GitHub Issues?',
+                { confirmText: 'Submit', cancelText: 'Show JSON' }
+            );
+
+            if (submitIssue) {
                 window.open(issueUrl, '_blank');
-                hideMetaModal();
             } else {
                  // Fallback to copy-paste
                 output.textContent = "Token missing. Copy this:\n" + jsonStr;
@@ -2606,14 +2881,14 @@
             btn.disabled = false;
             output.textContent = `Error saving to GitHub:\n${err.message}\n\nBackup JSON:\n${stringifyJsonContent(submission)}`;
             output.style.display = 'block';
-            alert(`Error: ${err.message}`);
+            await showToolAlert('Save Failed', err.message);
         }
     }
 
     async function resetDatabase() {
         const token = getSettingsTokenValue();
         if (!token) {
-            alert("No token saved. Cannot clear own data.");
+            await showToolAlert('No Token Saved', 'Cannot clear own data without a saved GitHub token.');
             return;
         }
         
@@ -2639,12 +2914,12 @@
                 "Clear own BetterMetas location links"
             );
 
-            alert("Own BetterMetas data cleared!");
+            await showToolAlert('Data Cleared', 'Own BetterMetas data cleared!');
             location.reload();
 
         } catch (e) {
             console.error(e);
-            alert("Error clearing own data: " + e.message);
+            await showToolAlert('Clear Failed', e.message);
             updateStatus('Clear Failed');
         } finally {
             btn.innerText = origText;
@@ -2661,9 +2936,11 @@
         }
 
         const renderMeta = (m, isPredicted = false) => {
-             // Predicted metas get a click handler for Quick Link
-             const titleAttr = isPredicted 
-                 ? `class="gg-clickable-meta-title" data-meta-id="${escapeAttribute(m.id)}" data-meta-title="${escapeAttribute(m.title)}" title="Click to Link to this Location"`
+             const userLinkedMetaIds = new Set(getLocationMetaIds(userLocationMap[currentPanoid]));
+             const isUserLinked = userLinkedMetaIds.has(m.id);
+             const titleAction = isPredicted ? 'link' : (isUserLinked ? 'unlink' : '');
+             const titleAttr = titleAction
+                 ? `class="gg-clickable-meta-title" data-meta-id="${escapeAttribute(m.id)}" data-meta-title="${escapeAttribute(m.title)}" data-action="${escapeAttribute(titleAction)}" title="${titleAction === 'link' ? 'Click to Link to this Location' : 'Click to Remove from this Location'}"`
                  : '';
              
              // Badge logic
@@ -2696,18 +2973,33 @@
 
         container.querySelectorAll('.gg-clickable-meta-title').forEach(titleEl => {
             titleEl.addEventListener('click', () => {
-                win.quickLinkMeta(titleEl.dataset.metaId, titleEl.dataset.metaTitle || '');
+                win.quickToggleMeta(titleEl.dataset.metaId, titleEl.dataset.metaTitle || '', titleEl.dataset.action);
             });
         });
     }
 
 
 
-    // Expose Quick Link Function globally so the inline onclick works
-    win.quickLinkMeta = function(metaId, title) {
-        // Prevent accidental clicks? simple confirm
-        if (confirm(`Link "${title}" to this location?`)) {
-             linkMultipleMetas([metaId]);
+    win.quickToggleMeta = async function(metaId, title, action = 'link') {
+        if (action === 'unlink') {
+            const confirmed = await showToolConfirm(
+                'Remove Meta',
+                `Remove "${title}" from this location?`,
+                { confirmText: 'Remove', cancelText: 'Cancel', danger: true }
+            );
+            if (confirmed) {
+                unlinkMultipleMetas([metaId]);
+            }
+            return;
+        }
+
+        const confirmed = await showToolConfirm(
+            'Link Meta',
+            `Link "${title}" to this location?`,
+            { confirmText: 'Link', cancelText: 'Cancel' }
+        );
+        if (confirmed) {
+            linkMultipleMetas([metaId]);
         }
     };
 
@@ -3925,10 +4217,11 @@
              // Check if we are on result screen
              if (isRoundResult()) {
                   // If we click ANY button on result screen that isn't inside our HUD or modals, hide HUD
-                  // Exclude: HUD, Settings Modal, Add Meta Modal
+                  // Exclude: HUD and BetterMetas modals/dialogs
                   if (!button.closest('#gg-meta-hud') &&
                       !button.closest('#gg-settings-modal') &&
-                      !button.closest('#gg-meta-modal')) {
+                      !button.closest('#gg-meta-modal') &&
+                      !button.closest('#gg-dialog-modal')) {
                        
                        // Close HUD
                        const hud = document.getElementById('gg-meta-hud');
