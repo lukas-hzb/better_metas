@@ -1054,5 +1054,17 @@
     "region": "Kaliningrad",
     "city": "\u041a\u0440\u0443\u0448\u0438\u043d\u0438\u043d\u043e",
     "road": "27\u041a-162"
+  },
+  "ujKwRSotH6IGgEC0cn1PyA": {
+    "metas": [
+      "meta_bangladesh_QXjW"
+    ],
+    "lat": 26.03376,
+    "lng": 88.24814,
+    "country": "Bangladesh",
+    "nominatimCountry": "Bangladesh",
+    "region": "Rangpur Division",
+    "city": "Baliadangi",
+    "road": "Bhanor"
   }
 }
