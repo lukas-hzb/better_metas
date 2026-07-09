@@ -1246,5 +1246,17 @@
     "region": "Alberta",
     "city": "Tees",
     "road": "Range Road 243"
+  },
+  "j5tdDviWWTl2tHfCHUcL6g": {
+    "metas": [
+      "meta_new_zealand_SVyX"
+    ],
+    "lat": -45.86235,
+    "lng": 170.61013,
+    "country": "New Zealand",
+    "nominatimCountry": "New Zealand",
+    "region": "Otago Region",
+    "city": "Dunedin",
+    "road": "Castlewood Road"
   }
 }
