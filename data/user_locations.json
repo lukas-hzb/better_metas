@@ -850,5 +850,17 @@
     "region": "Quintana Roo",
     "city": null,
     "road": "Camino Xcalak"
+  },
+  "_0BwmtnsWyU-L-J04wvlbg": {
+    "metas": [
+      "meta_portugal_1SD6"
+    ],
+    "lat": 38.61294,
+    "lng": -7.51956,
+    "country": "Portugal",
+    "nominatimCountry": "Portugal",
+    "region": "\u00c9vora District",
+    "city": "Redondo",
+    "road": "EM 512"
   }
 }
