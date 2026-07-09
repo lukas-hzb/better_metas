@@ -1186,5 +1186,17 @@
     "region": "Provincia de Chiriqu\u00ed",
     "city": "Volc\u00e1n",
     "road": "Manzana 040512"
+  },
+  "X3JTQd05HwwWuLNjZUwiyQ": {
+    "metas": [
+      "meta_nigeria_Pu6a"
+    ],
+    "lat": 7.7193,
+    "lng": 8.78392,
+    "country": "Nigeria",
+    "nominatimCountry": "Nigeria",
+    "region": "Benue State",
+    "city": "Peyer",
+    "road": "Makurdi to Zaki Biam Road"
   }
 }
