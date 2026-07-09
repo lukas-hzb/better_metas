@@ -1018,5 +1018,17 @@
     "region": "Northern Mindanao",
     "city": "Don Carlos",
     "road": null
+  },
+  "b0kK-JxdKmkWjA54j4pnew": {
+    "metas": [
+      "meta_philippines_2cMP"
+    ],
+    "lat": 6.11594,
+    "lng": 124.99621,
+    "country": "Philippines",
+    "nominatimCountry": "Philippines",
+    "region": "South Cotabato",
+    "city": "General Santos",
+    "road": "Motokling"
   }
 }
