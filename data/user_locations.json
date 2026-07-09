@@ -1222,5 +1222,17 @@
     "region": "Viseu",
     "city": "S\u00e3o Pedro do Sul",
     "road": "Boavista"
+  },
+  "QbDSoLL84GUzJ_ksB_Evbg": {
+    "metas": [
+      "meta_brazil_JlDz"
+    ],
+    "lat": -27.91154,
+    "lng": -51.45925,
+    "country": "Brazil",
+    "nominatimCountry": "Brazil",
+    "region": "Rio Grande do Sul",
+    "city": "Tupanci do Sul",
+    "road": "BR-470"
   }
 }
