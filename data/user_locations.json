@@ -838,5 +838,17 @@
     "region": "Esp\u00edrito Santo",
     "city": "Muniz Freire",
     "road": "Rodovia Governador Eur\u00edco Rezende"
+  },
+  "NcU4vYkHMDaofUUdW0T3NQ": {
+    "metas": [
+      "meta_mexico_Ok3w"
+    ],
+    "lat": 18.50033,
+    "lng": -87.76105,
+    "country": "Mexico",
+    "nominatimCountry": "Mexico",
+    "region": "Quintana Roo",
+    "city": null,
+    "road": "Camino Xcalak"
   }
 }
