@@ -934,5 +934,17 @@
     "region": "Andaluc\u00eda",
     "city": "Burguillos",
     "road": "Diseminado"
+  },
+  "1RJxs6rqdY9EELWyaF6AVw": {
+    "metas": [
+      "meta_norway_FTW1"
+    ],
+    "lat": 63.54853,
+    "lng": 10.91677,
+    "country": "Norway",
+    "nominatimCountry": "Norway",
+    "region": "Tr\u00f8ndelag",
+    "city": "Stj\u00f8rdal Municipality",
+    "road": "Langsteinvegen"
   }
 }
