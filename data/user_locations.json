@@ -994,5 +994,17 @@
     "region": "West Coast Region",
     "city": "Virgin Flat",
     "road": "State Highway 6"
+  },
+  "2DmkA3XNoszcLrVnsiBuqA": {
+    "metas": [
+      "meta_mexico_QJWC"
+    ],
+    "lat": 19.69795,
+    "lng": -98.69921,
+    "country": "Mexico",
+    "nominatimCountry": "Mexico",
+    "region": "Estado de M\u00e9xico",
+    "city": "San Marcos",
+    "road": null
   }
 }
