@@ -12,6 +12,12 @@ const TAG_PATTERNS = {
         /\b(green|lush|vegetated|forested|jungle|rainforest)\b/i,
         /\b(flower|flowers|plant|plants|garden)\b/i,
     ],
+    landscape: [
+        /\b(landscape|landscapes|scenery|scenic|terrain)\b/i,
+        /\b(mountain|mountains|hill|hills|valley|valleys|cliff|cliffs|plateau)\b/i,
+        /\b(desert|savanna|steppe|tundra|plain|plains|coast|coastal)\b/i,
+        /\b(arid|dry|lush|flat|hilly|mountainous)\s+(area|region|landscape|terrain)\b/i,
+    ],
     bollards: [
         /\b(bollard|bollards|delineator|delineators)\b/i,
         /\b(road\s+marker|post\s+marker)\b/i,

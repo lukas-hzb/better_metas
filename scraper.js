@@ -6,6 +6,7 @@ const { stringifyJsonAscii } = require('./scripts/json_utils');
 const BASE_URL = 'https://www.plonkit.net';
 const GUIDE_URL = `${BASE_URL}/guide`;
 const PLONKIT_METAS_PATH = path.join(__dirname, 'data/plonkit_metas.json');
+const TODAY_ISO_DATE = new Date().toISOString().slice(0, 10);
 
 const VALID_GUIDE_CATEGORIES = new Set([
     'Africa',
@@ -26,7 +27,7 @@ const TAG_MAP = {
     'chevron/sign': 'signs',
     'coverage': 'camera',
     'guardrail': 'road',
-    'landscape': 'plants',
+    'landscape': 'landscape',
     'language': 'language',
     'license plates': 'plates',
     'licence plates': 'plates',
@@ -202,6 +203,7 @@ function orderMetaFields(meta) {
         'imageUrl',
         'scope',
         'tags',
+        'addedAt',
     ]) {
         if (Object.prototype.hasOwnProperty.call(meta, key)) ordered[key] = meta[key];
     }
@@ -256,6 +258,7 @@ function flattenGuideItems(countryData) {
                 imageUrl,
                 scope: fallbackScopeForSection(section),
                 tags: convertTags(item.tags),
+                addedAt: TODAY_ISO_DATE,
             }));
         }
     }
@@ -334,6 +337,7 @@ function mergeMeta(existingMeta, scrapedMeta) {
         note: scrapedMeta.note,
         imageUrl: scrapedMeta.imageUrl || existingMeta.imageUrl || null,
         plonkitId: existingMeta.plonkitId || scrapedMeta.plonkitId,
+        addedAt: existingMeta.addedAt || scrapedMeta.addedAt || TODAY_ISO_DATE,
     };
     delete merged.imageLink;
 

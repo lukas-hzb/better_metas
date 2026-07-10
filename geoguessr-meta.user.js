@@ -740,11 +740,23 @@
             font-size: 0.75rem;
             font-weight: 600;
             line-height: 1;
-            padding: 4px 12px;
+            padding: calc(4px - var(--gg-text-optical-shift)) 12px calc(4px + var(--gg-text-optical-shift));
             display: flex;
             align-items: center;
             justify-content: center;
             transition: background 0.2s, color 0.2s, border-color 0.2s;
+        }
+
+        #gg-meta-admin-btn,
+        #gg-settings-btn {
+            padding: 4px 8px;
+        }
+
+        #gg-meta-admin-btn svg,
+        #gg-settings-btn svg,
+        .gg-modal-back-btn svg {
+            display: block;
+            flex-shrink: 0;
         }
 
         .gg-resize-control-btn:hover,
@@ -804,15 +816,18 @@
             height: 0;
         }
         .gg-meta-tag, .gg-tag-pill {
-            display: inline-block;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
             background: rgba(255, 255, 255, 0.2);
             color: #fff;
-            padding: 2px 8px;
+            padding: calc(2px - var(--gg-text-optical-shift)) 8px calc(2px + var(--gg-text-optical-shift));
             border-radius: 12px;
             font-size: 0.75rem;
             margin-right: 4px;
             margin-bottom: 4px;
             font-weight: 600;
+            line-height: 1;
         }
 
         .gg-tag-pill {
@@ -833,10 +848,12 @@
         }
 
         .gg-tag-static {
-            display: inline-block;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
             background: rgba(255, 255, 255, 0.2);
             color: #fff;
-            padding: 1px 6px;
+            padding: calc(1px - var(--gg-text-optical-shift)) 6px calc(1px + var(--gg-text-optical-shift));
             border-radius: 12px;
             font-size: 0.65rem;
             margin-right: 6px;
@@ -844,16 +861,20 @@
             border: 1px solid rgba(255, 255, 255, 0.1);
             cursor: default;
             white-space: nowrap;
+            line-height: 1;
         }
 
         .gg-meta-badge {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
             font-size: 0.65rem;
             border: 1px solid;
-            padding: 0 6px;
+            padding: 1px 5px 0;
             border-radius: 4px;
-            margin-left: 8px;
-            vertical-align: middle;
+            margin-left: 0;
             font-weight: 700;
+            line-height: 1;
         }
 
         .gg-meta-badge-linked {
@@ -881,6 +902,9 @@
         }
 
         .gg-country-badge {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
             background: rgba(249, 115, 22, 0.15);
             color: #fb923c;
             border: 1px solid rgba(249, 115, 22, 0.4);
@@ -893,6 +917,7 @@
             flex-shrink: 0;
             min-width: 24px;
             text-align: center;
+            line-height: 1;
             box-shadow: 0 0 4px rgba(249, 115, 22, 0.2);
         }
 
@@ -909,6 +934,11 @@
         }
 
         .gg-meta-item-title {
+            display: flex;
+            align-items: center;
+            flex-wrap: wrap;
+            column-gap: 8px;
+            row-gap: 4px;
             font-size: 1.1rem;
             font-weight: 800;
             color: #fff;
@@ -988,7 +1018,6 @@
 
         #gg-settings-btn,
         #gg-meta-admin-btn {
-            padding: 4px 8px;
             margin-right: 8px;
         }
         .gg-status-msg {
@@ -1002,11 +1031,15 @@
 
         /* Modal Spacing System */
         :root {
-            --modal-spacing-xs: 8px;
-            --modal-spacing-sm: 12px;
-            --modal-spacing-md: 16px;
+            --modal-spacing-xs: 4px;
+            --modal-spacing-sm: 8px;
+            --modal-spacing-md: 12px;
             --modal-spacing-lg: 24px;
+            --modal-related-gap: var(--modal-spacing-sm);
+            --modal-section-gap: var(--modal-spacing-md);
+            --gg-text-optical-shift: 0.25px;
             --modal-radius: 16px;
+            --modal-window-width: 550px;
             --modal-btn-radius: 30px;
             --modal-btn-height: 42px;
             --modal-btn-font-size: 0.8rem;
@@ -1045,13 +1078,14 @@
 
         #gg-meta-modal {
             z-index: 100000;
-            width: 550px;
+            width: min(var(--modal-window-width), calc(100vw - 32px));
+            box-sizing: border-box;
             transition: all 0.3s ease-in-out;
         }
 
         #gg-meta-admin-modal {
             z-index: 100000;
-            width: min(620px, calc(100vw - 32px));
+            width: min(var(--modal-window-width), calc(100vw - 32px));
             box-sizing: border-box;
             text-align: left;
         }
@@ -1074,14 +1108,14 @@
             font-size: 0.86rem;
             font-weight: 500;
             line-height: 1.45;
-            margin-bottom: var(--modal-spacing-md);
+            margin-bottom: var(--modal-section-gap);
             white-space: pre-wrap;
         }
 
         .gg-dialog-actions {
             display: flex;
-            gap: 10px;
-            margin-top: var(--modal-spacing-md);
+            gap: var(--modal-related-gap);
+            margin-top: var(--modal-section-gap);
         }
 
         .gg-dialog-actions .gg-btn-primary,
@@ -1110,7 +1144,8 @@
 
         #gg-settings-modal .gg-modal-container {
             z-index: 100001;
-            width: 360px;
+            width: min(var(--modal-window-width), calc(100vw - 32px));
+            box-sizing: border-box;
         }
 
         /* Modal Header */
@@ -1129,22 +1164,22 @@
             color: #d4af37; /* Muted Gold instead of Orange */
             text-transform: uppercase;
             letter-spacing: 0.06em;
-            margin: var(--modal-spacing-lg) 0 var(--modal-spacing-md) 0;
+            margin: var(--modal-spacing-lg) 0 var(--modal-section-gap) 0;
             text-align: center;
         }
 
         /* Form Elements */
         .gg-form-group {
-            margin-bottom: var(--modal-spacing-sm);
+            margin-bottom: var(--modal-section-gap);
         }
 
         .gg-form-group-lg {
-            margin-bottom: var(--modal-spacing-md);
+            margin-bottom: var(--modal-section-gap);
         }
 
         .gg-form-label {
             display: block;
-            margin-bottom: 4px;
+            margin-bottom: var(--modal-related-gap);
             font-size: 0.75rem;
             color: rgba(255, 255, 255, 0.5);
             font-weight: 600;
@@ -1153,7 +1188,7 @@
 
         .gg-form-input {
             width: 100%;
-            padding: var(--modal-spacing-sm) var(--modal-spacing-md);
+            padding: var(--modal-related-gap) var(--modal-section-gap);
             background: var(--modal-control-bg);
             border: 1px solid var(--modal-control-border);
             color: white;
@@ -1191,7 +1226,7 @@
         .gg-form-hint {
             font-size: 0.7rem;
             color: rgba(255, 255, 255, 0.4);
-            margin-top: 4px;
+            margin-top: var(--modal-related-gap);
             font-weight: 400;
             text-align: center;
         }
@@ -1205,7 +1240,7 @@
             flex-wrap: wrap;
             justify-content: center;
             gap: 4px;
-            margin-top: var(--modal-spacing-xs);
+            margin-top: var(--modal-related-gap);
             text-align: center;
         }
 
@@ -1219,16 +1254,17 @@
             color: #fff;
             border: none;
             border-bottom: 2px solid var(--gg-primary-border);
-            padding: 10px 0; /* Consistent height */
+            padding: var(--modal-related-gap) 0;
             border-radius: var(--modal-btn-radius);
             cursor: pointer;
             width: 100%;
             font-weight: 800;
             font-size: var(--modal-btn-font-size);
             font-style: italic;
+            line-height: 1;
             text-transform: uppercase;
             letter-spacing: 0.03em;
-            margin-top: 12px;
+            margin-top: var(--modal-section-gap);
             transition: transform 0.1s, box-shadow 0.1s, border-bottom 0.1s;
             box-shadow: 0 4px 12px rgba(0, 0, 0, 0.25);
             text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.3);
@@ -1290,12 +1326,13 @@
             background: var(--modal-control-bg);
             color: rgba(255, 255, 255, 0.7);
             border: 1px solid var(--modal-control-border);
-            padding: 10px 0;
+            padding: var(--modal-related-gap) 0;
             cursor: pointer;
-            margin-top: 12px;
+            margin-top: var(--modal-section-gap);
             width: 100%;
             font-size: var(--modal-btn-font-size);
             font-weight: 700;
+            line-height: 1;
             border-radius: var(--modal-btn-radius); /* Match primary button */
             transition: background 0.2s, color 0.2s;
             box-sizing: border-box;
@@ -1326,12 +1363,13 @@
             background: transparent;
             color: #f97316;
             border: 2px solid #f97316;
-            padding: 10px 0;
+            padding: var(--modal-related-gap) 0;
             border-radius: var(--modal-btn-radius); /* Match primary button */
             cursor: pointer;
             width: 100%;
             font-size: var(--modal-btn-font-size);
             font-weight: 700;
+            line-height: 1;
             text-transform: uppercase;
             letter-spacing: 0.04em;
             transition: background 0.2s, color 0.2s;
@@ -1357,11 +1395,11 @@
         }
 
         #gg-resize-window {
-            margin-top: var(--modal-spacing-xs);
+            margin-top: 0;
         }
 
         #gg-save-settings {
-            margin-top: var(--modal-spacing-md);
+            margin-top: 0;
         }
 
         #meta-details-btn {
@@ -1372,7 +1410,15 @@
         .gg-modal-divider {
             border: 0;
             border-top: 1px solid rgba(100, 90, 150, 0.3);
-            margin: var(--modal-spacing-md) 0; /* Reduced from lg to md */
+            margin: var(--modal-section-gap) 0;
+        }
+
+        .gg-modal-divider + .gg-btn-primary,
+        .gg-modal-divider + .gg-btn-secondary,
+        .gg-modal-divider + .gg-btn-danger,
+        .gg-modal-divider + .gg-selection-actions,
+        .gg-modal-divider + .gg-admin-actions {
+            margin-top: 0;
         }
 
         /* Existing Metas List */
@@ -1386,24 +1432,24 @@
             border: 1px solid var(--modal-control-border);
             border-radius: var(--modal-control-radius);
             box-sizing: border-box;
-            margin-top: 8px;
+            margin-top: var(--modal-related-gap);
         }
 
         .gg-meta-list-item {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            padding: 8px 12px;
+            padding: var(--modal-related-gap) var(--modal-section-gap);
             border-bottom: 1px solid rgba(255,255,255,0.06);
         }
 
         .gg-meta-list-main {
             display: flex;
-            align-items: center;
+            align-items: baseline;
             gap: 4px;
             flex: 1;
             overflow: hidden;
-            height: 100%;
+            min-height: 100%;
         }
 
         .gg-meta-list-item:last-child {
@@ -1411,7 +1457,7 @@
         }
 
         .gg-list-empty-state {
-            padding: 8px 0;
+            padding: var(--modal-related-gap) 0;
         }
 
         .gg-meta-list-title {
@@ -1428,7 +1474,7 @@
 
         .gg-meta-list-tags {
             display: flex;
-            align-items: center;
+            align-items: baseline;
             gap: 4px;
             overflow-x: auto;
             scrollbar-width: none;
@@ -1474,18 +1520,18 @@
             border: 1px solid var(--modal-control-border);
             border-radius: var(--modal-control-radius);
             box-sizing: border-box;
-            margin-top: 8px;
+            margin-top: var(--modal-related-gap);
         }
 
         .gg-admin-meta-item {
             cursor: default;
-            gap: 8px;
+            gap: var(--modal-related-gap);
             transition: background 0.2s;
         }
 
         .gg-admin-meta-item .gg-meta-list-main {
             min-width: 0;
-            padding-right: 8px;
+            padding-right: var(--modal-related-gap);
         }
 
         .gg-admin-meta-item .gg-meta-list-title {
@@ -1505,13 +1551,13 @@
         }
 
         .gg-admin-sort-options {
-            margin-top: var(--modal-spacing-xs);
-            margin-bottom: var(--modal-spacing-xs);
+            margin-top: var(--modal-related-gap);
+            margin-bottom: var(--modal-related-gap);
         }
 
         .gg-admin-sort-options .gg-tag-pill {
             font-size: 0.68rem;
-            padding: 3px 8px;
+            padding: calc(3px - var(--gg-text-optical-shift)) 8px calc(3px + var(--gg-text-optical-shift));
         }
 
         .gg-admin-details-grid {
@@ -1519,14 +1565,14 @@
         }
 
         .gg-admin-details-grid .gg-form-group {
-            margin-bottom: var(--modal-spacing-sm);
+            margin-bottom: var(--modal-section-gap);
         }
 
         .gg-admin-actions {
             display: flex;
             flex-direction: column;
-            gap: 10px;
-            margin-top: var(--modal-spacing-md);
+            gap: var(--modal-related-gap);
+            margin-top: var(--modal-section-gap);
         }
 
         .gg-admin-actions .gg-btn-primary,
@@ -1570,7 +1616,7 @@
             font-weight: 600;
             line-height: 1.25;
             text-align: left;
-            padding: 8px 12px;
+            padding: var(--modal-related-gap) var(--modal-section-gap);
         }
 
         .gg-admin-location-item:last-child {
@@ -1584,16 +1630,28 @@
         }
 
         .gg-selection-actions {
-            margin-top: 10px;
+            display: flex;
+            flex-direction: column;
+            gap: var(--modal-related-gap);
+            margin-top: 0;
         }
 
         #gg-link-selected-btn {
-            display: none;
             width: 100%;
-            margin-bottom: 10px;
+            margin-top: 0;
+            margin-bottom: 0;
+        }
+
+        #gg-link-selected-btn:disabled {
+            cursor: not-allowed;
+            pointer-events: auto;
+            box-shadow: none;
         }
 
         .gg-btn-link-meta {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
             background: var(--gg-primary-gradient);
             color: #fff;
             border: none;
@@ -1604,6 +1662,7 @@
             font-size: 0.7rem;
             font-weight: 800;
             font-style: italic;
+            line-height: 1;
             text-transform: uppercase;
             letter-spacing: 0.03em;
             transition: transform 0.1s, box-shadow 0.1s, border-bottom 0.1s;
@@ -1690,9 +1749,9 @@
 
         /* JSON Output */
         #gg-json-output {
-            margin-top: 12px;
+            margin-top: var(--modal-section-gap);
             background: var(--modal-control-bg-active);
-            padding: 10px;
+            padding: var(--modal-related-gap);
             border-radius: var(--modal-control-radius);
             font-family: monospace;
             font-size: 0.7rem;
@@ -1712,6 +1771,7 @@
             border-top-color: #fff;
             animation: gg-spin 1s ease-in-out infinite;
             margin-right: 8px;
+            flex-shrink: 0;
         }
 
         @keyframes gg-spin {
@@ -1808,7 +1868,7 @@
 
         #gg-meta-preview-popup .gg-meta-tags .gg-tag-static {
             font-size: 0.6rem;
-            padding: 1px 4px;
+            padding: calc(1px - var(--gg-text-optical-shift)) 4px calc(1px + var(--gg-text-optical-shift));
             margin: 0;
         }
 
@@ -2792,6 +2852,8 @@
                 </div>
                 <div id="gg-existing-metas"></div>
 
+                <hr class="gg-modal-divider">
+
                 <div id="gg-selection-actions" class="gg-selection-actions">
                     <button class="gg-btn-primary" id="gg-link-selected-btn">
                         Link Selected Metas (0)
@@ -3728,12 +3790,8 @@
         if (!btn) return;
 
         const count = selectedMetaIds.size;
-        if (count > 0) {
-            btn.style.display = 'block';
-            btn.textContent = `Link Selected Metas (${count})`;
-        } else {
-            btn.style.display = 'none';
-        }
+        btn.disabled = count === 0;
+        btn.textContent = `Link Selected Metas (${count})`;
     }
 
     async function linkMultipleMetas(metaIds) {
