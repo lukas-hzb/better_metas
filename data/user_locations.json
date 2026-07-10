@@ -1342,5 +1342,17 @@
     "region": "Saint-Louis Region",
     "city": "Communaut\u00e9 rurale de Ronkh",
     "road": "TAH 1"
+  },
+  "FY-PsAQcc4OrYE65-lMy3w": {
+    "metas": [
+      "meta_mexico_Cits"
+    ],
+    "lat": 29.28653,
+    "lng": -114.22805,
+    "country": "Mexico",
+    "nominatimCountry": "Mexico",
+    "region": "Baja California",
+    "city": "Agua Le\u00f3n",
+    "road": "Carretera Transpeninsular"
   }
 }
