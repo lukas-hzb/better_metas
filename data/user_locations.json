@@ -1354,5 +1354,17 @@
     "region": "Baja California",
     "city": "Agua Le\u00f3n",
     "road": "Carretera Transpeninsular"
+  },
+  "R06Q8eqSaPaBFLgInCTmLA": {
+    "metas": [
+      "meta_italy_kMZN"
+    ],
+    "lat": 36.82366,
+    "lng": 15.01949,
+    "country": "Italy",
+    "nominatimCountry": "Italy",
+    "region": "Sicily",
+    "city": "Noto",
+    "road": "Strada provinciale Codalupo"
   }
 }
