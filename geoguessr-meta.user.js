@@ -875,6 +875,7 @@
             margin-left: 0;
             font-weight: 700;
             line-height: 1;
+            transform: translateY(1px);
         }
 
         .gg-meta-badge-linked {
