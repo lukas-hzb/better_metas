@@ -1318,5 +1318,17 @@
     "region": "Santa Fe",
     "city": "Municipio de San Crist\u00f3bal",
     "road": "Ruta Provincial 13"
+  },
+  "IwIrIpqWWcyE2KFgCmZnbA": {
+    "metas": [
+      "meta_namibia_vIAf"
+    ],
+    "lat": -28.35788,
+    "lng": 17.41271,
+    "country": "Namibia",
+    "nominatimCountry": "Namibia",
+    "region": "Karas",
+    "city": "Aussenkehr",
+    "road": "C13"
   }
 }
