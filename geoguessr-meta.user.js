@@ -39,6 +39,8 @@
     
     const API_USER_LOCATIONS_URL = `https://api.github.com/repos/${REPO_OWNER}/${REPO_NAME}/contents/${USER_LOCATIONS_FILE}`;
     const API_USER_METAS_URL = `https://api.github.com/repos/${REPO_OWNER}/${REPO_NAME}/contents/${USER_METAS_FILE}`;
+    const API_SYSTEM_LOCATIONS_URL = `https://api.github.com/repos/${REPO_OWNER}/${REPO_NAME}/contents/${SYSTEM_LOCATIONS_FILE}`;
+    const API_SYSTEM_METAS_URL = `https://api.github.com/repos/${REPO_OWNER}/${REPO_NAME}/contents/${SYSTEM_METAS_FILE}`;
     const getApiUrlForBranch = (apiUrl) => `${apiUrl}?ref=${encodeURIComponent(REPO_BRANCH)}`;
     
     const win = (typeof unsafeWindow !== 'undefined') ? unsafeWindow : window;
@@ -55,6 +57,8 @@
     const DATA_REFRESH_AFTER_SAVE_MS = 2500;
     const SAVE_COMPLETE_RESET_MS = 1000;
     const DATA_FETCH_TIMEOUT_MS = 8000;
+    const GITHUB_API_TIMEOUT_MS = 45000;
+    const GITHUB_API_WRITE_TIMEOUT_MS = 90000;
     const DATA_FETCH_MAX_ATTEMPTS = 3;
     const DATA_FETCH_RETRY_DELAY_MS = 400;
     const GITHUB_CONTENT_UPDATE_MAX_ATTEMPTS = 8;
@@ -384,9 +388,14 @@
     
     let currentPanoid = null;
     let selectedMetaIds = new Set();
+    let selectedAdminMetaId = null;
+    let selectedAdminTransferTargetId = null;
+    let adminSortMode = 'country';
+    let activeMutationCount = 0;
+    let backgroundRefreshTimer = null;
     
     const ALL_SCOPES = ['countrywide', 'region', 'city', 'road', '1000km', '100km', '10km', '1km', 'unique'];
-    const TAG_PRESETS = ['plants', 'bollards', 'poles', 'signs', 'plates', 'cars', 'soil', 'structures', 'road', 'camera', 'language', 'architecture'];
+    const TAG_PRESETS = ['plants', 'landscape', 'bollards', 'poles', 'signs', 'plates', 'cars', 'soil', 'structures', 'road', 'camera', 'language', 'architecture'];
     let activeScopes = loadActiveScopes();
     let resizeModePreviousSize = null;
     
@@ -721,6 +730,7 @@
 
         .gg-resize-control-btn,
         #gg-meta-add-btn,
+        #gg-meta-admin-btn,
         #gg-settings-btn {
             background: rgba(255, 255, 255, 0.2);
             color: #fff;
@@ -739,6 +749,7 @@
 
         .gg-resize-control-btn:hover,
         #gg-meta-add-btn:hover,
+        #gg-meta-admin-btn:hover,
         #gg-settings-btn:hover {
             background: rgba(255, 255, 255, 0.4);
             color: #fff;
@@ -975,7 +986,8 @@
             color: #ffd700;
         }
 
-        #gg-settings-btn {
+        #gg-settings-btn,
+        #gg-meta-admin-btn {
             padding: 4px 8px;
             margin-right: 8px;
         }
@@ -1010,6 +1022,7 @@
         /* Modal Base Styles - GeoGuessr Native Style */
         #gg-meta-modal,
         #gg-settings-modal .gg-modal-container,
+        #gg-meta-admin-modal,
         #gg-dialog-modal {
             position: fixed;
             top: 50%;
@@ -1034,6 +1047,19 @@
             z-index: 100000;
             width: 550px;
             transition: all 0.3s ease-in-out;
+        }
+
+        #gg-meta-admin-modal {
+            z-index: 100000;
+            width: min(620px, calc(100vw - 32px));
+            box-sizing: border-box;
+            text-align: left;
+        }
+
+        #gg-meta-admin-modal .gg-modal-header,
+        #gg-meta-admin-modal .gg-form-label,
+        #gg-meta-admin-modal .gg-form-hint {
+            text-align: center;
         }
 
         #gg-dialog-modal {
@@ -1157,6 +1183,11 @@
             /* Vertical centering handled by padding inherited from .gg-form-input */
         }
 
+        #meta-desc,
+        #gg-admin-meta-desc {
+            text-align: left;
+        }
+
         .gg-form-hint {
             font-size: 0.7rem;
             color: rgba(255, 255, 255, 0.4);
@@ -1233,6 +1264,26 @@
             transform: translateY(1px);
             border-bottom: 1px solid var(--gg-primary-border);
             box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
+        }
+
+        .gg-btn-primary:disabled,
+        .gg-btn-secondary:disabled,
+        .gg-btn-danger:disabled,
+        .gg-btn-link-meta:disabled,
+        .gg-resize-control-btn:disabled,
+        #gg-meta-add-btn:disabled,
+        #gg-meta-admin-btn:disabled,
+        #gg-settings-btn:disabled {
+            opacity: 0.58;
+            cursor: wait;
+            transform: none;
+            pointer-events: none;
+        }
+
+        .gg-operation-busy .gg-tag-pill,
+        .gg-operation-busy .gg-admin-location-item,
+        .gg-operation-busy .gg-meta-list-item {
+            pointer-events: none;
         }
 
         .gg-btn-secondary {
@@ -1388,6 +1439,12 @@
             margin-top: 2px;
         }
 
+        .gg-scope-static {
+            border-color: rgba(212, 175, 55, 0.45);
+            background: rgba(212, 175, 55, 0.14);
+            color: #f5d574;
+        }
+
         .gg-modal-header-with-back {
             position: relative;
             display: flex;
@@ -1405,6 +1462,125 @@
             display: flex;
             align-items: center;
             padding: 0;
+        }
+
+        .gg-admin-meta-list {
+            max-height: 260px;
+            overflow-y: auto;
+            scrollbar-width: thin;
+            scrollbar-color: rgba(255,255,255,0.2) transparent;
+            width: 100%;
+            background: var(--modal-control-bg);
+            border: 1px solid var(--modal-control-border);
+            border-radius: var(--modal-control-radius);
+            box-sizing: border-box;
+            margin-top: 8px;
+        }
+
+        .gg-admin-meta-item {
+            cursor: default;
+            gap: 8px;
+            transition: background 0.2s;
+        }
+
+        .gg-admin-meta-item .gg-meta-list-main {
+            min-width: 0;
+            padding-right: 8px;
+        }
+
+        .gg-admin-meta-item .gg-meta-list-title {
+            flex: 0 1 auto;
+            min-width: 0;
+        }
+
+        .gg-admin-meta-item .gg-meta-list-tags {
+            flex: 0 1 auto;
+            min-width: 0;
+            max-width: none;
+            overflow: hidden;
+        }
+
+        .gg-admin-meta-item .gg-tag-static {
+            margin-right: 0;
+        }
+
+        .gg-admin-sort-options {
+            margin-top: var(--modal-spacing-xs);
+            margin-bottom: var(--modal-spacing-xs);
+        }
+
+        .gg-admin-sort-options .gg-tag-pill {
+            font-size: 0.68rem;
+            padding: 3px 8px;
+        }
+
+        .gg-admin-details-grid {
+            display: block;
+        }
+
+        .gg-admin-details-grid .gg-form-group {
+            margin-bottom: var(--modal-spacing-sm);
+        }
+
+        .gg-admin-actions {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            margin-top: var(--modal-spacing-md);
+        }
+
+        .gg-admin-actions .gg-btn-primary,
+        .gg-admin-actions .gg-btn-secondary,
+        .gg-admin-actions .gg-btn-danger {
+            margin-top: 0;
+        }
+
+        #gg-admin-image-preview {
+            max-width: 100%;
+            max-height: 220px;
+            object-fit: contain;
+            margin: var(--modal-spacing-sm) auto 0;
+            border-radius: 8px;
+            background: rgba(0,0,0,0.2);
+            display: none;
+        }
+
+        .gg-admin-linked-locations {
+            max-height: 150px;
+            overflow-y: auto;
+            scrollbar-width: thin;
+            scrollbar-color: rgba(255,255,255,0.2) transparent;
+            width: 100%;
+            background: var(--modal-control-bg);
+            border: 1px solid var(--modal-control-border);
+            border-radius: var(--modal-control-radius);
+            box-sizing: border-box;
+        }
+
+        .gg-admin-location-item {
+            width: 100%;
+            display: block;
+            border: none;
+            border-bottom: 1px solid rgba(255,255,255,0.06);
+            background: transparent;
+            color: rgba(255,255,255,0.88);
+            cursor: pointer;
+            font: inherit;
+            font-size: 0.75rem;
+            font-weight: 600;
+            line-height: 1.25;
+            text-align: left;
+            padding: 8px 12px;
+        }
+
+        .gg-admin-location-item:last-child {
+            border-bottom: none;
+        }
+
+        .gg-admin-location-item:hover,
+        .gg-admin-location-item:focus-visible {
+            background: rgba(255,255,255,0.08);
+            outline: none;
         }
 
         .gg-selection-actions {
@@ -1461,6 +1637,34 @@
         .gg-btn-link-meta.gg-tag-selected {
             background: var(--gg-primary-green);
             border-color: var(--gg-primary-border);
+        }
+
+        .gg-btn-link-meta.gg-btn-admin-edit {
+            background: linear-gradient(180deg, #f4c542 0%, #d9a91f 100%);
+            border-color: #a97912;
+            color: #fff;
+        }
+
+        .gg-btn-link-meta.gg-btn-admin-edit:focus-visible {
+            box-shadow: 0 0 0 2px rgba(244, 197, 66, 0.35), 0 2px 6px rgba(0, 0, 0, 0.25);
+        }
+
+        .gg-btn-link-meta.gg-btn-admin-edit:hover {
+            background: linear-gradient(180deg, #ffd766 0%, #e8b733 100%);
+        }
+
+        .gg-btn-link-meta.gg-btn-transfer-meta {
+            background: linear-gradient(180deg, #ff6b44 0%, #d94b28 100%);
+            border-color: #9e2f16;
+            color: #fff;
+        }
+
+        .gg-btn-link-meta.gg-btn-transfer-meta:focus-visible {
+            box-shadow: 0 0 0 2px rgba(255, 107, 68, 0.35), 0 2px 6px rgba(0, 0, 0, 0.25);
+        }
+
+        .gg-btn-link-meta.gg-btn-transfer-meta:hover {
+            background: linear-gradient(180deg, #ff7d59 0%, #e95a35 100%);
         }
 
         .gg-meta-linked-indicator {
@@ -1527,8 +1731,8 @@
             width: 100%;
             height: 100%;
             background: rgba(0, 0, 0, 0.4);
-            backdrop-filter: blur(5px);
-            -webkit-backdrop-filter: blur(5px);
+            backdrop-filter: blur(8px);
+            -webkit-backdrop-filter: blur(8px);
             z-index: 99999;
             display: none;
             opacity: 0;
@@ -1538,6 +1742,11 @@
         #gg-modal-backdrop.gg-visible {
             display: block;
             opacity: 1;
+        }
+
+        .gg-modal-background-blurred {
+            filter: blur(4px);
+            pointer-events: none;
         }
 
         /* Preview Popup */
@@ -1602,7 +1811,7 @@
             padding: 1px 4px;
             margin: 0;
         }
-        
+
         /* Triangle Pointer (Right side) - Rotated Square Method */
         #gg-meta-preview-popup::after {
             content: "";
@@ -1677,11 +1886,320 @@
         return ((tokenInput && tokenInput.value) || localStorage.getItem(GITHUB_TOKEN_STORAGE_KEY) || '').trim();
     }
 
-    function updateResetDatabaseButtonVisibility() {
-        const resetButton = document.getElementById('gg-reset-db');
-        if (!resetButton) return;
+    function updateDeleteUserDataButtonVisibility() {
+        const deleteButton = document.getElementById('gg-delete-user-data');
+        if (!deleteButton) return;
 
-        resetButton.style.display = getSettingsTokenValue() ? 'flex' : 'none';
+        deleteButton.style.display = getSettingsTokenValue() ? 'flex' : 'none';
+    }
+
+    function hasSavedGitHubToken() {
+        return Boolean((localStorage.getItem(GITHUB_TOKEN_STORAGE_KEY) || '').trim());
+    }
+
+    function updateAdminButtonVisibility() {
+        const adminButton = document.getElementById('gg-meta-admin-btn');
+        if (!adminButton) return;
+
+        adminButton.style.display = hasSavedGitHubToken() ? 'flex' : 'none';
+    }
+
+    function getAdminMetaSource(metaId) {
+        const isUser = userMetaIds.has(metaId);
+        const isSystem = systemMetaIds.has(metaId);
+        if (isUser && isSystem) return 'both';
+        if (isUser) return 'user';
+        if (isSystem) return 'system';
+        return 'unknown';
+    }
+
+    function getAdminMetaSourceLabel(source) {
+        if (source === 'both') return 'User + Plonkit';
+        if (source === 'user') return 'User';
+        if (source === 'system') return 'Plonkit';
+        return 'Unknown';
+    }
+
+    function getAdminMetaLocationCounts(metaId) {
+        const userPanoids = new Set();
+        const systemPanoids = new Set();
+
+        Object.entries(userLocationMap || {}).forEach(([panoid, entry]) => {
+            if (getLocationMetaIds(entry).includes(metaId)) userPanoids.add(panoid);
+        });
+
+        Object.entries(systemLocationMap || {}).forEach(([panoid, entry]) => {
+            if (getLocationMetaIds(entry).includes(metaId)) systemPanoids.add(panoid);
+        });
+
+        const allPanoids = new Set([...userPanoids, ...systemPanoids]);
+        return { user: userPanoids.size, system: systemPanoids.size, total: allPanoids.size };
+    }
+
+    function normalizeSystemMetaTree(value) {
+        if (!Array.isArray(value)) return [];
+        return value
+            .filter(country => country && typeof country === 'object' && !Array.isArray(country))
+            .map(country => ({
+                ...country,
+                metas: normalizeMetaList(country.metas)
+            }));
+    }
+
+    function updateMetaInSystemTree(tree, metaId, updateMeta) {
+        let found = false;
+        const updatedTree = normalizeSystemMetaTree(tree).map(country => {
+            const metas = (country.metas || []).map(meta => {
+                if (meta.id !== metaId) return meta;
+                found = true;
+                return updateMeta(meta);
+            });
+            return { ...country, metas };
+        });
+
+        if (!found) throw new Error(`Meta not found in ${SYSTEM_METAS_FILE}: ${metaId}`);
+        return updatedTree;
+    }
+
+    function removeMetaFromSystemTree(tree, metaId) {
+        let found = false;
+        const updatedTree = normalizeSystemMetaTree(tree).map(country => {
+            const metas = (country.metas || []).filter(meta => {
+                if (meta.id === metaId) {
+                    found = true;
+                    return false;
+                }
+                return true;
+            });
+            return { ...country, metas };
+        });
+
+        if (!found) throw new Error(`Meta not found in ${SYSTEM_METAS_FILE}: ${metaId}`);
+        return updatedTree;
+    }
+
+    function removeMetaIdFromLocationEntries(locations, metaId) {
+        let changed = false;
+        Object.keys(locations || {}).forEach(panoid => {
+            const entry = normalizeLocationEntry(locations[panoid]);
+            if (!entry) return;
+            const filteredMetaIds = entry.metas.filter(id => id !== metaId);
+            if (filteredMetaIds.length === entry.metas.length) return;
+
+            changed = true;
+            if (filteredMetaIds.length === 0) {
+                delete locations[panoid];
+            } else {
+                locations[panoid] = { ...entry, metas: filteredMetaIds };
+            }
+        });
+        return changed;
+    }
+
+    function replaceMetaIdInLocationEntries(locations, fromMetaId, toMetaId) {
+        let changed = false;
+        Object.keys(locations || {}).forEach(panoid => {
+            const entry = normalizeLocationEntry(locations[panoid]);
+            if (!entry) return;
+            const currentMetaIds = entry.metas;
+            if (!currentMetaIds.includes(fromMetaId)) return;
+
+            changed = true;
+            const replacedMetaIds = [];
+            currentMetaIds.forEach(id => {
+                const nextId = id === fromMetaId ? toMetaId : id;
+                if (!replacedMetaIds.includes(nextId)) replacedMetaIds.push(nextId);
+            });
+            locations[panoid] = { ...entry, metas: replacedMetaIds };
+        });
+        return changed;
+    }
+
+    function setAdminScopeSelection(scope) {
+        const normalizedScope = normalizeScope(scope);
+        const scopeContainer = document.getElementById('gg-admin-scope-presets');
+        const scopeInput = document.getElementById('gg-admin-meta-scope');
+        if (!scopeContainer || !scopeInput) return;
+
+        scopeInput.value = normalizedScope;
+        scopeContainer.querySelectorAll('.gg-tag-pill').forEach(pill => {
+            pill.classList.toggle('gg-tag-selected', pill.dataset.value === normalizedScope);
+        });
+    }
+
+    function setAdminTagSelection(tags) {
+        const normalizedTags = normalizeTags(tags);
+        const tagContainer = document.getElementById('gg-admin-tag-presets');
+        const tagInput = document.getElementById('gg-admin-meta-tags');
+        if (!tagContainer || !tagInput) return;
+
+        tagInput.value = normalizedTags.join(', ');
+        tagContainer.querySelectorAll('.gg-tag-pill').forEach(pill => {
+            pill.classList.toggle('gg-tag-selected', normalizedTags.includes(pill.textContent.trim().toLowerCase()));
+        });
+    }
+
+    function updateAdminImagePreview() {
+        const preview = document.getElementById('gg-admin-image-preview');
+        const imageInput = document.getElementById('gg-admin-meta-image');
+        if (!preview || !imageInput) return;
+
+        const safeUrl = getSafeImageUrl(imageInput.value);
+        if (safeUrl) {
+            preview.src = safeUrl;
+            preview.style.display = 'block';
+        } else {
+            preview.removeAttribute('src');
+            preview.style.display = 'none';
+        }
+    }
+
+    function formatLocationValue(value) {
+        if (Array.isArray(value)) return value.filter(Boolean).join(', ');
+        return value || '';
+    }
+
+    function getAdminMetaLinkedLocations(metaId) {
+        return Object.entries(locationMap || {})
+            .map(([panoid, entry]) => ({ panoid, entry: normalizeLocationEntry(entry) }))
+            .filter(({ entry }) => entry && getLocationMetaIds(entry).includes(metaId))
+            .map(({ panoid, entry }) => ({
+                panoid,
+                ...entry,
+                displayCountry: entry.country || entry.nominatimCountry || ''
+            }))
+            .sort((a, b) => compareAdminText(formatAdminLocationLabel(a), formatAdminLocationLabel(b)));
+    }
+
+    function formatAdminLocationLabel(location) {
+        const parts = [
+            location.displayCountry || 'Unknown country',
+            formatLocationValue(location.region),
+            formatLocationValue(location.city),
+            formatLocationValue(location.road)
+        ].filter(Boolean);
+        return parts.length ? parts.join(', ') : location.panoid;
+    }
+
+    function getGoogleMapsUrlForLocation(location) {
+        const lat = normalizeCoordinate(location.lat);
+        const lng = normalizeCoordinate(location.lng);
+        if (lat !== null && lng !== null) {
+            return `https://www.google.com/maps?q=${encodeURIComponent(`${lat},${lng}`)}`;
+        }
+
+        const query = formatAdminLocationLabel(location);
+        return `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(query)}`;
+    }
+
+    function renderAdminLinkedLocations(metaId) {
+        const container = document.getElementById('gg-admin-linked-locations');
+        if (!container) return;
+
+        const linkedLocations = getAdminMetaLinkedLocations(metaId);
+        if (linkedLocations.length === 0) {
+            container.innerHTML = '<div class="gg-form-hint gg-list-empty-state">No linked locations found.</div>';
+            return;
+        }
+
+        container.innerHTML = linkedLocations.map(location => `
+            <button type="button" class="gg-admin-location-item" data-map-url="${escapeAttribute(getGoogleMapsUrlForLocation(location))}">
+                ${escapeHtml(formatAdminLocationLabel(location))}
+            </button>
+        `).join('');
+
+        container.querySelectorAll('.gg-admin-location-item').forEach(item => {
+            item.addEventListener('click', (e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                const url = item.dataset.mapUrl;
+                if (url) window.open(url, '_blank', 'noopener,noreferrer');
+            });
+        });
+    }
+
+    function getSelectedAdminMeta() {
+        if (!selectedAdminMetaId) return null;
+        return metasData.find(meta => meta.id === selectedAdminMetaId) || null;
+    }
+
+    function applyAdminMetaLocally(meta) {
+        const normalizedMeta = normalizeMetaList([meta])[0];
+        if (!normalizedMeta) return false;
+
+        let found = false;
+        metasData = metasData.map(existingMeta => {
+            if (existingMeta.id !== normalizedMeta.id) return existingMeta;
+            found = true;
+            return { ...existingMeta, ...normalizedMeta };
+        });
+
+        if (!found) metasData.unshift(normalizedMeta);
+        return true;
+    }
+
+    function applyAdminDeleteLocally(metaId, transferTargetId = null) {
+        const normalizedTransferTargetId = (transferTargetId || '').trim();
+        const updateLocations = normalizedTransferTargetId
+            ? locations => replaceMetaIdInLocationEntries(locations, metaId, normalizedTransferTargetId)
+            : locations => removeMetaIdFromLocationEntries(locations, metaId);
+
+        updateLocations(userLocationMap);
+        updateLocations(systemLocationMap);
+        metasData = metasData.filter(meta => meta.id !== metaId);
+        userMetaIds.delete(metaId);
+        systemMetaIds.delete(metaId);
+        selectedAdminMetaId = null;
+        selectedAdminTransferTargetId = null;
+        locationMap = mergeLocationMaps(systemLocationMap, userLocationMap);
+        if (currentPanoid) refreshDisplay();
+    }
+
+    function cloneJson(value) {
+        return JSON.parse(JSON.stringify(value));
+    }
+
+    function createLocalDataSnapshot() {
+        return {
+            userLocationMap: cloneJson(userLocationMap || {}),
+            systemLocationMap: cloneJson(systemLocationMap || {}),
+            locationMap: cloneJson(locationMap || {}),
+            metasData: cloneJson(metasData || []),
+            userMetaIds: Array.from(userMetaIds),
+            systemMetaIds: Array.from(systemMetaIds),
+            pendingLocalChanges: cloneJson(loadPendingLocalChanges())
+        };
+    }
+
+    function restoreLocalDataSnapshot(snapshot) {
+        if (!snapshot) return;
+
+        userLocationMap = normalizeLocationMap(snapshot.userLocationMap);
+        systemLocationMap = normalizeLocationMap(snapshot.systemLocationMap);
+        locationMap = normalizeLocationMap(snapshot.locationMap);
+        metasData = normalizeMetaList(snapshot.metasData);
+        userMetaIds = new Set(snapshot.userMetaIds || []);
+        systemMetaIds = new Set(snapshot.systemMetaIds || []);
+        savePendingLocalChanges(snapshot.pendingLocalChanges || getEmptyPendingLocalChanges());
+
+        renderAdminMetas(document.getElementById('gg-admin-search')?.value || '');
+        if (selectedAdminMetaId) openAdminMetaDetails(selectedAdminMetaId);
+        if (currentPanoid) refreshDisplay();
+    }
+
+    function getAdminMetaFromForm(existingMeta) {
+        const readValue = id => (document.getElementById(id)?.value || '').trim();
+        const updatedMeta = {
+            ...existingMeta,
+            title: readValue('gg-admin-meta-title'),
+            description: readValue('gg-admin-meta-desc'),
+            note: readValue('gg-admin-meta-note'),
+            imageUrl: getSafeImageUrl(readValue('gg-admin-meta-image')) || null,
+            scope: normalizeScope(readValue('gg-admin-meta-scope')),
+            tags: normalizeTags(readValue('gg-admin-meta-tags'))
+        };
+
+        return updatedMeta;
     }
 
     function getEmptyPendingLocalChanges() {
@@ -1830,6 +2348,68 @@
         refreshDisplay();
     }
 
+    function setControlsDisabled(container, disabled) {
+        if (!container) return;
+
+        container.classList.toggle('gg-operation-busy', disabled);
+        container.querySelectorAll('button, input, textarea, select').forEach(control => {
+            if (disabled) {
+                control.dataset.ggWasDisabled = control.disabled ? '1' : '0';
+                control.disabled = true;
+            } else {
+                control.disabled = control.dataset.ggWasDisabled === '1';
+                delete control.dataset.ggWasDisabled;
+            }
+        });
+    }
+
+    function setButtonBusy(button, busy, busyText = '') {
+        if (!button) return;
+
+        if (busy) {
+            if (!button.dataset.ggOriginalHtml) button.dataset.ggOriginalHtml = button.innerHTML;
+            button.disabled = true;
+            if (busyText) button.innerHTML = `<span class="gg-spinner"></span>${escapeHtml(busyText)}`;
+            return;
+        }
+
+        if (button.dataset.ggOriginalHtml) {
+            button.innerHTML = button.dataset.ggOriginalHtml;
+            delete button.dataset.ggOriginalHtml;
+        }
+    }
+
+    function beginMutationUi({ scope = null, button = null, busyText = 'Saving...', statusText = '' } = {}) {
+        if (activeMutationCount > 0) {
+            updateStatus('Finishing previous change...');
+            return null;
+        }
+
+        activeMutationCount += 1;
+        if (statusText) updateStatus(statusText);
+        if (scope) setControlsDisabled(scope, true);
+        setButtonBusy(button, true, busyText);
+
+        return ({ buttonText = null, restoreButton = true } = {}) => {
+            if (buttonText && button) {
+                button.textContent = buttonText;
+                delete button.dataset.ggOriginalHtml;
+            } else if (restoreButton) {
+                setButtonBusy(button, false);
+            }
+            if (scope) setControlsDisabled(scope, false);
+            activeMutationCount = Math.max(0, activeMutationCount - 1);
+        };
+    }
+
+    function scheduleBackgroundDataRefresh(delay = DATA_REFRESH_AFTER_SAVE_MS) {
+        clearTimeout(backgroundRefreshTimer);
+        backgroundRefreshTimer = setTimeout(() => {
+            backgroundRefreshTimer = null;
+            fetchLocationData();
+        }, delay);
+    }
+
     function setElementDisplay(id, display) {
         const el = document.getElementById(id);
         if (el) el.style.display = display;
@@ -1848,11 +2428,20 @@
     function showMetaModal() {
         setElementDisplay('gg-meta-modal', 'block');
         setElementDisplay('gg-settings-modal', 'none');
+        setElementDisplay('gg-meta-admin-modal', 'none');
         showBackdrop();
     }
 
     function showSettingsModal() {
         setElementDisplay('gg-settings-modal', 'block');
+        setElementDisplay('gg-meta-modal', 'none');
+        setElementDisplay('gg-meta-admin-modal', 'none');
+        showBackdrop();
+    }
+
+    function showAdminModal() {
+        setElementDisplay('gg-meta-admin-modal', 'block');
+        setElementDisplay('gg-settings-modal', 'none');
         setElementDisplay('gg-meta-modal', 'none');
         showBackdrop();
     }
@@ -1865,15 +2454,26 @@
         setElementDisplay('gg-settings-modal', 'none');
     }
 
+    function hideAdminModal() {
+        setElementDisplay('gg-meta-admin-modal', 'none');
+    }
+
     function hideAllModals({ hideBackdropOverlay = true } = {}) {
         hideMetaModal();
         hideSettingsModal();
+        hideAdminModal();
         if (hideBackdropOverlay) hideBackdrop();
     }
 
     function hidePreviewPopup() {
         const previewPopup = document.getElementById('gg-meta-preview-popup');
         if (previewPopup) previewPopup.classList.remove('gg-visible');
+    }
+
+    function getVisibleModalElementsForDialogBlur() {
+        return ['gg-meta-modal', 'gg-settings-modal', 'gg-meta-admin-modal']
+            .map(id => document.getElementById(id))
+            .filter(modal => modal && window.getComputedStyle(modal).display !== 'none');
     }
 
     function showToolDialog({
@@ -1888,6 +2488,7 @@
         if (!dialog) return Promise.resolve(false);
 
         const backdropWasVisible = Boolean(backdrop && backdrop.classList.contains('gg-visible'));
+        const backgroundModals = getVisibleModalElementsForDialogBlur();
         dialog.innerHTML = `
             <div class="gg-modal-header">${escapeHtml(title)}</div>
             <div class="gg-dialog-message">${escapeHtml(message)}</div>
@@ -1898,12 +2499,14 @@
         `;
 
         showBackdrop();
+        backgroundModals.forEach(modal => modal.classList.add('gg-modal-background-blurred'));
         dialog.style.display = 'block';
 
         return new Promise(resolve => {
             const close = (result) => {
                 dialog.style.display = 'none';
                 dialog.innerHTML = '';
+                backgroundModals.forEach(modal => modal.classList.remove('gg-modal-background-blurred'));
                 if (!backdropWasVisible) hideBackdrop();
                 resolve(result);
             };
@@ -1943,6 +2546,9 @@
                 <span class="gg-normal-title">BetterMetas</span>
                 <span class="gg-resize-mode-title">Resizing Window...</span>
                 <div class="gg-normal-controls">
+                    <button id="gg-meta-admin-btn" title="Manage Metas">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><ellipse cx="12" cy="5" rx="9" ry="3"></ellipse><path d="M3 5v14c0 1.66 4.03 3 9 3s9-1.34 9-3V5"></path><path d="M3 12c0 1.66 4.03 3 9 3s9-1.34 9-3"></path></svg>
+                    </button>
                     <button id="gg-settings-btn" title="Settings">
                         <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg>
                     </button>
@@ -1983,7 +2589,7 @@
         const dialogModal = document.createElement('div');
         dialogModal.id = 'gg-dialog-modal';
         document.body.appendChild(dialogModal);
-        
+
         // Close preview on outside click
         document.addEventListener('click', (e) => {
             if (previewPopup.classList.contains('gg-visible')) {
@@ -2016,14 +2622,20 @@
                 <hr class="gg-modal-divider">
 
                 <div class="gg-form-group">
+                    <label class="gg-form-label">Saved User Data</label>
+                    <button class="gg-btn-danger" id="gg-delete-user-data">Delete Saved User Data</button>
+                    <div class="gg-form-hint">Deletes user_metas.json and user_locations.json. Plonkit data stays untouched.</div>
+                </div>
+
+                <hr class="gg-modal-divider">
+
+                <div class="gg-form-group">
                     <label class="gg-form-label">Additional Settings</label>
                     <button class="gg-btn-secondary" id="gg-resize-window">Resize Window</button>
                 </div>
-                
+
                 <hr class="gg-modal-divider">
-                
-                <button class="gg-btn-danger" id="gg-reset-db">Clear Own Data</button>
-                
+
                 <button class="gg-btn-primary" id="gg-save-settings">Save Changes</button>
                 
                 <button class="gg-btn-secondary" id="gg-close-settings">Close</button>
@@ -2038,7 +2650,134 @@
             input.addEventListener('keypress', (e) => e.stopPropagation());
             input.addEventListener('keyup', (e) => e.stopPropagation());
         });
-        settingsModal.querySelector('#gg-gh-token').addEventListener('input', updateResetDatabaseButtonVisibility);
+        settingsModal.querySelector('#gg-gh-token').addEventListener('input', updateDeleteUserDataButtonVisibility);
+
+        // ADMIN MODAL
+        const adminModal = document.createElement('div');
+        adminModal.id = 'gg-meta-admin-modal';
+        adminModal.style.display = 'none';
+        adminModal.innerHTML = `
+            <div id="gg-admin-main-view" class="gg-modal-subview">
+                <div class="gg-modal-header">Manage Metas</div>
+                <div class="gg-form-group">
+                    <input type="text" id="gg-admin-search" class="gg-form-input" placeholder="Filter by country, title or tags (e.g. Kenya; snorkel)">
+                    <div id="gg-admin-sort-options" class="gg-pill-grid gg-admin-sort-options">
+                        <span class="gg-tag-pill gg-tag-selected" data-sort="country">Country</span>
+                        <span class="gg-tag-pill" data-sort="scope">Scope</span>
+                        <span class="gg-tag-pill" data-sort="tags">Tags</span>
+                        <span class="gg-tag-pill" data-sort="newest">Recently Added</span>
+                    </div>
+                </div>
+                <div id="gg-admin-meta-list" class="gg-admin-meta-list"></div>
+                <hr class="gg-modal-divider">
+                <button class="gg-btn-secondary" id="gg-admin-close-btn">Close</button>
+            </div>
+
+            <div id="gg-admin-details-view" class="gg-modal-subview gg-hidden">
+                <div class="gg-modal-header gg-modal-header-with-back">
+                    <button id="gg-admin-back-btn" class="gg-modal-back-btn">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="19" y1="12" x2="5" y2="12"></line><polyline points="12 19 5 12 12 5"></polyline></svg>
+                    </button>
+                    Meta Details
+                </div>
+
+                <div class="gg-admin-details-grid">
+                    <div class="gg-form-group">
+                        <label class="gg-form-label">Title</label>
+                        <input type="text" id="gg-admin-meta-title" class="gg-form-input">
+                    </div>
+                    <div class="gg-form-group">
+                        <label class="gg-form-label">Image URL (optional)</label>
+                        <input type="text" id="gg-admin-meta-image" class="gg-form-input">
+                        <img id="gg-admin-image-preview" alt="">
+                    </div>
+                    <div class="gg-form-group">
+                        <label class="gg-form-label">Description</label>
+                        <textarea id="gg-admin-meta-desc" class="gg-form-input" rows="4"></textarea>
+                    </div>
+                    <div class="gg-form-group">
+                        <label class="gg-form-label">Note</label>
+                        <textarea id="gg-admin-meta-note" class="gg-form-input" rows="3"></textarea>
+                    </div>
+                    <div class="gg-form-group">
+                        <label class="gg-form-label">Scope</label>
+                        <input type="text" id="gg-admin-meta-scope" class="gg-form-input gg-hidden-control">
+                        <div id="gg-admin-scope-presets" class="gg-pill-grid">
+                            ${renderScopePills(ALL_SCOPES)}
+                        </div>
+                    </div>
+                    <div class="gg-form-group">
+                        <label class="gg-form-label">Tags</label>
+                        <input type="text" id="gg-admin-meta-tags" class="gg-form-input gg-hidden-control">
+                        <div id="gg-admin-tag-presets" class="gg-pill-grid">
+                            ${renderTagPills(TAG_PRESETS)}
+                        </div>
+                    </div>
+                </div>
+
+                <hr class="gg-modal-divider">
+
+                <div class="gg-form-group">
+                    <label class="gg-form-label">Linked Locations</label>
+                    <div id="gg-admin-linked-locations" class="gg-admin-linked-locations"></div>
+                </div>
+
+                <hr class="gg-modal-divider">
+
+                <div class="gg-admin-actions">
+                    <button class="gg-btn-primary" id="gg-admin-save-btn">Save Meta</button>
+                    <button class="gg-btn-danger" id="gg-admin-transfer-toggle-btn">Transfer Delete</button>
+                    <button class="gg-btn-danger" id="gg-admin-delete-btn">Delete Meta</button>
+                </div>
+            </div>
+
+            <div id="gg-admin-transfer-view" class="gg-modal-subview gg-hidden">
+                <div class="gg-modal-header gg-modal-header-with-back">
+                    <button id="gg-admin-transfer-back-btn" class="gg-modal-back-btn">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="19" y1="12" x2="5" y2="12"></line><polyline points="12 19 5 12 12 5"></polyline></svg>
+                    </button>
+                    Transfer Delete
+                </div>
+
+                <div class="gg-form-group">
+                    <input type="text" id="gg-admin-transfer-search" class="gg-form-input" placeholder="Filter by country, title or tags (e.g. Kenya; snorkel)">
+                </div>
+                <div id="gg-admin-transfer-metas" class="gg-admin-meta-list"></div>
+
+                <hr class="gg-modal-divider">
+
+                <button class="gg-btn-secondary" id="gg-admin-transfer-cancel-btn">Cancel</button>
+            </div>
+        `;
+        document.body.appendChild(adminModal);
+
+        adminModal.querySelectorAll('input, textarea').forEach(input => {
+            input.addEventListener('keydown', (e) => e.stopPropagation());
+            input.addEventListener('keypress', (e) => e.stopPropagation());
+            input.addEventListener('keyup', (e) => e.stopPropagation());
+        });
+
+        adminModal.querySelector('#gg-admin-scope-presets').addEventListener('click', (e) => {
+            const target = getEventElementTarget(e);
+            if (!target || !target.classList.contains('gg-tag-pill')) return;
+
+            adminModal.querySelectorAll('#gg-admin-scope-presets .gg-tag-pill').forEach(pill => {
+                pill.classList.toggle('gg-tag-selected', pill === target);
+            });
+            document.getElementById('gg-admin-meta-scope').value = target.dataset.value || '';
+        });
+
+        adminModal.querySelector('#gg-admin-tag-presets').addEventListener('click', (e) => {
+            const target = getEventElementTarget(e);
+            if (!target || !target.classList.contains('gg-tag-pill')) return;
+
+            target.classList.toggle('gg-tag-selected');
+            const selectedTags = Array.from(adminModal.querySelectorAll('#gg-admin-tag-presets .gg-tag-pill.gg-tag-selected'))
+                .map(pill => pill.textContent.trim());
+            document.getElementById('gg-admin-meta-tags').value = normalizeTags(selectedTags).join(', ');
+        });
+
+        adminModal.querySelector('#gg-admin-meta-image').addEventListener('input', updateAdminImagePreview);
 
         // MODAL
         const modal = document.createElement('div');
@@ -2184,6 +2923,27 @@
         document.body.appendChild(modal);
 
         // Event Listeners
+        updateAdminButtonVisibility();
+
+        document.getElementById('gg-meta-admin-btn').addEventListener('click', async () => {
+            if (!hasSavedGitHubToken()) {
+                updateAdminButtonVisibility();
+                await showToolAlert('No Token Saved', 'Save a GitHub Personal Access Token in Settings to manage metas.');
+                return;
+            }
+
+            selectedAdminMetaId = null;
+            adminSortMode = 'country';
+            const searchInput = document.getElementById('gg-admin-search');
+            searchInput.value = '';
+            updateAdminSortButtons();
+            showAdminMainView();
+            renderAdminMetas();
+            hidePreviewPopup();
+            showAdminModal();
+            requestAnimationFrame(() => searchInput.focus());
+        });
+
         document.getElementById('gg-meta-add-btn').addEventListener('click', async () => {
             syncPanoidForUserAction('open add modal');
 
@@ -2213,7 +2973,7 @@
         document.getElementById('gg-settings-btn').addEventListener('click', () => {
             const token = localStorage.getItem(GITHUB_TOKEN_STORAGE_KEY) || '';
             document.getElementById('gg-gh-token').value = token;
-            updateResetDatabaseButtonVisibility();
+            updateDeleteUserDataButtonVisibility();
             
             // Render Scope Filter
             const scopeContainer = document.getElementById('gg-settings-scope-filter');
@@ -2260,6 +3020,7 @@
              // Refresh HUD
              if (currentPanoid) refreshDisplay();
 
+             updateAdminButtonVisibility();
              hideSettingsModal();
              hideBackdrop();
         });
@@ -2268,6 +3029,52 @@
             hideSettingsModal();
             hideBackdrop();
         });
+
+        document.getElementById('gg-admin-search').addEventListener('input', (e) => {
+            renderAdminMetas(e.target.value);
+        });
+
+        document.getElementById('gg-admin-sort-options').addEventListener('click', (e) => {
+            const target = getEventElementTarget(e);
+            if (!target || !target.classList.contains('gg-tag-pill')) return;
+
+            adminSortMode = target.dataset.sort || 'country';
+            updateAdminSortButtons();
+            renderAdminMetas(document.getElementById('gg-admin-search')?.value || '');
+        });
+
+        document.getElementById('gg-admin-close-btn').addEventListener('click', (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            hideAdminModal();
+            hideBackdrop();
+            hidePreviewPopup();
+        });
+
+        document.getElementById('gg-admin-back-btn').addEventListener('click', () => {
+            showAdminMainView();
+            renderAdminMetas(document.getElementById('gg-admin-search')?.value || '');
+        });
+
+        document.getElementById('gg-admin-save-btn').addEventListener('click', saveAdminMeta);
+
+        document.getElementById('gg-admin-transfer-toggle-btn').addEventListener('click', () => {
+            showAdminTransferView();
+        });
+
+        document.getElementById('gg-admin-transfer-search').addEventListener('input', (e) => {
+            renderAdminTransferMetas(e.target.value);
+        });
+
+        document.getElementById('gg-admin-transfer-back-btn').addEventListener('click', () => {
+            showAdminDetailsView();
+        });
+
+        document.getElementById('gg-admin-transfer-cancel-btn').addEventListener('click', () => {
+            showAdminDetailsView();
+        });
+
+        document.getElementById('gg-admin-delete-btn').addEventListener('click', () => deleteAdminMeta());
 
         function enterHudResizeMode() {
             const hud = document.getElementById('gg-meta-hud');
@@ -2368,20 +3175,20 @@
             exitHudResizeMode(true);
         });
 
-        document.getElementById('gg-reset-db').addEventListener('click', async () => {
+        document.getElementById('gg-delete-user-data').addEventListener('click', async () => {
             const confirmed = await showToolConfirm(
-                'Clear Own Data',
-                'This will delete your own metas and own location links from GitHub. Plonkit data will stay untouched.',
+                'Delete Saved User Data',
+                'This deletes your own BetterMetas entries from GitHub: user_metas.json and user_locations.json. Plonkit data stays untouched.',
                 { confirmText: 'Continue', cancelText: 'Cancel', danger: true }
             );
             if (!confirmed) return;
 
             const reallyConfirmed = await showToolConfirm(
-                'Delete Own Data?',
-                'Your own BetterMetas data will be lost.',
+                'Delete Saved User Data?',
+                'Your saved user metas and saved user location links will be lost.',
                 { confirmText: 'Delete', cancelText: 'Cancel', danger: true }
             );
-            if (reallyConfirmed) await resetDatabase();
+            if (reallyConfirmed) await deleteSavedUserData();
         });
 
         document.getElementById('meta-close-btn').addEventListener('click', () => {
@@ -2426,7 +3233,7 @@
     function getCountryCode(countryName) {
         if (!countryName) return '??';
         const name = countryName.trim().toLowerCase();
-        
+
         // Plonkit Region Mapping
         const mapping = {
             'alaska': 'US', 'albania': 'AL', 'american samoa': 'AS', 'andorra': 'AD', 'antarctica': 'AQ',
@@ -2463,7 +3270,7 @@
         const normalizedName = name.replace(/á/g, 'a').replace(/ó/g, 'o').replace(/é/g, 'e').replace(/ç/g, 'c');
         if (mapping[name]) return mapping[name];
         if (mapping[normalizedName]) return mapping[normalizedName];
-        
+
         // Normalize São Tomé variants
         if (name.includes('sao tome') || name.includes('sdo tome')) return 'ST';
 
@@ -2473,6 +3280,310 @@
             return (words[0][0] + words[1][0]).toUpperCase();
         }
         return name.substring(0, 2).toUpperCase();
+    }
+
+    function updateAdminSortButtons() {
+        const sortContainer = document.getElementById('gg-admin-sort-options');
+        if (!sortContainer) return;
+
+        sortContainer.querySelectorAll('.gg-tag-pill').forEach(pill => {
+            pill.classList.toggle('gg-tag-selected', pill.dataset.sort === adminSortMode);
+        });
+    }
+
+    function compareAdminText(a, b) {
+        return String(a || '').localeCompare(String(b || ''), undefined, { sensitivity: 'base' });
+    }
+
+    function compareAdminCountry(metaA, metaB) {
+        return compareAdminText(getCountryCode(metaA.country), getCountryCode(metaB.country))
+            || compareAdminText(metaA.country, metaB.country)
+            || compareAdminText(metaA.title, metaB.title);
+    }
+
+    function getAdminMetaCreatedSortValue(meta, originalIndex) {
+        const addedAtTime = Date.parse(meta.addedAt || '');
+        if (Number.isFinite(addedAtTime)) return addedAtTime;
+        const timestampMatch = String(meta.id || '').match(/^meta_(\d{10,})_/);
+        if (timestampMatch) return Number(timestampMatch[1]);
+        return originalIndex;
+    }
+
+    function sortAdminMetaEntries(entries) {
+        const scopeOrder = new Map(ALL_SCOPES.map((scope, index) => [scope, index]));
+        return entries.sort((a, b) => {
+            const metaA = a.meta;
+            const metaB = b.meta;
+            if (adminSortMode === 'scope') {
+                const scopeA = scopeOrder.get(normalizeScope(metaA.scope)) ?? Number.MAX_SAFE_INTEGER;
+                const scopeB = scopeOrder.get(normalizeScope(metaB.scope)) ?? Number.MAX_SAFE_INTEGER;
+                return scopeA - scopeB
+                    || compareAdminCountry(metaA, metaB);
+            }
+
+            if (adminSortMode === 'tags') {
+                return compareAdminText((metaA.tags || []).join(', '), (metaB.tags || []).join(', '))
+                    || compareAdminCountry(metaA, metaB);
+            }
+
+            if (adminSortMode === 'newest') {
+                return getAdminMetaCreatedSortValue(metaB, b.index) - getAdminMetaCreatedSortValue(metaA, a.index)
+                    || compareAdminCountry(metaA, metaB);
+            }
+
+            return compareAdminCountry(metaA, metaB);
+        });
+    }
+
+    function renderAdminMetas(searchTerm = '') {
+        const container = document.getElementById('gg-admin-meta-list');
+        if (!container) return;
+
+        const terms = searchTerm.toLowerCase().split(/[;,]/).map(s => s.trim()).filter(Boolean);
+
+        const filtered = metasData.map((meta, index) => ({ meta, index })).filter(entry => {
+            const meta = entry.meta;
+            if (terms.length === 0) return true;
+            const source = getAdminMetaSourceLabel(getAdminMetaSource(meta.id));
+            const searchableContent = [
+                meta.id || '',
+                source,
+                meta.country || '',
+                meta.section || '',
+                meta.title || '',
+                meta.description || '',
+                meta.note || '',
+                meta.scope || '',
+                (meta.tags || []).join(' ')
+            ].join(' ').toLowerCase();
+            return terms.every(term => searchableContent.includes(term));
+        });
+
+        const sorted = sortAdminMetaEntries(filtered);
+
+        if (sorted.length === 0) {
+            container.innerHTML = '<div class="gg-form-hint gg-list-empty-state">No metas found.</div>';
+            return;
+        }
+
+        container.innerHTML = sorted.map(entry => {
+            const meta = entry.meta;
+            const countryCode = getCountryCode(meta.country);
+            return `
+                <div class="gg-meta-list-item gg-admin-meta-item" data-meta-id="${escapeAttribute(meta.id)}">
+                    <div class="gg-meta-list-main">
+                        <span class="gg-country-badge" title="${escapeAttribute(meta.country || 'Unknown Country')}">${escapeHtml(countryCode)}</span>
+                        <div class="gg-meta-list-title">${escapeHtml(meta.title || meta.id)}</div>
+                        <div class="gg-meta-list-tags">
+                            <span class="gg-tag-static gg-scope-static">${escapeHtml(getScopeLabel(normalizeScope(meta.scope)))}</span>
+                            ${renderStaticTags(meta.tags)}
+                        </div>
+                    </div>
+                    <button class="gg-btn-link-meta gg-btn-admin-edit" data-meta-id="${escapeAttribute(meta.id)}">Edit</button>
+                </div>
+            `;
+        }).join('');
+
+        const previewPopup = document.getElementById('gg-meta-preview-popup');
+        const modal = document.getElementById('gg-meta-admin-modal');
+
+        container.querySelectorAll('.gg-admin-meta-item').forEach(item => {
+            item.addEventListener('mouseenter', () => {
+                const meta = metasData.find(m => m.id === item.dataset.metaId);
+                if (!meta || !previewPopup || !modal) return;
+
+                previewPopup.innerHTML = `
+                    <div class="gg-meta-item-title">${escapeHtml(meta.title || meta.id)}</div>
+                    ${renderMetaImage(meta.imageUrl)}
+                    <div class="gg-meta-description">${escapeHtml(meta.description || '')}</div>
+                    <div class="gg-meta-tags">
+                        ${renderStaticTags(meta.tags)}
+                    </div>
+                `;
+
+                const modalRect = modal.getBoundingClientRect();
+                const itemRect = item.getBoundingClientRect();
+                const leftPos = modalRect.left - 290;
+
+                previewPopup.style.left = `${leftPos}px`;
+                previewPopup.classList.add('gg-visible');
+
+                const height = previewPopup.offsetHeight;
+                const adjustedTop = itemRect.top + (itemRect.height / 2) - (height / 2);
+                previewPopup.style.top = `${adjustedTop}px`;
+            });
+
+            item.addEventListener('mouseleave', hidePreviewPopup);
+        });
+
+        container.querySelectorAll('.gg-btn-admin-edit').forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                openAdminMetaDetails(btn.dataset.metaId);
+            });
+        });
+    }
+
+    function showAdminMainView() {
+        const mainView = document.getElementById('gg-admin-main-view');
+        const detailsView = document.getElementById('gg-admin-details-view');
+        const transferView = document.getElementById('gg-admin-transfer-view');
+        if (mainView) mainView.classList.remove('gg-hidden');
+        if (detailsView) detailsView.classList.add('gg-hidden');
+        if (transferView) transferView.classList.add('gg-hidden');
+        selectedAdminMetaId = null;
+        selectedAdminTransferTargetId = null;
+        hidePreviewPopup();
+    }
+
+    function showAdminDetailsView() {
+        document.getElementById('gg-admin-main-view')?.classList.add('gg-hidden');
+        document.getElementById('gg-admin-transfer-view')?.classList.add('gg-hidden');
+        document.getElementById('gg-admin-details-view')?.classList.remove('gg-hidden');
+        selectedAdminTransferTargetId = null;
+        hidePreviewPopup();
+    }
+
+    function showAdminTransferView() {
+        const selectedMeta = getSelectedAdminMeta();
+        if (!selectedMeta) return;
+
+        const searchInput = document.getElementById('gg-admin-transfer-search');
+        if (searchInput) searchInput.value = '';
+        selectedAdminTransferTargetId = null;
+        document.getElementById('gg-admin-main-view')?.classList.add('gg-hidden');
+        document.getElementById('gg-admin-details-view')?.classList.add('gg-hidden');
+        document.getElementById('gg-admin-transfer-view')?.classList.remove('gg-hidden');
+        renderAdminTransferMetas();
+        hidePreviewPopup();
+        requestAnimationFrame(() => searchInput?.focus());
+    }
+
+    function openAdminMetaDetails(metaId) {
+        const meta = metasData.find(m => m.id === metaId);
+        if (!meta) return;
+
+        selectedAdminMetaId = metaId;
+        const setValue = (id, value) => {
+            const input = document.getElementById(id);
+            if (input) input.value = value ?? '';
+        };
+
+        setValue('gg-admin-meta-image', meta.imageUrl || '');
+        setValue('gg-admin-meta-title', meta.title || '');
+        setValue('gg-admin-meta-desc', meta.description || '');
+        setValue('gg-admin-meta-note', meta.note || '');
+        setAdminScopeSelection(meta.scope);
+        setAdminTagSelection(meta.tags);
+        updateAdminImagePreview();
+        renderAdminLinkedLocations(meta.id);
+
+        selectedAdminTransferTargetId = null;
+
+        document.getElementById('gg-admin-main-view')?.classList.add('gg-hidden');
+        document.getElementById('gg-admin-transfer-view')?.classList.add('gg-hidden');
+        document.getElementById('gg-admin-details-view')?.classList.remove('gg-hidden');
+        hidePreviewPopup();
+    }
+
+    function renderAdminTransferMetas(searchTerm = '') {
+        const container = document.getElementById('gg-admin-transfer-metas');
+        if (!container) return;
+
+        const sourceMeta = getSelectedAdminMeta();
+        if (!sourceMeta) {
+            container.innerHTML = '<div class="gg-form-hint gg-list-empty-state">No meta selected.</div>';
+            return;
+        }
+
+        const terms = searchTerm.toLowerCase().split(/[;,]/).map(s => s.trim()).filter(Boolean);
+        const filtered = metasData.filter(meta => {
+            if (!meta || meta.id === sourceMeta.id) return false;
+            if (terms.length === 0) return true;
+
+            const searchableContent = [
+                meta.country || '',
+                meta.title || '',
+                meta.description || '',
+                (meta.tags || []).join(' ')
+            ].join(' ').toLowerCase();
+
+            return terms.every(term => searchableContent.includes(term));
+        });
+
+        const groups = new Map();
+        filtered.forEach(meta => {
+            const tagsSig = (meta.tags || []).slice().sort().join(',');
+            const sig = `${meta.country}|${meta.title}|${meta.description}|${tagsSig}`;
+            if (!groups.has(sig)) groups.set(sig, []);
+            groups.get(sig).push(meta);
+        });
+
+        const uniqueFiltered = Array.from(groups.values()).map(group => group[0]);
+
+        if (uniqueFiltered.length === 0) {
+            container.innerHTML = '<div class="gg-form-hint gg-list-empty-state">No metas found.</div>';
+            return;
+        }
+
+        container.innerHTML = uniqueFiltered.map(meta => {
+            const countryCode = getCountryCode(meta.country);
+            return `
+                <div class="gg-meta-list-item" data-meta-id="${escapeAttribute(meta.id)}">
+                    <div class="gg-meta-list-main">
+                        <span class="gg-country-badge" title="${escapeAttribute(meta.country || 'Unknown Country')}">${escapeHtml(countryCode)}</span>
+                        <div class="gg-meta-list-title">${escapeHtml(meta.title || meta.id)}</div>
+                        <div class="gg-meta-list-tags">
+                            ${renderStaticTags(meta.tags)}
+                        </div>
+                    </div>
+                    <button class="gg-btn-link-meta gg-btn-transfer-meta" data-meta-id="${escapeAttribute(meta.id)}">Transfer</button>
+                </div>
+            `;
+        }).join('');
+
+        const previewPopup = document.getElementById('gg-meta-preview-popup');
+        const modal = document.getElementById('gg-meta-admin-modal');
+
+        container.querySelectorAll('.gg-meta-list-item').forEach(item => {
+            item.addEventListener('mouseenter', () => {
+                const meta = metasData.find(m => m.id === item.dataset.metaId);
+                if (!meta || !previewPopup || !modal) return;
+
+                previewPopup.innerHTML = `
+                    <div class="gg-meta-item-title">${escapeHtml(meta.title || meta.id)}</div>
+                    ${renderMetaImage(meta.imageUrl)}
+                    <div class="gg-meta-description">${escapeHtml(meta.description || '')}</div>
+                    <div class="gg-meta-tags">
+                        ${renderStaticTags(meta.tags)}
+                    </div>
+                `;
+
+                const modalRect = modal.getBoundingClientRect();
+                const itemRect = item.getBoundingClientRect();
+                const leftPos = modalRect.left - 290;
+
+                previewPopup.style.left = `${leftPos}px`;
+                previewPopup.classList.add('gg-visible');
+
+                const height = previewPopup.offsetHeight;
+                const adjustedTop = itemRect.top + (itemRect.height / 2) - (height / 2);
+                previewPopup.style.top = `${adjustedTop}px`;
+            });
+
+            item.addEventListener('mouseleave', hidePreviewPopup);
+        });
+
+        container.querySelectorAll('.gg-btn-transfer-meta').forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                selectedAdminTransferTargetId = btn.dataset.metaId || null;
+                hidePreviewPopup();
+                deleteAdminMeta(selectedAdminTransferTargetId, btn);
+            });
+        });
     }
 
     function renderExistingMetas(searchTerm = '') {
@@ -2659,8 +3770,16 @@
         }
 
         // Mode: Admin (Token) - Direct API commit
-        // Note: Sequential operations used for simplicity logic
-        updateStatus(`Linking ${metaIds.length} metas...`);
+        const linkBtn = document.getElementById('gg-link-selected-btn');
+        const finishUi = beginMutationUi({
+            scope: document.getElementById('gg-meta-modal'),
+            button: linkBtn,
+            busyText: 'Linking...',
+            statusText: `Linking ${metaIds.length} metas...`
+        });
+        if (!finishUi) return;
+
+        const snapshot = createLocalDataSnapshot();
         
         try {
             const unknownMetaIds = metaIds.filter(id => !systemMetaIds.has(id) && !userMetaIds.has(id));
@@ -2668,6 +3787,12 @@
             if (unknownMetaIds.length > 0) {
                 throw new Error(`Unknown meta IDs: ${unknownMetaIds.join(', ')}`);
             }
+
+            applyLocalLocationLinks(panoid, metaIds);
+            updateStatus('Linked. Syncing...');
+            selectedMetaIds.clear();
+            updateLinkSelectedBtn();
+            renderExistingMetas(document.getElementById('meta-search')?.value || '');
 
             await updateGitHubJsonFile(
                 API_USER_LOCATIONS_URL,
@@ -2680,16 +3805,15 @@
                 `Link ${metaIds.length} metas to ${panoid} via BetterMetas`
             );
 
-            applyLocalLocationLinks(panoid, metaIds);
             updateStatus('Linked!');
-            selectedMetaIds.clear();
-            updateLinkSelectedBtn();
-            renderExistingMetas(document.getElementById('meta-search')?.value || '');
-            setTimeout(fetchLocationData, DATA_REFRESH_AFTER_SAVE_MS);
+            scheduleBackgroundDataRefresh();
         } catch (e) {
             console.error(e);
+            restoreLocalDataSnapshot(snapshot);
             await showToolAlert('Link Failed', e.message);
             updateStatus('Link Failed');
+        } finally {
+            finishUi();
         }
     }
 
@@ -2728,9 +3852,19 @@
             return;
         }
 
-        updateStatus(`Removing ${removableMetaIds.length} meta${removableMetaIds.length === 1 ? '' : 's'}...`);
+        const finishUi = beginMutationUi({
+            scope: document.getElementById('gg-meta-hud'),
+            busyText: 'Removing...',
+            statusText: `Removing ${removableMetaIds.length} meta${removableMetaIds.length === 1 ? '' : 's'}...`
+        });
+        if (!finishUi) return;
+
+        const snapshot = createLocalDataSnapshot();
 
         try {
+            applyLocalLocationUnlinks(panoid, removableMetaIds);
+            updateStatus('Removed. Syncing...');
+
             await updateGitHubJsonFile(
                 API_USER_LOCATIONS_URL,
                 token,
@@ -2742,13 +3876,15 @@
                 `Unlink ${removableMetaIds.length} metas from ${panoid} via BetterMetas`
             );
 
-            applyLocalLocationUnlinks(panoid, removableMetaIds);
             updateStatus('Removed!');
-            setTimeout(fetchLocationData, DATA_REFRESH_AFTER_SAVE_MS);
+            scheduleBackgroundDataRefresh();
         } catch (e) {
             console.error(e);
+            restoreLocalDataSnapshot(snapshot);
             await showToolAlert('Remove Failed', e.message);
             updateStatus('Remove Failed');
+        } finally {
+            finishUi();
         }
     }
 
@@ -2785,7 +3921,8 @@
             note: "",
             imageUrl: imageUrl,
             scope: scope,
-            tags: tags
+            tags: tags,
+            addedAt: new Date().toISOString().slice(0, 10)
         };
 
         // For Issue submission, we send both the meta and the panoid to link
@@ -2834,11 +3971,23 @@
         }
 
         // Mode: Admin (Token)
-        btn.disabled = true;
-        btn.innerHTML = '<span class="gg-spinner"></span>Saving...';
+        const finishUi = beginMutationUi({
+            scope: document.getElementById('gg-meta-modal'),
+            button: btn,
+            busyText: 'Saving...',
+            statusText: 'Saving meta...'
+        });
+        if (!finishUi) return;
+
         output.style.display = 'none';
+        const snapshot = createLocalDataSnapshot();
 
         try {
+            applyLocalSavedMeta(newMeta, panoid);
+            updateStatus('Saved. Syncing...');
+            hideMetaModal();
+            hideBackdrop();
+
             updateStatus('Saving user_metas.json...');
             await updateGitHubJsonFile(
                 API_USER_METAS_URL,
@@ -2865,37 +4014,260 @@
                 `Link ${panoid} to ${newMeta.id} via BetterMetas`
             );
 
-            applyLocalSavedMeta(newMeta, panoid);
             updateStatus('Saved!');
-            btn.innerHTML = 'Saved!';
-            setTimeout(() => {
-                hideMetaModal();
-                btn.innerHTML = META_SAVE_BUTTON_LABEL;
-                btn.disabled = false;
-                setTimeout(fetchLocationData, DATA_REFRESH_AFTER_SAVE_MS);
-            }, SAVE_COMPLETE_RESET_MS);
+            scheduleBackgroundDataRefresh();
+            setTimeout(() => finishUi({ buttonText: META_SAVE_BUTTON_LABEL }), SAVE_COMPLETE_RESET_MS);
 
         } catch (err) {
             console.error('Save error:', err);
-            btn.innerHTML = 'Error';
-            btn.disabled = false;
+            restoreLocalDataSnapshot(snapshot);
+            showMetaModal();
             output.textContent = `Error saving to GitHub:\n${err.message}\n\nBackup JSON:\n${stringifyJsonContent(submission)}`;
             output.style.display = 'block';
             await showToolAlert('Save Failed', err.message);
+            finishUi();
         }
     }
 
-    async function resetDatabase() {
-        const token = getSettingsTokenValue();
+    async function refreshAfterAdminMutation({ optimisticMeta = null } = {}) {
+        clearDataCache();
+        if (optimisticMeta) applyAdminMetaLocally(optimisticMeta);
+        await fetchLocationData();
+        if (optimisticMeta) applyAdminMetaLocally(optimisticMeta);
+        renderAdminMetas(document.getElementById('gg-admin-search')?.value || '');
+        if (currentPanoid) refreshDisplay();
+    }
+
+    async function saveAdminMeta() {
+        const token = localStorage.getItem(GITHUB_TOKEN_STORAGE_KEY);
         if (!token) {
-            await showToolAlert('No Token Saved', 'Cannot clear own data without a saved GitHub token.');
+            await showToolAlert('No Token Saved', 'Cannot edit metas without a saved GitHub token.');
+            updateAdminButtonVisibility();
             return;
         }
-        
-        updateStatus('Clearing own data...');
-        const btn = document.getElementById('gg-reset-db');
+
+        const existingMeta = getSelectedAdminMeta();
+        if (!existingMeta) {
+            await showToolAlert('No Meta Selected', 'Select a meta first.');
+            return;
+        }
+
+        const updatedMeta = getAdminMetaFromForm(existingMeta);
+        if (!updatedMeta.title || !updatedMeta.description) {
+            await showToolAlert('Missing Details', 'Please fill in Title and Description.');
+            return;
+        }
+
+        const source = getAdminMetaSource(existingMeta.id);
+        const saveBtn = document.getElementById('gg-admin-save-btn');
+        const finishUi = beginMutationUi({
+            scope: document.getElementById('gg-meta-admin-modal'),
+            button: saveBtn,
+            busyText: 'Saving...',
+            statusText: `Saving meta ${existingMeta.id}...`
+        });
+        if (!finishUi) return;
+
+        const snapshot = createLocalDataSnapshot();
+
+        try {
+            const savedMetaId = existingMeta.id;
+            applyAdminMetaLocally(updatedMeta);
+            renderAdminMetas(document.getElementById('gg-admin-search')?.value || '');
+            openAdminMetaDetails(savedMetaId);
+            if (currentPanoid) refreshDisplay();
+            updateStatus('Meta saved. Syncing...');
+
+            if (source === 'user' || source === 'both') {
+                await updateGitHubJsonFileIfChanged(
+                    API_USER_METAS_URL,
+                    token,
+                    normalizeUserMetas,
+                    metas => {
+                        let found = false;
+                        const updatedMetas = metas.map(meta => {
+                            if (meta.id !== existingMeta.id) return meta;
+                            found = true;
+                            return updatedMeta;
+                        });
+                        if (!found) throw new Error(`Meta not found in ${USER_METAS_FILE}: ${existingMeta.id}`);
+                        return updatedMetas;
+                    },
+                    `Edit meta ${existingMeta.id} via BetterMetas`
+                );
+            }
+
+            if (source === 'system' || source === 'both') {
+                await updateGitHubJsonFileIfChanged(
+                    API_SYSTEM_METAS_URL,
+                    token,
+                    normalizeSystemMetaTree,
+                    tree => updateMetaInSystemTree(tree, existingMeta.id, () => updatedMeta),
+                    `Edit Plonkit meta ${existingMeta.id} via BetterMetas`
+                );
+            }
+
+            if (source === 'unknown') {
+                throw new Error(`Unknown meta source for ${existingMeta.id}`);
+            }
+
+            updateStatus('Meta saved!');
+            refreshAfterAdminMutation({ optimisticMeta: updatedMeta }).catch(err => {
+                console.warn('[BetterMetas] Admin data refresh after save failed:', err);
+            });
+            setTimeout(() => {
+                finishUi({ buttonText: 'Save Meta' });
+            }, SAVE_COMPLETE_RESET_MS);
+        } catch (err) {
+            console.error(err);
+            restoreLocalDataSnapshot(snapshot);
+            await showToolAlert('Save Failed', err.message || String(err));
+            updateStatus('Save Failed');
+            finishUi();
+        }
+    }
+
+    async function deleteAdminMeta(transferTargetId = null, actionButton = null) {
+        if (transferTargetId && typeof transferTargetId !== 'string') {
+            transferTargetId = null;
+        }
+
+        const token = localStorage.getItem(GITHUB_TOKEN_STORAGE_KEY);
+        if (!token) {
+            await showToolAlert('No Token Saved', 'Cannot delete metas without a saved GitHub token.');
+            updateAdminButtonVisibility();
+            return;
+        }
+
+        const existingMeta = getSelectedAdminMeta();
+        if (!existingMeta) {
+            await showToolAlert('No Meta Selected', 'Select a meta first.');
+            return;
+        }
+
+        const normalizedTransferTargetId = (transferTargetId || selectedAdminTransferTargetId || '').trim();
+        const transferTarget = normalizedTransferTargetId ? metasData.find(meta => meta.id === normalizedTransferTargetId) : null;
+        if (normalizedTransferTargetId && !transferTarget) {
+            await showToolAlert('Unknown Transfer Target', `No meta found with ID ${normalizedTransferTargetId}.`);
+            return;
+        }
+        if (normalizedTransferTargetId === existingMeta.id) {
+            await showToolAlert('Invalid Transfer Target', 'Transfer target must be a different meta.');
+            return;
+        }
+
+        const counts = getAdminMetaLocationCounts(existingMeta.id);
+        const actionLabel = normalizedTransferTargetId
+            ? `delete "${existingMeta.title || existingMeta.id}" and transfer ${counts.total} locations to "${transferTarget.title || transferTarget.id}"?`
+            : `delete "${existingMeta.title || existingMeta.id}" and remove it from ${counts.total} locations?`;
+        const confirmed = await showToolConfirm(
+            'Delete Meta',
+            `This will ${actionLabel}`,
+            { confirmText: 'Delete', cancelText: 'Cancel', danger: true }
+        );
+        if (!confirmed) return;
+
+        const source = getAdminMetaSource(existingMeta.id);
+        const actionBtn = actionButton || document.getElementById('gg-admin-delete-btn');
+        const finishUi = beginMutationUi({
+            scope: document.getElementById('gg-meta-admin-modal'),
+            button: actionBtn,
+            busyText: normalizedTransferTargetId ? 'Transferring...' : 'Deleting...',
+            statusText: normalizedTransferTargetId
+                ? `Transferring ${existingMeta.id}...`
+                : `Deleting meta ${existingMeta.id}...`
+        });
+        if (!finishUi) return;
+
+        const snapshot = createLocalDataSnapshot();
+
+        try {
+            const deletedMetaId = existingMeta.id;
+            applyAdminDeleteLocally(deletedMetaId, normalizedTransferTargetId);
+            showAdminMainView();
+            renderAdminMetas(document.getElementById('gg-admin-search')?.value || '');
+            updateStatus(normalizedTransferTargetId ? 'Transferred. Syncing...' : 'Deleted. Syncing...');
+
+            const updateLocations = normalizedTransferTargetId
+                ? locations => {
+                    replaceMetaIdInLocationEntries(locations, deletedMetaId, normalizedTransferTargetId);
+                    return locations;
+                }
+                : locations => {
+                    removeMetaIdFromLocationEntries(locations, deletedMetaId);
+                    return locations;
+                };
+
+            await updateGitHubJsonFileIfChanged(
+                API_USER_LOCATIONS_URL,
+                token,
+                normalizeLocationMap,
+                updateLocations,
+                `${normalizedTransferTargetId ? 'Transfer' : 'Remove'} user locations for ${deletedMetaId} via BetterMetas`
+            );
+            await updateGitHubJsonFileIfChanged(
+                API_SYSTEM_LOCATIONS_URL,
+                token,
+                normalizeLocationMap,
+                updateLocations,
+                `${normalizedTransferTargetId ? 'Transfer' : 'Remove'} Plonkit locations for ${deletedMetaId} via BetterMetas`
+            );
+
+            if (source === 'user' || source === 'both') {
+                await updateGitHubJsonFile(
+                    API_USER_METAS_URL,
+                    token,
+                    normalizeUserMetas,
+                    metas => {
+                        const updatedMetas = metas.filter(meta => meta.id !== deletedMetaId);
+                        if (updatedMetas.length === metas.length) {
+                            throw new Error(`Meta not found in ${USER_METAS_FILE}: ${deletedMetaId}`);
+                        }
+                        return updatedMetas;
+                    },
+                    `Delete meta ${deletedMetaId} via BetterMetas`
+                );
+            }
+
+            if (source === 'system' || source === 'both') {
+                await updateGitHubJsonFile(
+                    API_SYSTEM_METAS_URL,
+                    token,
+                    normalizeSystemMetaTree,
+                    tree => removeMetaFromSystemTree(tree, deletedMetaId),
+                    `Delete Plonkit meta ${deletedMetaId} via BetterMetas`
+                );
+            }
+
+            if (source === 'unknown') {
+                throw new Error(`Unknown meta source for ${deletedMetaId}`);
+            }
+
+            refreshAfterAdminMutation().catch(err => {
+                console.warn('[BetterMetas] Admin data refresh after delete failed:', err);
+            });
+            updateStatus(normalizedTransferTargetId ? 'Transfer complete!' : 'Meta deleted!');
+        } catch (err) {
+            console.error(err);
+            restoreLocalDataSnapshot(snapshot);
+            await showToolAlert('Delete Failed', err.message || String(err));
+            updateStatus('Delete Failed');
+        } finally {
+            finishUi();
+        }
+    }
+
+    async function deleteSavedUserData() {
+        const token = getSettingsTokenValue();
+        if (!token) {
+            await showToolAlert('No Token Saved', 'Cannot delete saved user data without a saved GitHub token.');
+            return;
+        }
+
+        updateStatus('Deleting saved user data...');
+        const btn = document.getElementById('gg-delete-user-data');
         const origText = btn.innerText;
-        btn.innerText = "Clearing Own Data...";
+        btn.innerText = "Deleting Saved User Data...";
         btn.disabled = true;
 
         try {
@@ -2904,17 +4276,17 @@
                 token,
                 normalizeUserMetas,
                 () => [],
-                "Clear own BetterMetas metas"
+                "Delete saved BetterMetas user metas"
             );
             await updateGitHubJsonFile(
                 API_USER_LOCATIONS_URL,
                 token,
                 normalizeLocationMap,
                 () => ({}),
-                "Clear own BetterMetas location links"
+                "Delete saved BetterMetas user location links"
             );
 
-            await showToolAlert('Data Cleared', 'Own BetterMetas data cleared!');
+            await showToolAlert('User Data Deleted', 'Saved user metas and saved user location links deleted.');
             location.reload();
 
         } catch (e) {
@@ -3686,11 +5058,38 @@
 
 
     function decodeGitHubJsonContent(content) {
-        return JSON.parse(decodeURIComponent(escape(window.atob((content || '').replace(/\n/g, "")))));
+        const decoded = decodeURIComponent(escape(window.atob((content || '').replace(/\n/g, ""))));
+        return parseGitHubJsonText(decoded);
     }
 
     function encodeGitHubJsonContent(content) {
         return window.btoa(unescape(encodeURIComponent(stringifyJsonContent(content))));
+    }
+
+    function parseGitHubJsonText(text) {
+        const trimmed = (text || '').trim();
+        if (!trimmed) return null;
+        return JSON.parse(trimmed);
+    }
+
+    function addCacheBust(url) {
+        return `${url}${url.includes('?') ? '&' : '?'}t=${Date.now()}`;
+    }
+
+    async function fetchGitHubDownloadJson(downloadUrl, label) {
+        const response = await requestRawText(addCacheBust(downloadUrl), label);
+        if (response.status !== 200) {
+            throw new Error(`${label} HTTP ${response.status}: ${response.statusText || 'unknown error'}`);
+        }
+        return parseGitHubJsonText(response.responseText);
+    }
+
+    async function fetchGitHubBlobJson(gitUrl, token, label) {
+        const blob = await githubApiGetWithRetry(gitUrl, token, label);
+        if (!blob || typeof blob !== 'object' || typeof blob.content !== 'string') {
+            throw new Error(`GitHub returned no blob content for ${label}`);
+        }
+        return decodeGitHubJsonContent(blob.content);
     }
 
     function parseGitHubApiError(response) {
@@ -3704,7 +5103,8 @@
         return error;
     }
 
-    function githubApiRequest(url, token, method = 'GET', body = null) {
+    function githubApiRequest(url, token, method = 'GET', body = null, options = {}) {
+        const timeout = options.timeout || GITHUB_API_TIMEOUT_MS;
         return new Promise((resolve, reject) => {
             GM_xmlhttpRequest({
                 method,
@@ -3716,7 +5116,7 @@
                     'Content-Type': 'application/json',
                     'Cache-Control': 'no-cache'
                 },
-                timeout: DATA_FETCH_TIMEOUT_MS,
+                timeout,
                 data: body ? JSON.stringify(body) : null,
                 onload: (response) => {
                     if (response.status >= 200 && response.status < 300) {
@@ -3730,14 +5130,51 @@
                     }
                 },
                 onerror: () => reject(new Error(`GitHub API request failed: ${url}`)),
-                ontimeout: () => reject(new Error(`GitHub API request timed out: ${url}`))
+                ontimeout: () => reject(new Error(`GitHub API request timed out after ${Math.round(timeout / 1000)}s: ${url}`))
             });
         });
     }
 
+    async function githubApiGetWithRetry(url, token, label = url) {
+        let lastError = null;
+
+        for (let attempt = 1; attempt <= DATA_FETCH_MAX_ATTEMPTS; attempt++) {
+            try {
+                return await githubApiRequest(url, token);
+            } catch (err) {
+                lastError = err;
+                if (attempt >= DATA_FETCH_MAX_ATTEMPTS) break;
+                const delay = DATA_FETCH_RETRY_DELAY_MS * attempt;
+                console.warn(`[BetterMetas] GitHub API read failed for ${label} (attempt ${attempt}/${DATA_FETCH_MAX_ATTEMPTS}), retrying in ${delay}ms:`, err);
+                await wait(delay);
+            }
+        }
+
+        throw lastError || new Error(`GitHub API read failed for ${label}`);
+    }
+
     async function getGitHubJsonFile(apiUrl, token) {
-        const data = await githubApiRequest(getApiUrlForBranch(apiUrl), token);
-        return { sha: data.sha, content: decodeGitHubJsonContent(data.content) };
+        const data = await githubApiGetWithRetry(getApiUrlForBranch(apiUrl), token, apiUrl);
+        if (!data || typeof data !== 'object' || !('content' in data)) {
+            throw new Error(`GitHub returned no file content for ${apiUrl}`);
+        }
+
+        const hasInlineContent = typeof data.content === 'string' && data.content.trim();
+        if (hasInlineContent) {
+            return { sha: data.sha, content: decodeGitHubJsonContent(data.content) };
+        }
+
+        if ((data.size || 0) > 0 && data.git_url) {
+            const content = await fetchGitHubBlobJson(data.git_url, token, apiUrl);
+            return { sha: data.sha, content };
+        }
+
+        if ((data.size || 0) > 0 && data.download_url) {
+            const content = await fetchGitHubDownloadJson(data.download_url, apiUrl);
+            return { sha: data.sha, content };
+        }
+
+        return { sha: data.sha, content: null };
     }
 
     async function putGitHubJsonFile(apiUrl, token, sha, content, message) {
@@ -3747,7 +5184,7 @@
             branch: REPO_BRANCH
         };
         if (sha) body.sha = sha;
-        return githubApiRequest(apiUrl, token, 'PUT', body);
+        return githubApiRequest(apiUrl, token, 'PUT', body, { timeout: GITHUB_API_WRITE_TIMEOUT_MS });
     }
 
     function isGitHubContentConflict(error) {
@@ -3861,6 +5298,39 @@
         });
     }
 
+    async function updateGitHubJsonFileIfChanged(apiUrl, token, normalizeContent, updateContent, message) {
+        return withGitHubWriteLock(message, async () => {
+            let lastError = null;
+
+            for (let attempt = 1; attempt <= GITHUB_CONTENT_UPDATE_MAX_ATTEMPTS; attempt++) {
+                const file = await getGitHubJsonFile(apiUrl, token);
+                const content = normalizeContent(file.content);
+                const before = stringifyJsonContent(content);
+                const updatedContent = updateContent(content) || content;
+                const after = stringifyJsonContent(updatedContent);
+
+                if (before === after) {
+                    return { skipped: true };
+                }
+
+                try {
+                    return await putGitHubJsonFile(apiUrl, token, file.sha, updatedContent, message);
+                } catch (error) {
+                    lastError = error;
+                    if (!isGitHubContentConflict(error) || attempt === GITHUB_CONTENT_UPDATE_MAX_ATTEMPTS) {
+                        throw error;
+                    }
+
+                    const delay = GITHUB_CONTENT_UPDATE_RETRY_DELAY_MS * attempt + Math.floor(Math.random() * GITHUB_CONTENT_UPDATE_RETRY_DELAY_MS);
+                    console.warn(`[BetterMetas] GitHub content conflict while saving ${apiUrl}; retrying with latest file (${attempt + 1}/${GITHUB_CONTENT_UPDATE_MAX_ATTEMPTS}) after ${delay}ms.`, error);
+                    await wait(delay);
+                }
+            }
+
+            throw lastError;
+        });
+    }
+
     function fetchGitHubContentJson(apiUrl, token) {
         return getGitHubJsonFile(apiUrl, token).then(file => file.content);
     }
@@ -3946,15 +5416,35 @@
         return metas;
     }
 
-    async function loadSystemLocationsData() {
+    async function loadSystemLocationsData(token) {
+        if (token) {
+            try {
+                const locations = await fetchGitHubContentJson(API_SYSTEM_LOCATIONS_URL, token);
+                console.log(`[BetterMetas] Loaded ${Object.keys(normalizeLocationMap(locations)).length} system location mappings from GitHub API.`);
+                return normalizeLocationMap(locations);
+            } catch (err) {
+                console.warn('[BetterMetas] GitHub API plonkit_locations fetch failed, falling back to raw:', err);
+            }
+        }
+
         const locations = await fetchRawJsonWithRetry(getRawSystemLocationsUrl, 'plonkit_locations.json', normalizeLocationMap, {});
-        console.log(`[BetterMetas] Loaded ${Object.keys(locations).length} system location mappings.`);
+        console.log(`[BetterMetas] Loaded ${Object.keys(locations).length} system location mappings from raw.`);
         return locations;
     }
 
-    async function loadSystemMetasData() {
+    async function loadSystemMetasData(token) {
+        if (token) {
+            try {
+                const metas = await fetchGitHubContentJson(API_SYSTEM_METAS_URL, token);
+                console.log(`[BetterMetas] Loaded ${normalizeSystemMetas(metas).length} system metas from GitHub API.`);
+                return normalizeSystemMetas(metas);
+            } catch (err) {
+                console.warn('[BetterMetas] GitHub API plonkit_metas fetch failed, falling back to raw:', err);
+            }
+        }
+
         const metas = await fetchRawJsonWithRetry(getRawSystemMetasUrl, 'plonkit_metas.json', value => normalizeSystemMetas(value), []);
-        console.log(`[BetterMetas] Loaded ${metas.length} system metas.`);
+        console.log(`[BetterMetas] Loaded ${metas.length} system metas from raw.`);
         return metas;
     }
 
@@ -3969,9 +5459,9 @@
         try {
             const [loadedUserLocationMap, loadedSystemLocationMap, loadedUserMetas, loadedSystemMetas] = await Promise.all([
                 loadUserLocationsData(token),
-                loadSystemLocationsData(),
+                loadSystemLocationsData(token),
                 loadUserMetasData(token),
-                loadSystemMetasData()
+                loadSystemMetasData(token)
             ]);
 
             if (loadId !== dataLoadSequence) {
@@ -4221,6 +5711,7 @@
                   if (!button.closest('#gg-meta-hud') &&
                       !button.closest('#gg-settings-modal') &&
                       !button.closest('#gg-meta-modal') &&
+                      !button.closest('#gg-meta-admin-modal') &&
                       !button.closest('#gg-dialog-modal')) {
                        
                        // Close HUD
