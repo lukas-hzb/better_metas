@@ -1330,5 +1330,17 @@
     "region": "Karas",
     "city": "Aussenkehr",
     "road": "C13"
+  },
+  "cpB9tnOt0-LCFj1JP5qZ7A": {
+    "metas": [
+      "meta_senegal_aMed"
+    ],
+    "lat": 16.42489,
+    "lng": -15.8456,
+    "country": "Senegal",
+    "nominatimCountry": "Senegal",
+    "region": "Saint-Louis Region",
+    "city": "Communaut\u00e9 rurale de Ronkh",
+    "road": "TAH 1"
   }
 }
