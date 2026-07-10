@@ -1306,5 +1306,17 @@
     "region": "Perm Krai",
     "city": "\u041a\u0443\u0437\u043d\u0435\u0447\u0438\u0445\u0430",
     "road": "57\u041a-0015"
+  },
+  "C776rqu5YWfw7tOvwdw2ng": {
+    "metas": [
+      "meta_argentina_HidJ"
+    ],
+    "lat": -30.3791,
+    "lng": -61.25354,
+    "country": "Argentina",
+    "nominatimCountry": "Argentina",
+    "region": "Santa Fe",
+    "city": "Municipio de San Crist\u00f3bal",
+    "road": "Ruta Provincial 13"
   }
 }
