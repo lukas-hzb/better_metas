@@ -1270,5 +1270,17 @@
     "region": "Greater Skopje",
     "city": "Arnacija",
     "road": "Mother Teresa"
+  },
+  "JJf6vu2Fdgcn9rZMdseqmA": {
+    "metas": [
+      "meta_france_Xe70"
+    ],
+    "lat": 44.48296,
+    "lng": -0.85207,
+    "country": "France",
+    "nominatimCountry": "France",
+    "region": "Nouvelle-Aquitaine",
+    "city": "Lugos",
+    "road": "D110"
   }
 }
