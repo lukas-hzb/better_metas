@@ -30375,7 +30375,9 @@
         "note": "",
         "imageUrl": "https://www.plonkit.net/images/united-arab-emirates/ae_desert.png",
         "scope": "countrywide",
-        "tags": []
+        "tags": [
+          "landscape"
+        ]
       },
       {
         "id": "meta_united_arab_emirates_HIpw",
