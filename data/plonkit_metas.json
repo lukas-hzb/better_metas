@@ -30583,7 +30583,9 @@
         "note": "",
         "imageUrl": "https://www.plonkit.net/images/united-arab-emirates/ae_eastmountains.png",
         "scope": "region",
-        "tags": []
+        "tags": [
+          "landscape"
+        ]
       },
       {
         "id": "meta_united_arab_emirates_M22T",
