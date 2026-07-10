@@ -1282,5 +1282,17 @@
     "region": "Nouvelle-Aquitaine",
     "city": "Lugos",
     "road": "D110"
+  },
+  "hB6GSfxtTVwjlqKgU7hwaQ": {
+    "metas": [
+      "meta_brazil_JlDz"
+    ],
+    "lat": -24.77964,
+    "lng": -51.19694,
+    "country": "Brazil",
+    "nominatimCountry": "Brazil",
+    "region": "Paran\u00e1",
+    "city": "C\u00e2ndido de Abreu",
+    "road": null
   }
 }
