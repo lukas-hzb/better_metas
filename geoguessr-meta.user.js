@@ -1115,6 +1115,7 @@
 
         .gg-dialog-actions {
             display: flex;
+            flex-wrap: wrap;
             gap: var(--modal-related-gap);
             margin-top: var(--modal-section-gap);
         }
@@ -1128,6 +1129,10 @@
 
         .gg-dialog-actions .gg-btn-primary:only-child,
         .gg-dialog-actions .gg-btn-secondary:only-child {
+            flex: 0 0 100%;
+        }
+
+        .gg-dialog-actions #gg-dialog-edit {
             flex: 0 0 100%;
         }
 
@@ -1363,7 +1368,7 @@
         .gg-btn-danger {
             background: transparent;
             color: #f97316;
-            border: 2px solid #f97316;
+            border: none;
             padding: var(--modal-related-gap) 0;
             border-radius: var(--modal-btn-radius); /* Match primary button */
             cursor: pointer;
@@ -1375,6 +1380,7 @@
             letter-spacing: 0.04em;
             transition: background 0.2s, color 0.2s;
             box-sizing: border-box;
+            box-shadow: inset 0 0 0 2px #f97316;
             height: var(--modal-btn-height); /* Fixed height for consistency */
             display: flex;
             align-items: center;
@@ -1388,11 +1394,12 @@
 
         .gg-btn-danger:focus-visible {
             outline: none;
-            box-shadow: 0 0 0 2px rgba(249, 115, 22, 0.35);
+            box-shadow: inset 0 0 0 2px #f97316, inset 0 0 0 4px rgba(249, 115, 22, 0.35);
         }
 
         .gg-btn-danger:hover {
             background: rgba(249, 115, 22, 0.15);
+            box-shadow: inset 0 0 0 2px #f97316;
         }
 
         #gg-resize-window {
@@ -1580,16 +1587,6 @@
         .gg-admin-actions .gg-btn-secondary,
         .gg-admin-actions .gg-btn-danger {
             margin-top: 0;
-        }
-
-        #gg-admin-image-preview {
-            max-width: 100%;
-            max-height: 220px;
-            object-fit: contain;
-            margin: var(--modal-spacing-sm) auto 0;
-            border-radius: 8px;
-            background: rgba(0,0,0,0.2);
-            display: none;
         }
 
         .gg-admin-linked-locations {
@@ -1834,6 +1831,10 @@
             transform: translateX(0);
         }
 
+        #gg-meta-preview-popup.gg-image-url-preview {
+            padding: 6px;
+        }
+
         #gg-meta-preview-popup .gg-meta-image {
             width: 100%;
             height: 140px; /* Fixed height */
@@ -1841,6 +1842,13 @@
             border-radius: 6px;
             margin-bottom: 8px;
             background: rgba(255,255,255,0.1); /* Placeholder bg */
+        }
+
+        #gg-meta-preview-popup.gg-image-url-preview .gg-meta-image {
+            height: auto;
+            max-height: min(420px, calc(100vh - 48px));
+            object-fit: contain;
+            margin-bottom: 0;
         }
 
         #gg-meta-preview-popup .gg-meta-item-title {
@@ -2103,16 +2111,78 @@
     function updateAdminImagePreview() {
         const preview = document.getElementById('gg-admin-image-preview');
         const imageInput = document.getElementById('gg-admin-meta-image');
-        if (!preview || !imageInput) return;
-
-        const safeUrl = getSafeImageUrl(imageInput.value);
-        if (safeUrl) {
-            preview.src = safeUrl;
-            preview.style.display = 'block';
-        } else {
+        if (preview) {
             preview.removeAttribute('src');
             preview.style.display = 'none';
         }
+        if (imageInput?.matches(':hover')) showAdminImageUrlPreview();
+    }
+
+    function showAdminImageUrlPreview() {
+        const imageInput = document.getElementById('gg-admin-meta-image');
+        const previewPopup = document.getElementById('gg-meta-preview-popup');
+        const modal = document.getElementById('gg-meta-admin-modal');
+        if (!imageInput || !previewPopup || !modal) return;
+
+        const safeUrl = getSafeImageUrl(imageInput.value);
+        if (!safeUrl) {
+            hideAdminImageUrlPreview();
+            return;
+        }
+
+        delete previewPopup.dataset.ggPreviewCleanupId;
+        previewPopup.dataset.ggPreviewMode = 'image-url';
+        previewPopup.classList.add('gg-image-url-preview');
+        previewPopup.innerHTML = `<img src="${escapeAttribute(safeUrl)}" class="gg-meta-image" alt="">`;
+        previewPopup.querySelector('img')?.addEventListener('load', positionAdminImageUrlPreview, { once: true });
+        previewPopup.querySelector('img')?.addEventListener('error', hideAdminImageUrlPreview, { once: true });
+        positionAdminImageUrlPreview();
+    }
+
+    function positionAdminImageUrlPreview() {
+        const imageInput = document.getElementById('gg-admin-meta-image');
+        const previewPopup = document.getElementById('gg-meta-preview-popup');
+        const modal = document.getElementById('gg-meta-admin-modal');
+        if (!imageInput || !previewPopup || !modal) return;
+
+        const modalRect = modal.getBoundingClientRect();
+        const inputRect = imageInput.getBoundingClientRect();
+        const leftPos = Math.max(8, modalRect.left - 290);
+
+        previewPopup.style.left = `${leftPos}px`;
+        previewPopup.classList.add('gg-visible');
+
+        const height = previewPopup.offsetHeight;
+        const adjustedTop = Math.min(
+            Math.max(8, inputRect.top + (inputRect.height / 2) - (height / 2)),
+            Math.max(8, window.innerHeight - height - 8)
+        );
+        previewPopup.style.top = `${adjustedTop}px`;
+    }
+
+    function hideAdminImageUrlPreview() {
+        const previewPopup = document.getElementById('gg-meta-preview-popup');
+        if (!previewPopup) return;
+
+        previewPopup.classList.remove('gg-visible');
+        if (previewPopup.dataset.ggPreviewMode !== 'image-url') return;
+
+        const cleanupId = `${Date.now()}-${Math.random()}`;
+        previewPopup.dataset.ggPreviewCleanupId = cleanupId;
+        setTimeout(() => {
+            if (
+                previewPopup.dataset.ggPreviewCleanupId !== cleanupId ||
+                previewPopup.dataset.ggPreviewMode !== 'image-url' ||
+                previewPopup.classList.contains('gg-visible')
+            ) {
+                return;
+            }
+
+            previewPopup.classList.remove('gg-image-url-preview');
+            previewPopup.innerHTML = '';
+            delete previewPopup.dataset.ggPreviewMode;
+            delete previewPopup.dataset.ggPreviewCleanupId;
+        }, 220);
     }
 
     function formatLocationValue(value) {
@@ -2528,7 +2598,12 @@
 
     function hidePreviewPopup() {
         const previewPopup = document.getElementById('gg-meta-preview-popup');
-        if (previewPopup) previewPopup.classList.remove('gg-visible');
+        if (!previewPopup) return;
+        if (previewPopup.dataset.ggPreviewMode === 'image-url') {
+            hideAdminImageUrlPreview();
+            return;
+        }
+        previewPopup.classList.remove('gg-visible');
     }
 
     function getVisibleModalElementsForDialogBlur() {
@@ -2592,6 +2667,51 @@
         danger = false
     } = {}) {
         return showToolDialog({ title, message, confirmText, cancelText, danger });
+    }
+
+    function showMetaTitleActionDialog({ title = '', action = '', canEdit = false } = {}) {
+        const dialog = document.getElementById('gg-dialog-modal');
+        const backdrop = document.getElementById('gg-modal-backdrop');
+        if (!dialog) return Promise.resolve(null);
+
+        const actionLabel = action === 'unlink' ? 'Remove' : 'Link';
+        const actionClass = action === 'unlink' ? 'gg-btn-danger' : 'gg-btn-primary';
+        const backdropWasVisible = Boolean(backdrop && backdrop.classList.contains('gg-visible'));
+        const backgroundModals = getVisibleModalElementsForDialogBlur();
+
+        dialog.innerHTML = `
+            <div class="gg-modal-header">Meta Actions</div>
+            <div class="gg-dialog-message">${escapeHtml(title || 'Select an action for this meta.')}</div>
+            <div class="gg-dialog-actions">
+                ${canEdit ? '<button class="gg-btn-secondary" id="gg-dialog-edit">Edit Meta</button>' : ''}
+                <button class="gg-btn-secondary" id="gg-dialog-cancel">Cancel</button>
+                ${action ? `<button class="${actionClass}" id="gg-dialog-toggle">${escapeHtml(actionLabel)}</button>` : ''}
+            </div>
+        `;
+
+        showBackdrop();
+        backgroundModals.forEach(modal => modal.classList.add('gg-modal-background-blurred'));
+        dialog.style.display = 'block';
+
+        return new Promise(resolve => {
+            const close = (result) => {
+                dialog.style.display = 'none';
+                dialog.innerHTML = '';
+                backgroundModals.forEach(modal => modal.classList.remove('gg-modal-background-blurred'));
+                if (!backdropWasVisible) hideBackdrop();
+                resolve(result);
+            };
+
+            const cancelBtn = dialog.querySelector('#gg-dialog-cancel');
+            const editBtn = dialog.querySelector('#gg-dialog-edit');
+            const toggleBtn = dialog.querySelector('#gg-dialog-toggle');
+
+            cancelBtn.addEventListener('click', () => close(null), { once: true });
+            if (editBtn) editBtn.addEventListener('click', () => close('edit'), { once: true });
+            if (toggleBtn) toggleBtn.addEventListener('click', () => close(action), { once: true });
+
+            requestAnimationFrame(() => (toggleBtn || editBtn || cancelBtn).focus());
+        });
     }
 
     // --- UI Construction ---
@@ -2750,7 +2870,6 @@
                     <div class="gg-form-group">
                         <label class="gg-form-label">Image URL (optional)</label>
                         <input type="text" id="gg-admin-meta-image" class="gg-form-input">
-                        <img id="gg-admin-image-preview" alt="">
                     </div>
                     <div class="gg-form-group">
                         <label class="gg-form-label">Description</label>
@@ -2838,7 +2957,10 @@
             document.getElementById('gg-admin-meta-tags').value = normalizeTags(selectedTags).join(', ');
         });
 
-        adminModal.querySelector('#gg-admin-meta-image').addEventListener('input', updateAdminImagePreview);
+        const adminImageInput = adminModal.querySelector('#gg-admin-meta-image');
+        adminImageInput.addEventListener('input', updateAdminImagePreview);
+        adminImageInput.addEventListener('mouseenter', showAdminImageUrlPreview);
+        adminImageInput.addEventListener('mouseleave', hideAdminImageUrlPreview);
 
         // MODAL
         const modal = document.createElement('div');
@@ -3455,6 +3577,9 @@
                 const meta = metasData.find(m => m.id === item.dataset.metaId);
                 if (!meta || !previewPopup || !modal) return;
 
+                delete previewPopup.dataset.ggPreviewCleanupId;
+                previewPopup.dataset.ggPreviewMode = 'meta';
+                previewPopup.classList.remove('gg-image-url-preview');
                 previewPopup.innerHTML = `
                     <div class="gg-meta-item-title">${escapeHtml(meta.title || meta.id)}</div>
                     ${renderMetaImage(meta.imageUrl)}
@@ -3614,6 +3739,9 @@
                 const meta = metasData.find(m => m.id === item.dataset.metaId);
                 if (!meta || !previewPopup || !modal) return;
 
+                delete previewPopup.dataset.ggPreviewCleanupId;
+                previewPopup.dataset.ggPreviewMode = 'meta';
+                previewPopup.classList.remove('gg-image-url-preview');
                 previewPopup.innerHTML = `
                     <div class="gg-meta-item-title">${escapeHtml(meta.title || meta.id)}</div>
                     ${renderMetaImage(meta.imageUrl)}
@@ -3729,6 +3857,9 @@
                 if (!meta || !previewPopup) return;
                 
                 // Populate
+                delete previewPopup.dataset.ggPreviewCleanupId;
+                previewPopup.dataset.ggPreviewMode = 'meta';
+                previewPopup.classList.remove('gg-image-url-preview');
                 previewPopup.innerHTML = `
                     <div class="gg-meta-item-title">${escapeHtml(meta.title)}</div>
                     ${renderMetaImage(meta.imageUrl)}
@@ -4366,12 +4497,17 @@
             return;
         }
 
+        const canEditMetas = hasSavedGitHubToken();
         const renderMeta = (m, isPredicted = false) => {
              const userLinkedMetaIds = new Set(getLocationMetaIds(userLocationMap[currentPanoid]));
              const isUserLinked = userLinkedMetaIds.has(m.id);
              const titleAction = isPredicted ? 'link' : (isUserLinked ? 'unlink' : '');
-             const titleAttr = titleAction
-                 ? `class="gg-clickable-meta-title" data-meta-id="${escapeAttribute(m.id)}" data-meta-title="${escapeAttribute(m.title)}" data-action="${escapeAttribute(titleAction)}" title="${titleAction === 'link' ? 'Click to Link to this Location' : 'Click to Remove from this Location'}"`
+             const titleText = m.title || m.id;
+             const titleTooltip = canEditMetas
+                 ? 'Click for Meta Actions'
+                 : (titleAction === 'link' ? 'Click to Link to this Location' : 'Click to Remove from this Location');
+             const titleAttr = (titleAction || canEditMetas)
+                 ? `class="gg-clickable-meta-title" data-meta-id="${escapeAttribute(m.id)}" data-meta-title="${escapeAttribute(titleText)}" data-action="${escapeAttribute(titleAction)}" title="${escapeAttribute(titleTooltip)}"`
                  : '';
              
              // Badge logic
@@ -4387,7 +4523,7 @@
              return `
             <div class="gg-meta-row ${isPredicted ? 'gg-meta-row-predicted' : ''}">
                 <div class="gg-meta-item-title">
-                    <span ${titleAttr}>${escapeHtml(m.title)}</span>
+                    <span ${titleAttr}>${escapeHtml(titleText)}</span>
                     ${badge}
                 </div>
                 ${renderMetaImage(m.imageUrl)}
@@ -4404,11 +4540,56 @@
 
         container.querySelectorAll('.gg-clickable-meta-title').forEach(titleEl => {
             titleEl.addEventListener('click', () => {
-                win.quickToggleMeta(titleEl.dataset.metaId, titleEl.dataset.metaTitle || '', titleEl.dataset.action);
+                win.handleMetaTitleClick(titleEl.dataset.metaId, titleEl.dataset.metaTitle || '', titleEl.dataset.action || '');
             });
         });
     }
 
+
+    function openMetaEditorFromTitle(metaId) {
+        if (!hasSavedGitHubToken()) {
+            updateAdminButtonVisibility();
+            return showToolAlert('No Token Saved', 'Save a GitHub Personal Access Token in Settings to edit metas.');
+        }
+
+        const meta = metasData.find(m => m.id === metaId);
+        if (!meta) {
+            return showToolAlert('Meta Not Found', 'This meta could not be found in the loaded BetterMetas data.');
+        }
+
+        hidePreviewPopup();
+        showAdminModal();
+        openAdminMetaDetails(metaId);
+        requestAnimationFrame(() => document.getElementById('gg-admin-meta-title')?.focus());
+        return Promise.resolve();
+    }
+
+    win.handleMetaTitleClick = async function(metaId, title, action = '') {
+        if (!hasSavedGitHubToken()) {
+            if (action) await win.quickToggleMeta(metaId, title, action);
+            return;
+        }
+
+        const selectedAction = await showMetaTitleActionDialog({
+            title,
+            action,
+            canEdit: true
+        });
+
+        if (selectedAction === 'edit') {
+            await openMetaEditorFromTitle(metaId);
+            return;
+        }
+
+        if (selectedAction === 'unlink') {
+            unlinkMultipleMetas([metaId]);
+            return;
+        }
+
+        if (selectedAction === 'link') {
+            linkMultipleMetas([metaId]);
+        }
+    };
 
 
     win.quickToggleMeta = async function(metaId, title, action = 'link') {
