@@ -1294,5 +1294,17 @@
     "region": "Paran\u00e1",
     "city": "C\u00e2ndido de Abreu",
     "road": null
+  },
+  "wZ6EShv2WfBdIuG1MMXU7w": {
+    "metas": [
+      "meta_russia_OKfi"
+    ],
+    "lat": 57.34776,
+    "lng": 55.59332,
+    "country": "Russia",
+    "nominatimCountry": "Russia",
+    "region": "Perm Krai",
+    "city": "\u041a\u0443\u0437\u043d\u0435\u0447\u0438\u0445\u0430",
+    "road": "57\u041a-0015"
   }
 }
