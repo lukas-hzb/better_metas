@@ -3908,6 +3908,7 @@
         if (!finishUi) return;
 
         const snapshot = createLocalDataSnapshot();
+        let linkedSuccessfully = false;
         
         try {
             const unknownMetaIds = metaIds.filter(id => !systemMetaIds.has(id) && !userMetaIds.has(id));
@@ -3918,8 +3919,6 @@
 
             applyLocalLocationLinks(panoid, metaIds);
             updateStatus('Linked. Syncing...');
-            selectedMetaIds.clear();
-            updateLinkSelectedBtn();
             renderExistingMetas(document.getElementById('meta-search')?.value || '');
 
             await updateGitHubJsonFile(
@@ -3934,6 +3933,7 @@
             );
 
             updateStatus('Linked!');
+            linkedSuccessfully = true;
             scheduleBackgroundDataRefresh();
         } catch (e) {
             console.error(e);
@@ -3942,6 +3942,11 @@
             updateStatus('Link Failed');
         } finally {
             finishUi();
+            if (linkedSuccessfully) {
+                selectedMetaIds.clear();
+                updateLinkSelectedBtn();
+                renderExistingMetas(document.getElementById('meta-search')?.value || '');
+            }
         }
     }
 
