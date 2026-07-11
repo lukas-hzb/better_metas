@@ -1414,5 +1414,17 @@
     "region": "Lubombo",
     "city": "Mahlabaneni",
     "road": "MR8"
+  },
+  "kga8cx7Pcyh_igP0ueEJVA": {
+    "metas": [
+      "meta_france_VVMi"
+    ],
+    "lat": 43.85434,
+    "lng": -0.56947,
+    "country": "France",
+    "nominatimCountry": "France",
+    "region": "Nouvelle-Aquitaine",
+    "city": "Saint-Perdon",
+    "road": "Route de Haut Mauco"
   }
 }
