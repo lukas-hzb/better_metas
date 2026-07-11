@@ -1774,5 +1774,17 @@
     "region": "Lappi",
     "city": "Kittil\u00e4",
     "road": "Inarintie"
+  },
+  "rmBLHD8zkS6igrNXPxnY1A": {
+    "metas": [
+      "meta_norway_A94U"
+    ],
+    "lat": 70.0367,
+    "lng": 22.2096,
+    "country": "Norway",
+    "nominatimCountry": "Norway",
+    "region": "Troms",
+    "city": "Alta",
+    "road": "Langfjordveien"
   }
 }
