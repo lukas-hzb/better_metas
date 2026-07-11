@@ -16,6 +16,21 @@ Colors communicate meaning. A component keeps the same semantic color in the HUD
 | Predicted status | Grey badge | `PREDICTED` badge and predicted-row marker |
 | Country code | Orange | Country abbreviation badge in meta/admin lists |
 
+## Window contexts
+
+All windows share the same dark blue-purple GeoGuessr surface. Context colors appear only as a soft radial glow, thin outer border, short line below the title, input focus ring, and a very subtle core in fading dividers. Section labels always stay neutral.
+
+| Window context | Accent | Applied to |
+| --- | --- | --- |
+| Browsing & linking | Green | Add/link meta list and ordinary meta actions |
+| Meta editor | Yellow | New-meta editor and existing-meta editor |
+| GitHub write access | Cyan | PAT-backed meta database overview and PAT settings card |
+| Resize/layout | Purple | HUD resize mode only |
+| Destructive | Red | Delete, unlink, and link-reassignment dialogs/views |
+| Preferences/information | Muted purple-grey | Settings and informational alerts |
+
+When PAT access and editing overlap, the current task wins and the editor stays yellow. Full button fills remain reserved for the actual action; the window context uses atmosphere rather than a color wash. Form sections use simple dividers instead of bordered cards to preserve space and visual calm.
+
 ## Complete color inventory
 
 ### Actions
@@ -29,8 +44,8 @@ Colors communicate meaning. A component keeps the same semantic color in the HUD
 
 ### Metadata and status
 
-- Tags: `.gg-tag-static`, `.gg-tag-filter-pill` and their selected state are grey. Selected tag presets use only a stronger fill, bright border, and subtle shadow.
-- Scopes: `.gg-scope-static`, `.gg-scope-pill` and their selected state are blue. Selected scopes use only a saturated blue fill, bright border, and subtle shadow. Scopes are never yellow or green.
+- Tags: `.gg-tag-static`, `.gg-tag-filter-pill` and their selected state are grey. Unselected tag presets are deliberately muted; selected tags remain dark but gain a slightly brighter grey fill, border, and text.
+- Scopes: unselected scope presets use the same muted grey treatment as tags. Selected scopes gain a moderate blue tint, clearer border, and brighter text without becoming a bright filled pill. Static scope badges in Manage Metas use that same selected appearance because they represent an already assigned scope. Scopes are never yellow or green.
 - Linked: `.gg-meta-badge-linked` and `.gg-meta-linked-indicator` are green.
 - Predicted: `.gg-meta-badge-predicted` and `.gg-meta-row-predicted` are grey.
 - Countries: `.gg-country-badge` is orange.

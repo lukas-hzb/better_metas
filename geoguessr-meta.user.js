@@ -526,7 +526,10 @@
             display: flex;
             flex-direction: column;
 
-            background: rgba(0, 0, 0, 0.8);
+            background:
+                radial-gradient(circle at 12% -12%, rgba(121, 80, 229, 0.12), transparent 42%),
+                radial-gradient(circle at 100% 112%, rgba(0, 162, 254, 0.07), transparent 44%),
+                rgba(4, 3, 14, 0.86);
             color: #fff;
             padding: 12px 16px;
             border-radius: 16px;
@@ -535,7 +538,7 @@
             font-family: inherit !important;
             font-weight: 700;
 
-            border: none;
+            border: 1px solid rgba(175, 165, 225, 0.16);
             /* display: flex controlled via opacity now */
             display: flex; 
             flex-direction: column;
@@ -546,7 +549,7 @@
             transform: translateY(10px); /* Slide up effect */
             transition: opacity 0.3s cubic-bezier(0.2, 0, 0, 1), transform 0.3s cubic-bezier(0.2, 0, 0, 1);
             
-            box-shadow: none;
+            box-shadow: inset 0 1px 0 rgba(255,255,255,0.05), 0 8px 24px rgba(0,0,0,0.2);
             text-shadow: 0 1px 4px rgba(0,0,0,0.9);
 
             /* Custom Scrollbar for sleek look */
@@ -841,40 +844,52 @@
 
         .gg-tag-pill {
             cursor: pointer;
-            background: rgba(255, 255, 255, 0.1);
-            border: 1px solid rgba(255, 255, 255, 0.16);
-            color: rgba(255, 255, 255, 0.72);
+            background: rgba(255, 255, 255, 0.055);
+            border: 1px solid rgba(255, 255, 255, 0.12);
+            color: rgba(255, 255, 255, 0.58);
             transition: background 0.2s, border-color 0.2s, color 0.2s, box-shadow 0.2s;
         }
 
         .gg-tag-pill:hover {
-            background: rgba(255, 255, 255, 0.2);
-            border-color: rgba(255, 255, 255, 0.3);
-            color: #fff;
+            background: rgba(255, 255, 255, 0.1);
+            border-color: rgba(255, 255, 255, 0.24);
+            color: rgba(255, 255, 255, 0.82);
         }
 
         .gg-tag-pill.gg-tag-selected {
             background: var(--gg-tag-grey-active);
             color: #fff;
-            border-color: rgba(255, 255, 255, 0.78);
-            box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.18), 0 2px 5px rgba(0,0,0,0.34);
+            border-color: rgba(255, 255, 255, 0.48);
+            box-shadow: inset 0 1px 0 rgba(255,255,255,0.08), 0 2px 4px rgba(0,0,0,0.24);
+        }
+
+        .gg-tag-pill.gg-tag-selected:hover {
+            background: rgba(255, 255, 255, 0.24);
+            color: #fff;
         }
 
         .gg-scope-pill {
-            background: var(--gg-scope-blue-soft);
-            border-color: rgba(96, 165, 250, 0.36);
-            color: #bfdbfe;
+            background: rgba(255, 255, 255, 0.055);
+            border-color: rgba(255, 255, 255, 0.12);
+            color: rgba(255, 255, 255, 0.58);
         }
 
         .gg-scope-pill:hover {
-            background: rgba(96, 165, 250, 0.24);
+            background: rgba(255, 255, 255, 0.1);
+            border-color: rgba(255, 255, 255, 0.24);
+            color: rgba(255, 255, 255, 0.82);
         }
 
         .gg-scope-pill.gg-tag-selected {
-            background: #2563a9;
-            border-color: #93c5fd;
+            background: rgba(96, 165, 250, 0.24);
+            border-color: rgba(147, 197, 253, 0.62);
+            color: #e8f3ff;
+            box-shadow: inset 0 1px 0 rgba(255,255,255,0.08), 0 2px 4px rgba(0,0,0,0.24);
+        }
+
+        .gg-scope-pill.gg-tag-selected:hover {
+            background: rgba(96, 165, 250, 0.3);
             color: #fff;
-            box-shadow: 0 0 0 1px rgba(147, 197, 253, 0.22), 0 2px 5px rgba(0,0,0,0.34);
         }
 
         .gg-tag-static {
@@ -1087,10 +1102,15 @@
             --gg-danger-red: #ef4444;
             --gg-danger-red-soft: rgba(239, 68, 68, 0.14);
             --gg-tag-grey: rgba(255, 255, 255, 0.18);
-            --gg-tag-grey-active: rgba(107, 114, 128, 0.82);
+            --gg-tag-grey-active: rgba(255, 255, 255, 0.19);
             --gg-scope-blue: #60a5fa;
             --gg-scope-blue-soft: rgba(96, 165, 250, 0.14);
             --gg-country-orange: #fb923c;
+            --gg-context-neutral: #a89de0;
+            --gg-context-normal: #97e851;
+            --gg-context-edit: #f4c542;
+            --gg-context-pat: #38bdf8;
+            --gg-context-danger: #ef4444;
             --gg-primary-shadow: 0 0.275rem 1.125rem rgba(0, 0, 0, 0.25),
                 inset 0 0.0625rem 0 rgba(255, 255, 255, 0.2),
                 inset 0 -0.125rem 0 rgba(0, 0, 0, 0.3);
@@ -1105,8 +1125,13 @@
             top: 50%;
             left: 50%;
             transform: translate(-50%, -50%);
-            background: linear-gradient(180deg, #252060 0%, #1a1a40 100%);
-            border: 1px solid rgba(80, 70, 120, 0.5);
+            --gg-context-rgb: 168, 157, 224;
+            --gg-context-accent: var(--gg-context-neutral);
+            background:
+                radial-gradient(circle at 12% -8%, rgba(var(--gg-context-rgb), 0.18), transparent 36%),
+                radial-gradient(circle at 96% 108%, rgba(var(--gg-context-rgb), 0.08), transparent 42%),
+                linear-gradient(180deg, rgba(37, 32, 96, 0.98) 0%, rgba(22, 20, 57, 0.99) 100%);
+            border: 1px solid rgba(var(--gg-context-rgb), 0.38);
             border-radius: var(--modal-radius);
             color: white;
             font-family: inherit;
@@ -1115,9 +1140,38 @@
             overflow-y: auto;
             scrollbar-width: thin;
             scrollbar-color: rgba(255,255,255,0.3) transparent;
-            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5);
+            box-shadow:
+                inset 0 1px 0 rgba(255,255,255,0.06),
+                inset 0 0 34px rgba(var(--gg-context-rgb), 0.06),
+                0 10px 34px rgba(0, 0, 0, 0.52);
             text-align: center;
             padding: var(--modal-spacing-lg);
+            transition: border-color 0.25s, box-shadow 0.25s, background 0.25s;
+        }
+
+        .gg-context-normal {
+            --gg-context-rgb: 151, 232, 81;
+            --gg-context-accent: var(--gg-context-normal);
+        }
+
+        .gg-context-edit {
+            --gg-context-rgb: 244, 197, 66;
+            --gg-context-accent: var(--gg-context-edit);
+        }
+
+        .gg-context-pat {
+            --gg-context-rgb: 56, 189, 248;
+            --gg-context-accent: var(--gg-context-pat);
+        }
+
+        .gg-context-danger {
+            --gg-context-rgb: 239, 68, 68;
+            --gg-context-accent: var(--gg-context-danger);
+        }
+
+        .gg-context-neutral {
+            --gg-context-rgb: 168, 157, 224;
+            --gg-context-accent: var(--gg-context-neutral);
         }
 
         #gg-meta-modal {
@@ -1180,6 +1234,38 @@
             min-width: 0;
         }
 
+        .gg-dialog-actions.gg-meta-action-buttons {
+            flex-direction: column;
+        }
+
+        .gg-dialog-actions.gg-meta-action-buttons .gg-btn-primary,
+        .gg-dialog-actions.gg-meta-action-buttons .gg-btn-secondary,
+        .gg-dialog-actions.gg-meta-action-buttons .gg-btn-danger {
+            flex: 0 0 var(--modal-btn-height);
+            width: 100%;
+            height: var(--modal-btn-height);
+            min-height: var(--modal-btn-height);
+            max-height: var(--modal-btn-height);
+        }
+
+        .gg-dialog-actions.gg-meta-action-buttons #gg-dialog-edit {
+            flex-basis: var(--modal-btn-height);
+        }
+
+        .gg-dialog-actions .gg-meta-action-divider {
+            flex: 0 0 1px;
+            width: 100%;
+            margin: 2px 0;
+            background: linear-gradient(
+                90deg,
+                transparent 0%,
+                rgba(255, 255, 255, 0.08) 18%,
+                rgba(255, 255, 255, 0.22) 50%,
+                rgba(255, 255, 255, 0.08) 82%,
+                transparent 100%
+            );
+        }
+
         #gg-dialog-edit .gg-dialog-edit-label {
             display: block;
             max-width: 100%;
@@ -1217,10 +1303,22 @@
             letter-spacing: 0.02em;
         }
 
+        .gg-context-surface .gg-modal-header::after {
+            content: '';
+            display: block;
+            width: 36px;
+            height: 2px;
+            margin: 10px auto 0;
+            border-radius: 999px;
+            background: var(--gg-context-accent);
+            box-shadow: 0 0 12px rgba(var(--gg-context-rgb), 0.5);
+            opacity: 0.78;
+        }
+
         .gg-modal-section-title {
             font-size: 0.8rem;
             font-weight: 700;
-            color: #d4af37; /* Muted Gold instead of Orange */
+            color: rgba(255, 255, 255, 0.58);
             text-transform: uppercase;
             letter-spacing: 0.06em;
             margin: var(--modal-spacing-lg) 0 var(--modal-section-gap) 0;
@@ -1267,7 +1365,8 @@
         .gg-form-input:focus {
             outline: none;
             background: var(--modal-control-bg-active);
-            border-color: rgba(150, 140, 200, 0.6);
+            border-color: rgba(var(--gg-context-rgb), 0.68);
+            box-shadow: 0 0 0 2px rgba(var(--gg-context-rgb), 0.1);
         }
 
         textarea.gg-form-input {
@@ -1487,7 +1586,15 @@
         /* Divider */
         .gg-modal-divider {
             border: 0;
-            border-top: 1px solid rgba(100, 90, 150, 0.3);
+            height: 1px;
+            background: linear-gradient(
+                90deg,
+                transparent 0%,
+                rgba(255, 255, 255, 0.06) 18%,
+                rgba(var(--gg-context-rgb), 0.28) 50%,
+                rgba(255, 255, 255, 0.06) 82%,
+                transparent 100%
+            );
             margin: var(--modal-section-gap) 0;
         }
 
@@ -1564,16 +1671,15 @@
         }
 
         .gg-scope-static {
-            border-color: rgba(96, 165, 250, 0.4);
-            background: var(--gg-scope-blue-soft);
-            color: #bfdbfe;
+            background: rgba(96, 165, 250, 0.24);
+            border-color: rgba(147, 197, 253, 0.62);
+            color: #e8f3ff;
+            box-shadow: inset 0 1px 0 rgba(255,255,255,0.08), 0 2px 4px rgba(0,0,0,0.24);
         }
 
         .gg-modal-header-with-back {
             position: relative;
-            display: flex;
-            align-items: center;
-            justify-content: center;
+            display: block;
         }
 
         .gg-modal-back-btn {
@@ -1583,6 +1689,8 @@
             cursor: pointer;
             position: absolute;
             left: 0;
+            top: 0;
+            transform: none;
             display: flex;
             align-items: center;
             padding: 0;
@@ -1658,7 +1766,7 @@
             content: '';
             position: absolute;
             right: 10px;
-            top: calc(50% - 5px);
+            top: calc(50% - 4px);
             width: 6px;
             height: 6px;
             border-right: 1.5px solid rgba(255, 255, 255, 0.65);
@@ -1682,9 +1790,12 @@
             -webkit-appearance: none;
         }
 
-        .gg-admin-sort-select:focus {
+        .gg-admin-sort-select:focus,
+        .gg-admin-sort-select:focus-visible {
+            outline: none;
             background: transparent;
             border: 0;
+            box-shadow: none;
         }
 
         .gg-admin-sort-select-wrap:focus-within::after {
@@ -1699,10 +1810,38 @@
             margin-bottom: var(--modal-section-gap);
         }
 
+        #gg-settings-modal .gg-settings-pat-group {
+            --gg-context-rgb: 56, 189, 248;
+            --gg-context-accent: var(--gg-context-pat);
+        }
+
+        #gg-settings-modal .gg-settings-danger-group {
+            --gg-context-rgb: 239, 68, 68;
+            --gg-context-accent: var(--gg-context-danger);
+        }
+
         #meta-details-view > .gg-form-group:not(:last-of-type),
         .gg-admin-details-grid > .gg-form-group:not(:last-child) {
-            border-bottom: 1px solid rgba(100, 90, 150, 0.3);
+            position: relative;
             padding-bottom: var(--modal-section-gap);
+        }
+
+        #meta-details-view > .gg-form-group:not(:last-of-type)::after,
+        .gg-admin-details-grid > .gg-form-group:not(:last-child)::after {
+            content: '';
+            position: absolute;
+            right: 0;
+            bottom: 0;
+            left: 0;
+            height: 1px;
+            background: linear-gradient(
+                90deg,
+                transparent 0%,
+                rgba(255, 255, 255, 0.06) 18%,
+                rgba(var(--gg-context-rgb), 0.24) 50%,
+                rgba(255, 255, 255, 0.06) 82%,
+                transparent 100%
+            );
         }
 
         .gg-admin-actions {
@@ -2015,6 +2154,10 @@
             display: -webkit-box;
             -webkit-line-clamp: 4;
             -webkit-box-orient: vertical;
+        }
+
+        #gg-meta-preview-popup .gg-meta-description:last-child {
+            margin-bottom: 0;
         }
 
         #gg-meta-preview-popup .gg-meta-tags {
@@ -2755,6 +2898,20 @@
         previewPopup.classList.remove('gg-visible');
     }
 
+    const UI_CONTEXT_CLASSES = [
+        'gg-context-normal',
+        'gg-context-edit',
+        'gg-context-pat',
+        'gg-context-danger',
+        'gg-context-neutral'
+    ];
+
+    function setUiContext(element, context = 'neutral') {
+        if (!element) return;
+        element.classList.remove(...UI_CONTEXT_CLASSES);
+        element.classList.add(`gg-context-${context}`);
+    }
+
     function getVisibleModalElementsForDialogBlur() {
         return ['gg-meta-modal', 'gg-settings-modal', 'gg-meta-admin-modal']
             .map(id => document.getElementById(id))
@@ -2774,6 +2931,7 @@
 
         const backdropWasVisible = Boolean(backdrop && backdrop.classList.contains('gg-visible'));
         const backgroundModals = getVisibleModalElementsForDialogBlur();
+        setUiContext(dialog, danger ? 'danger' : (cancelText ? 'normal' : 'neutral'));
         dialog.innerHTML = `
             <div class="gg-modal-header">${escapeHtml(title)}</div>
             <div class="gg-dialog-message">${escapeHtml(message)}</div>
@@ -2834,13 +2992,15 @@
         const editTitle = metaTitle ? `Edit "${metaTitle}"` : 'Edit Meta';
         const backdropWasVisible = Boolean(backdrop && backdrop.classList.contains('gg-visible'));
         const backgroundModals = getVisibleModalElementsForDialogBlur();
+        setUiContext(dialog, action === 'unlink' ? 'danger' : (action === 'link' ? 'normal' : 'edit'));
 
         dialog.innerHTML = `
             <div class="gg-modal-header">Meta Actions</div>
-            <div class="gg-dialog-actions">
+            <div class="gg-dialog-actions gg-meta-action-buttons">
                 ${canEdit ? `<button class="gg-btn-primary gg-btn-edit" id="gg-dialog-edit" title="${escapeHtml(editTitle)}"><span class="gg-dialog-edit-label">${escapeHtml(editLabel)}</span></button>` : ''}
-                <button class="gg-btn-secondary" id="gg-dialog-cancel">Cancel</button>
+                ${canEdit && action ? '<hr class="gg-modal-divider gg-meta-action-divider">' : ''}
                 ${action ? `<button class="${actionClass}" id="gg-dialog-toggle">${escapeHtml(actionLabel)}</button>` : ''}
+                <button class="gg-btn-secondary" id="gg-dialog-cancel">Cancel</button>
             </div>
         `;
 
@@ -2895,8 +3055,8 @@
                     <div class="gg-resize-help-text">Drag the bottom-right corner to resize this window.</div>
                     <div class="gg-resize-button-row">
                         <button class="gg-resize-control-btn" id="gg-resize-close">Cancel</button>
-                        <button class="gg-resize-control-btn" id="gg-resize-reset">Use Default</button>
-                        <button class="gg-resize-control-btn gg-save-size" id="gg-resize-save">Save Size</button>
+                        <button class="gg-resize-control-btn" id="gg-resize-reset">Reset</button>
+                        <button class="gg-resize-control-btn gg-save-size" id="gg-resize-save">Save</button>
                     </div>
                 </div>
             </div>
@@ -2924,13 +3084,19 @@
 
         const dialogModal = document.createElement('div');
         dialogModal.id = 'gg-dialog-modal';
+        dialogModal.className = 'gg-context-surface gg-context-neutral';
         document.body.appendChild(dialogModal);
 
         // Close preview on outside click
         document.addEventListener('click', (e) => {
-            if (previewPopup.classList.contains('gg-visible')) {
-                hidePreviewPopup();
-            }
+            if (!previewPopup.classList.contains('gg-visible')) return;
+
+            const target = getEventElementTarget(e);
+            const clickedMetaItem = target?.closest('.gg-meta-list-item');
+            const clickedMetaAction = target?.closest('.gg-btn-link-meta');
+            if (clickedMetaItem && !clickedMetaAction) return;
+
+            hidePreviewPopup();
         });
 
         // SETTINGS MODAL
@@ -2938,7 +3104,7 @@
         settingsModal.id = 'gg-settings-modal';
         settingsModal.style.display = 'none';
         settingsModal.innerHTML = `
-            <div class="gg-modal-container">
+            <div class="gg-modal-container gg-context-surface gg-context-neutral">
                 <div class="gg-modal-header">Settings</div>
                 
                 <div class="gg-form-group gg-form-group-lg">
@@ -2949,7 +3115,7 @@
                 </div>
                 <hr class="gg-modal-divider">
                 
-                <div class="gg-form-group">
+                <div class="gg-form-group gg-settings-pat-group">
                     <label class="gg-form-label">GitHub Personal Access Token</label>
                     <input type="password" id="gg-gh-token" class="gg-form-input" placeholder="ghp_...">
                     <div class="gg-form-hint">Required to save new metas directly.</div>
@@ -2964,7 +3130,7 @@
 
                 <hr class="gg-modal-divider">
 
-                <div class="gg-form-group">
+                <div class="gg-form-group gg-settings-danger-group">
                     <label class="gg-form-label">Saved User Data</label>
                     <button class="gg-btn-danger" id="gg-delete-user-data">Delete Saved User Data</button>
                     <div class="gg-form-hint">Deletes user_metas.json and user_locations.json. Plonkit data stays untouched.</div>
@@ -2991,6 +3157,7 @@
         // ADMIN MODAL
         const adminModal = document.createElement('div');
         adminModal.id = 'gg-meta-admin-modal';
+        adminModal.className = 'gg-context-surface gg-context-pat';
         adminModal.style.display = 'none';
         adminModal.innerHTML = `
             <div id="gg-admin-main-view" class="gg-modal-subview">
@@ -3125,6 +3292,7 @@
         // MODAL
         const modal = document.createElement('div');
         modal.id = 'gg-meta-modal';
+        modal.className = 'gg-context-surface gg-context-normal';
         modal.style.display = 'none';
         modal.innerHTML = `
             <div id="meta-main-view" class="gg-modal-subview">
@@ -3250,10 +3418,12 @@
         const showDetails = () => {
             document.getElementById('meta-main-view').classList.add('gg-hidden');
             document.getElementById('meta-details-view').classList.remove('gg-hidden');
+            setUiContext(modal, 'edit');
         };
         const hideDetails = () => {
             document.getElementById('meta-details-view').classList.add('gg-hidden');
             document.getElementById('meta-main-view').classList.remove('gg-hidden');
+            setUiContext(modal, 'normal');
         };
 
         modal.querySelector('#meta-details-btn').addEventListener('click', showDetails);
@@ -3306,6 +3476,7 @@
                 // Optional: Alert user?
             }
             showMetaModal();
+            setUiContext(modal, 'normal');
             document.getElementById('meta-main-view').classList.remove('gg-hidden');
             document.getElementById('meta-details-view').classList.add('gg-hidden');
             const searchInput = document.getElementById('meta-search');
@@ -3742,13 +3913,12 @@
                 delete previewPopup.dataset.ggPreviewCleanupId;
                 previewPopup.dataset.ggPreviewMode = 'meta';
                 previewPopup.classList.remove('gg-image-url-preview');
+                const previewTags = renderStaticTags(meta.tags);
                 previewPopup.innerHTML = `
                     <div class="gg-meta-item-title">${escapeHtml(options.titleFallback ? meta.title || meta.id : meta.title)}</div>
                     ${renderMetaImage(meta.imageUrl)}
                     <div class="gg-meta-description">${escapeHtml(options.descriptionFallback ? meta.description || '' : meta.description)}</div>
-                    <div class="gg-meta-tags">
-                        ${renderStaticTags(meta.tags)}
-                    </div>
+                    ${previewTags ? `<div class="gg-meta-tags">${previewTags}</div>` : ''}
                 `;
 
                 if (!modal) return;
@@ -3806,6 +3976,7 @@
     }
 
     function showAdminMainView() {
+        setUiContext(document.getElementById('gg-meta-admin-modal'), 'pat');
         const mainView = document.getElementById('gg-admin-main-view');
         const detailsView = document.getElementById('gg-admin-details-view');
         const transferView = document.getElementById('gg-admin-transfer-view');
@@ -3818,6 +3989,7 @@
     }
 
     function showAdminDetailsView() {
+        setUiContext(document.getElementById('gg-meta-admin-modal'), 'edit');
         document.getElementById('gg-admin-main-view')?.classList.add('gg-hidden');
         document.getElementById('gg-admin-transfer-view')?.classList.add('gg-hidden');
         document.getElementById('gg-admin-details-view')?.classList.remove('gg-hidden');
@@ -3832,6 +4004,7 @@
         const searchInput = document.getElementById('gg-admin-transfer-search');
         if (searchInput) searchInput.value = '';
         selectedAdminTransferTargetId = null;
+        setUiContext(document.getElementById('gg-meta-admin-modal'), 'danger');
         document.getElementById('gg-admin-main-view')?.classList.add('gg-hidden');
         document.getElementById('gg-admin-details-view')?.classList.add('gg-hidden');
         document.getElementById('gg-admin-transfer-view')?.classList.remove('gg-hidden');
@@ -3860,6 +4033,7 @@
         renderAdminLinkedLocations(meta.id);
 
         selectedAdminTransferTargetId = null;
+        setUiContext(document.getElementById('gg-meta-admin-modal'), 'edit');
 
         document.getElementById('gg-admin-main-view')?.classList.add('gg-hidden');
         document.getElementById('gg-admin-transfer-view')?.classList.add('gg-hidden');
