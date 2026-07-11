@@ -1606,5 +1606,17 @@
     "region": "Pet\u00e9n",
     "city": "Tikal",
     "road": "RD-PET-3"
+  },
+  "jqB6ONI3kJ6vwwQ_FeU48Q": {
+    "metas": [
+      "meta_philippines_GaHP"
+    ],
+    "lat": 9.134,
+    "lng": 123.08165,
+    "country": "Philippines",
+    "nominatimCountry": "Philippines",
+    "region": "Central Visayas",
+    "city": "Siaton",
+    "road": "Mainit"
   }
 }
