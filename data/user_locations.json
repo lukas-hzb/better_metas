@@ -1474,5 +1474,17 @@
     "region": "San Luis Potos\u00ed",
     "city": "Zaragoza",
     "road": "San Tiburcio - Cedral"
+  },
+  "LlQlHh6zEicmxeJgmpCm_A": {
+    "metas": [
+      "meta_japan_5BgJ"
+    ],
+    "lat": 38.07031,
+    "lng": 139.42757,
+    "country": "Japan",
+    "nominatimCountry": "Japan",
+    "region": "Niigata",
+    "city": "Tainai",
+    "road": null
   }
 }
