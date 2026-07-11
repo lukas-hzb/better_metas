@@ -1822,5 +1822,17 @@
     "region": "Sihanoukville",
     "city": "\ubd07\ubc45\ub9c8\uc744",
     "road": "Phnom Penh - Sihanoukville Expressway"
+  },
+  "VGZzk4h5ru1hmdqimBtQ3g": {
+    "metas": [
+      "meta_greece_czh8"
+    ],
+    "lat": 35.10342,
+    "lng": 25.08741,
+    "country": "Greece",
+    "nominatimCountry": "Greece",
+    "region": "Region of Crete",
+    "city": "Nikos Kazantzakis Municipal Unit",
+    "road": "Eparchiaki Odos Laraniou - Melidochoriou"
   }
 }
