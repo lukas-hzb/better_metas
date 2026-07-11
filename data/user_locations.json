@@ -1390,5 +1390,17 @@
     "region": "Chiriqu\u00ed",
     "city": "Volc\u00e1n",
     "road": "Avenida 6a Norte"
+  },
+  "vd4OM0S51zYNTtEst7IFIw": {
+    "metas": [
+      "meta_brazil_xjGP"
+    ],
+    "lat": -18.99208,
+    "lng": -47.57935,
+    "country": "Brazil",
+    "nominatimCountry": "Brazil",
+    "region": "State of Minas Gerais",
+    "city": "Romaria",
+    "road": "Romaria"
   }
 }
