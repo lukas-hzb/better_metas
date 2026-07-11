@@ -37645,7 +37645,7 @@
         "description": "Sunflowers are mostly found in the southwest of the country, particularly around Toulouse.",
         "note": "",
         "imageUrl": "https://www.plonkit.net/images/france/2_sunflower.png",
-        "scope": "region",
+        "scope": "100km",
         "tags": []
       },
       {
@@ -38035,7 +38035,7 @@
         "description": "Salt farms, which appear as flooded trenches with grass medians, are found along the Atlantic coast, most notably around Gu\u00e9rande, Noirmoutier, \u00cele de R\u00e9 and \u00cele d'Ol\u00e9ron.",
         "note": "",
         "imageUrl": "https://www.plonkit.net/images/france/salt_farms_new.png",
-        "scope": "region",
+        "scope": "10km",
         "tags": [
           "plants"
         ]
