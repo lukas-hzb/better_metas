@@ -1450,5 +1450,17 @@
     "region": "Shiselweni Region",
     "city": "Sicunusa",
     "road": null
+  },
+  "r8gOH_uUxuxaSmrQSWrJ3g": {
+    "metas": [
+      "meta_bangladesh_QJgl"
+    ],
+    "lat": 25.02627,
+    "lng": 90.43182,
+    "country": "Bangladesh",
+    "nominatimCountry": "Bangladesh",
+    "region": "Mymensingh Division",
+    "city": "Shakuai",
+    "road": "Sakual"
   }
 }
