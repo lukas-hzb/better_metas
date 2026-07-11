@@ -1642,5 +1642,17 @@
     "region": "Amazonas",
     "city": "Careiro",
     "road": "Rodovia \u00c1lvaro Maia"
+  },
+  "QmYvxih90Vl0B8PHdOnklA": {
+    "metas": [
+      "meta_mexico_8Ipc"
+    ],
+    "lat": 18.74026,
+    "lng": -96.78903,
+    "country": "Mexico",
+    "nominatimCountry": "Mexico",
+    "region": "Veracruz",
+    "city": "Colonia Plan de Ayala",
+    "road": null
   }
 }
