@@ -1486,5 +1486,17 @@
     "region": "Niigata",
     "city": "Tainai",
     "road": null
+  },
+  "CQNpHWbEsWCssrrOE59Pug": {
+    "metas": [
+      "meta_indonesia_K7j1"
+    ],
+    "lat": -7.7378,
+    "lng": 109.71067,
+    "country": "Indonesia",
+    "nominatimCountry": "Indonesia",
+    "region": "Jawa Tengah",
+    "city": "Kabupaten Kebumen",
+    "road": "Jogopaten"
   }
 }
