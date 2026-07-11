@@ -1210,5 +1210,185 @@
     "region": "Andalusia",
     "city": "Villamanrique de la Condesa",
     "road": "Villamanrique de la Condesa"
+  },
+  "gwoLNitVyGjG8K8HCj6w4g": {
+    "metas": [
+      "meta_portugal_JOnQ"
+    ],
+    "lat": 40.76689,
+    "lng": -8.19187,
+    "country": "Portugal",
+    "nominatimCountry": "Portugal",
+    "region": "Viseu",
+    "city": "S\u00e3o Pedro do Sul",
+    "road": "Boavista"
+  },
+  "QbDSoLL84GUzJ_ksB_Evbg": {
+    "metas": [
+      "meta_brazil_JlDz"
+    ],
+    "lat": -27.91154,
+    "lng": -51.45925,
+    "country": "Brazil",
+    "nominatimCountry": "Brazil",
+    "region": "Rio Grande do Sul",
+    "city": "Tupanci do Sul",
+    "road": "BR-470"
+  },
+  "fGlPH3M_52Qq0Wrmo5Tjsw": {
+    "metas": [
+      "meta_canada_c5Ap"
+    ],
+    "lat": 52.35733,
+    "lng": -113.38742,
+    "country": "Canada",
+    "nominatimCountry": "Canada",
+    "region": "Alberta",
+    "city": "Tees",
+    "road": "Range Road 243"
+  },
+  "j5tdDviWWTl2tHfCHUcL6g": {
+    "metas": [
+      "meta_new_zealand_SVyX"
+    ],
+    "lat": -45.86235,
+    "lng": 170.61013,
+    "country": "New Zealand",
+    "nominatimCountry": "New Zealand",
+    "region": "Otago Region",
+    "city": "Dunedin",
+    "road": "Castlewood Road"
+  },
+  "M_N3ylwD0wEZ140_ez7A4g": {
+    "metas": [
+      "meta_north_macedonia_local_pjiea"
+    ],
+    "lat": 41.98644,
+    "lng": 21.30436,
+    "country": "North Macedonia",
+    "nominatimCountry": "North Macedonia",
+    "region": "Greater Skopje",
+    "city": "Arnacija",
+    "road": "Mother Teresa"
+  },
+  "JJf6vu2Fdgcn9rZMdseqmA": {
+    "metas": [
+      "meta_france_Xe70"
+    ],
+    "lat": 44.48296,
+    "lng": -0.85207,
+    "country": "France",
+    "nominatimCountry": "France",
+    "region": "Nouvelle-Aquitaine",
+    "city": "Lugos",
+    "road": "D110"
+  },
+  "hB6GSfxtTVwjlqKgU7hwaQ": {
+    "metas": [
+      "meta_brazil_JlDz"
+    ],
+    "lat": -24.77964,
+    "lng": -51.19694,
+    "country": "Brazil",
+    "nominatimCountry": "Brazil",
+    "region": "Paran\u00e1",
+    "city": "C\u00e2ndido de Abreu",
+    "road": null
+  },
+  "wZ6EShv2WfBdIuG1MMXU7w": {
+    "metas": [
+      "meta_russia_OKfi"
+    ],
+    "lat": 57.34776,
+    "lng": 55.59332,
+    "country": "Russia",
+    "nominatimCountry": "Russia",
+    "region": "Perm Krai",
+    "city": "\u041a\u0443\u0437\u043d\u0435\u0447\u0438\u0445\u0430",
+    "road": "57\u041a-0015"
+  },
+  "C776rqu5YWfw7tOvwdw2ng": {
+    "metas": [
+      "meta_argentina_HidJ"
+    ],
+    "lat": -30.3791,
+    "lng": -61.25354,
+    "country": "Argentina",
+    "nominatimCountry": "Argentina",
+    "region": "Santa Fe",
+    "city": "Municipio de San Crist\u00f3bal",
+    "road": "Ruta Provincial 13"
+  },
+  "IwIrIpqWWcyE2KFgCmZnbA": {
+    "metas": [
+      "meta_namibia_vIAf"
+    ],
+    "lat": -28.35788,
+    "lng": 17.41271,
+    "country": "Namibia",
+    "nominatimCountry": "Namibia",
+    "region": "Karas",
+    "city": "Aussenkehr",
+    "road": "C13"
+  },
+  "cpB9tnOt0-LCFj1JP5qZ7A": {
+    "metas": [
+      "meta_senegal_aMed"
+    ],
+    "lat": 16.42489,
+    "lng": -15.8456,
+    "country": "Senegal",
+    "nominatimCountry": "Senegal",
+    "region": "Saint-Louis Region",
+    "city": "Communaut\u00e9 rurale de Ronkh",
+    "road": "TAH 1"
+  },
+  "FY-PsAQcc4OrYE65-lMy3w": {
+    "metas": [
+      "meta_mexico_Cits"
+    ],
+    "lat": 29.28653,
+    "lng": -114.22805,
+    "country": "Mexico",
+    "nominatimCountry": "Mexico",
+    "region": "Baja California",
+    "city": "Agua Le\u00f3n",
+    "road": "Carretera Transpeninsular"
+  },
+  "R06Q8eqSaPaBFLgInCTmLA": {
+    "metas": [
+      "meta_italy_kMZN"
+    ],
+    "lat": 36.82366,
+    "lng": 15.01949,
+    "country": "Italy",
+    "nominatimCountry": "Italy",
+    "region": "Sicily",
+    "city": "Noto",
+    "road": "Strada provinciale Codalupo"
+  },
+  "AjYQ6CTwEy4rak3tBqSjAg": {
+    "metas": [
+      "meta_mexico_vZJe"
+    ],
+    "lat": 19.20336,
+    "lng": -98.14779,
+    "country": "Mexico",
+    "nominatimCountry": "Mexico",
+    "region": "Tlaxcala",
+    "city": "Mazatecochco",
+    "road": null
+  },
+  "-DRT1UhQg4bU6981OJIV2A": {
+    "metas": [
+      "meta_panama_rBEB"
+    ],
+    "lat": 8.78331,
+    "lng": -82.63932,
+    "country": "Panama",
+    "nominatimCountry": "Panama",
+    "region": "Chiriqu\u00ed",
+    "city": "Volc\u00e1n",
+    "road": "Avenida 6a Norte"
   }
 }

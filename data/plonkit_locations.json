@@ -31571,7 +31571,7 @@
   },
   "yFfTeQ98V4ALpU6fBLAqPQ": {
     "metas": [
-      "meta_brazil_local_4ethj"
+      "meta_brazil_dEAg"
     ],
     "lat": -21.1746428,
     "lng": -55.423916,
@@ -34214,7 +34214,8 @@
     "country": "Qatar",
     "region": "Al Wakrah",
     "city": null,
-    "road": null
+    "road": null,
+    "nominatimCountry": null
   },
   "5P2hk5tB6EGjpFNgBXEaTQ": {
     "metas": [
