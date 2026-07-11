@@ -1750,5 +1750,17 @@
     "region": "Hawke's Bay Region",
     "city": "Roys Hill",
     "road": "Gimblett Road"
+  },
+  "_UgLiNYfA-aeROoKokiv3g": {
+    "metas": [
+      "meta_sri_lanka_5c1p"
+    ],
+    "lat": 6.95333,
+    "lng": 81.00848,
+    "country": "Sri Lanka",
+    "nominatimCountry": "Sri Lanka",
+    "region": "Uva Province",
+    "city": "Hali-ela",
+    "road": "Ettampitiya-Ketawala-Keenakele Road"
   }
 }
