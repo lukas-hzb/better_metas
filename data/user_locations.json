@@ -1558,5 +1558,17 @@
     "region": "Catamarca",
     "city": "Capay\u00e1n",
     "road": "Ruta Nacional 60"
+  },
+  "J9zFYhpsAir3L9lrArIwWA": {
+    "metas": [
+      "meta_mexico_Ok3w"
+    ],
+    "lat": 21.4928,
+    "lng": -104.68639,
+    "country": "Mexico",
+    "nominatimCountry": "Mexico",
+    "region": "Nayarit",
+    "city": "San Luis de Lozada",
+    "road": "San Luis de Lozada- Miguel Hidalgo"
   }
 }
