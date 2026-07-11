@@ -1738,5 +1738,17 @@
     "region": "Coahuila de Zaragoza",
     "city": "Progreso",
     "road": "Coahuila 35"
+  },
+  "thk0hLEO7T34N98wduF-7Q": {
+    "metas": [
+      "meta_new_zealand_dqVU"
+    ],
+    "lat": -39.61809,
+    "lng": 176.75221,
+    "country": "New Zealand",
+    "nominatimCountry": "New Zealand",
+    "region": "Hawke's Bay Region",
+    "city": "Roys Hill",
+    "road": "Gimblett Road"
   }
 }
