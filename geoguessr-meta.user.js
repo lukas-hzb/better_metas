@@ -1643,22 +1643,16 @@
         }
 
         .gg-admin-linked-locations {
-            max-height: 150px;
-            overflow-y: auto;
-            scrollbar-width: thin;
-            scrollbar-color: rgba(255,255,255,0.2) transparent;
             width: 100%;
-            background: var(--modal-control-bg);
-            border: 1px solid var(--modal-control-border);
-            border-radius: var(--modal-control-radius);
             box-sizing: border-box;
         }
 
         .gg-admin-location-item {
             width: 100%;
-            display: block;
+            display: flex;
+            align-items: center;
+            gap: var(--modal-related-gap);
             border: none;
-            border-bottom: 1px solid rgba(255,255,255,0.06);
             background: transparent;
             color: rgba(255,255,255,0.88);
             cursor: pointer;
@@ -1668,16 +1662,39 @@
             line-height: 1.25;
             text-align: left;
             padding: var(--modal-related-gap) var(--modal-section-gap);
-        }
-
-        .gg-admin-location-item:last-child {
-            border-bottom: none;
+            border-radius: var(--modal-control-radius);
+            transition: background 0.15s;
         }
 
         .gg-admin-location-item:hover,
         .gg-admin-location-item:focus-visible {
-            background: rgba(255,255,255,0.08);
+            background: rgba(255,255,255,0.05);
             outline: none;
+        }
+
+        .gg-admin-location-pin,
+        .gg-admin-location-external {
+            width: 14px;
+            height: 14px;
+            flex: 0 0 14px;
+            opacity: 0.42;
+            transition: opacity 0.15s;
+        }
+
+        .gg-admin-location-label {
+            flex: 1;
+            min-width: 0;
+        }
+
+        .gg-admin-location-external {
+            opacity: 0.28;
+        }
+
+        .gg-admin-location-item:hover .gg-admin-location-pin,
+        .gg-admin-location-item:hover .gg-admin-location-external,
+        .gg-admin-location-item:focus-visible .gg-admin-location-pin,
+        .gg-admin-location-item:focus-visible .gg-admin-location-external {
+            opacity: 0.85;
         }
 
         .gg-selection-actions {
@@ -2286,8 +2303,10 @@
         }
 
         container.innerHTML = linkedLocations.map(location => `
-            <button type="button" class="gg-admin-location-item" data-map-url="${escapeHtml(getGoogleMapsUrlForLocation(location))}">
-                ${escapeHtml(formatAdminLocationLabel(location))}
+            <button type="button" class="gg-admin-location-item" data-map-url="${escapeHtml(getGoogleMapsUrlForLocation(location))}" title="Open in Google Maps">
+                <svg class="gg-admin-location-pin" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 10c0 5-8 12-8 12S4 15 4 10a8 8 0 1 1 16 0Z"></path><circle cx="12" cy="10" r="2.5"></circle></svg>
+                <span class="gg-admin-location-label">${escapeHtml(formatAdminLocationLabel(location))}</span>
+                <svg class="gg-admin-location-external" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 3h6v6"></path><path d="M10 14 21 3"></path><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path></svg>
             </button>
         `).join('');
 
