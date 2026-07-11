@@ -1678,5 +1678,17 @@
     "region": "Amap\u00e1",
     "city": "Itaubal",
     "road": "Rodovia do Curiau"
+  },
+  "CXL5pm3zStkVQv0ATISOnA": {
+    "metas": [
+      "meta_mexico_QJWC"
+    ],
+    "lat": 22.38101,
+    "lng": -101.34082,
+    "country": "Mexico",
+    "nominatimCountry": "Mexico",
+    "region": "San Luis Potos\u00ed",
+    "city": "Cerro Blanco",
+    "road": "Cerro Blanco"
   }
 }
