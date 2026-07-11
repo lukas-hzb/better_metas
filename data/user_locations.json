@@ -1798,5 +1798,17 @@
     "region": "Western Cape",
     "city": "Cape Winelands District Municipality",
     "road": "N1"
+  },
+  "oYzPoIW0fu_-M9GPHUVmJQ": {
+    "metas": [
+      "meta_portugal_Sc7E"
+    ],
+    "lat": 41.17933,
+    "lng": -7.5893,
+    "country": "Portugal",
+    "nominatimCountry": "Portugal",
+    "region": "Vila Real",
+    "city": "Sabrosa",
+    "road": "CM1268-1"
   }
 }
