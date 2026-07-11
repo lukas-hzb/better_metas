@@ -1666,5 +1666,17 @@
     "region": "Krasnoyarskiy kray",
     "city": "Yeniseysky District",
     "road": "R409"
+  },
+  "ftFvd1qXvlIeUJAFB7ZjKw": {
+    "metas": [
+      "meta_brazil_Dz8D"
+    ],
+    "lat": 0.62847,
+    "lng": -50.88765,
+    "country": "Brazil",
+    "nominatimCountry": "Brazil",
+    "region": "Amap\u00e1",
+    "city": "Itaubal",
+    "road": "Rodovia do Curiau"
   }
 }
