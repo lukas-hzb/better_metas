@@ -1726,5 +1726,17 @@
     "region": "Respublika Sakha (Yakutiya)",
     "city": "Aldanskiy Ulus",
     "road": "A-360"
+  },
+  "Y0a693XO1VkbvQpA8eqAyw": {
+    "metas": [
+      "meta_mexico_hlxm"
+    ],
+    "lat": 27.61318,
+    "lng": -100.71871,
+    "country": "Mexico",
+    "nominatimCountry": "Mexico",
+    "region": "Coahuila de Zaragoza",
+    "city": "Progreso",
+    "road": "Coahuila 35"
   }
 }
