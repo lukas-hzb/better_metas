@@ -1582,5 +1582,17 @@
     "region": "Gr\u00e9iwemaacher",
     "city": "Fluessweiler",
     "road": "CR146"
+  },
+  "HFrmVUzvC5Ev5Oi12TljWQ": {
+    "metas": [
+      "meta_argentina_MNox"
+    ],
+    "lat": -37.86354,
+    "lng": -71.038,
+    "country": "Argentina",
+    "nominatimCountry": "Argentina",
+    "region": "Neuqu\u00e9n",
+    "city": "\u00d1orqu\u00edn",
+    "road": "Ruta Provincial 26"
   }
 }
