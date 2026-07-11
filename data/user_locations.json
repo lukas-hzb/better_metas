@@ -1594,5 +1594,17 @@
     "region": "Neuqu\u00e9n",
     "city": "\u00d1orqu\u00edn",
     "road": "Ruta Provincial 26"
+  },
+  "JFpLLnmEK_N7_w0tj8us2w": {
+    "metas": [
+      "meta_guatemala_UW8N"
+    ],
+    "lat": 17.22754,
+    "lng": -89.61787,
+    "country": "Guatemala",
+    "nominatimCountry": "Guatemala",
+    "region": "Pet\u00e9n",
+    "city": "Tikal",
+    "road": "RD-PET-3"
   }
 }
