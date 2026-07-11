@@ -1402,5 +1402,17 @@
     "region": "State of Minas Gerais",
     "city": "Romaria",
     "road": "Romaria"
+  },
+  "oznni6va3k382pvaXhjEMA": {
+    "metas": [
+      "meta_eswatini_PD9f"
+    ],
+    "lat": -27.0382,
+    "lng": 31.94308,
+    "country": "Eswatini",
+    "nominatimCountry": "Eswatini",
+    "region": "Lubombo",
+    "city": "Mahlabaneni",
+    "road": "MR8"
   }
 }
