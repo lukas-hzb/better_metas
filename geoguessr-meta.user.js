@@ -4,8 +4,8 @@
 // @version      0.2
 // @description  Displays crowdsourced metas and hints for Geoguessr locations.
 // @author       Lukas Hzb
-// @updateURL    https://raw.githubusercontent.com/lukas-hzb/better_metas/main_v3/geoguessr-meta.user.js
-// @downloadURL  https://raw.githubusercontent.com/lukas-hzb/better_metas/main_v3/geoguessr-meta.user.js
+// @updateURL    https://raw.githubusercontent.com/lukas-hzb/better_metas/main_v4/geoguessr-meta.user.js
+// @downloadURL  https://raw.githubusercontent.com/lukas-hzb/better_metas/main_v4/geoguessr-meta.user.js
 // @match        https://www.geoguessr.com/*
 // @icon         https://www.google.com/s2/favicons?sz=64&domain=geoguessr.com
 // @run-at       document-start
@@ -24,7 +24,7 @@
     const SHOW_LOCATION_HUD = false;
     const REPO_OWNER = 'lukas-hzb';
     const REPO_NAME = 'better_metas';
-    const REPO_BRANCH = 'main_v3';
+    const REPO_BRANCH = 'main_v4';
     
     // Data Sources
     const USER_LOCATIONS_FILE = 'data/user_locations.json';

@@ -28,7 +28,7 @@ BetterMetas is a powerful Userscript for Geoguessr that helps you recognize and 
 Since this is a specific Userscript, you need a Userscript manager for your browser.
 
 1. Install the **Tampermonkey** browser extension (available for Chrome, Firefox, Edge, Safari).
-2. **[Click here to install the script](https://raw.githubusercontent.com/lukas-hzb/better_metas/main_v3/geoguessr-meta.user.js)**.
+2. **[Click here to install the script](https://raw.githubusercontent.com/lukas-hzb/better_metas/main_v4/geoguessr-meta.user.js)**.
 3. Tampermonkey will ask if you want to add the script. Confirm by clicking "Install".
 4. Open Geoguessr and start a game – the HUD should appear automatically.
 
