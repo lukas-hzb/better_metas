@@ -1618,5 +1618,17 @@
     "region": "Central Visayas",
     "city": "Siaton",
     "road": "Mainit"
+  },
+  "01ms0UWO_ZHTYetUNhRhLA": {
+    "metas": [
+      "meta_brazil_6UVb"
+    ],
+    "lat": -22.12376,
+    "lng": -45.53041,
+    "country": "Brazil",
+    "nominatimCountry": "Brazil",
+    "region": "State of Minas Gerais",
+    "city": "Nat\u00e9rcia",
+    "road": "Nat\u00e9rcia"
   }
 }
