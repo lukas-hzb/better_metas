@@ -1630,5 +1630,17 @@
     "region": "State of Minas Gerais",
     "city": "Nat\u00e9rcia",
     "road": "Nat\u00e9rcia"
+  },
+  "kupZNqFeU0KRH4Ap_0IUsg": {
+    "metas": [
+      "meta_brazil_BuMI"
+    ],
+    "lat": -3.47476,
+    "lng": -60.08381,
+    "country": "Brazil",
+    "nominatimCountry": "Brazil",
+    "region": "Amazonas",
+    "city": "Careiro",
+    "road": "Rodovia \u00c1lvaro Maia"
   }
 }
