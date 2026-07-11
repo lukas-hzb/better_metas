@@ -1690,5 +1690,17 @@
     "region": "San Luis Potos\u00ed",
     "city": "Cerro Blanco",
     "road": "Cerro Blanco"
+  },
+  "AVxmiNHJ3lNchUmb9mPdDQ": {
+    "metas": [
+      "meta_chile_Jl4B"
+    ],
+    "lat": -37.91743,
+    "lng": -71.34119,
+    "country": "Unknown Location",
+    "nominatimCountry": "Chile",
+    "region": "Biobio Region",
+    "city": "Alto Biob\u00edo",
+    "road": "Comunidad Vegas de Ralco"
   }
 }
