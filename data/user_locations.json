@@ -1654,5 +1654,17 @@
     "region": "Veracruz",
     "city": "Colonia Plan de Ayala",
     "road": null
+  },
+  "UABwQP89F8f3q6PLPJ1_Tg": {
+    "metas": [
+      "meta_russia_WkyB"
+    ],
+    "lat": 58.14407,
+    "lng": 92.59146,
+    "country": "Russia",
+    "nominatimCountry": "Russia",
+    "region": "Krasnoyarskiy kray",
+    "city": "Yeniseysky District",
+    "road": "R409"
   }
 }
