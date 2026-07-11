@@ -443,12 +443,12 @@
     function renderScopePills(scopes, selectedScopes = null) {
         return scopes.map(scope => {
             const selectedClass = selectedScopes && selectedScopes.has(scope) ? ' gg-tag-selected' : '';
-            return `<span class="gg-tag-pill${selectedClass}" data-value="${escapeHtml(scope)}">${escapeHtml(getScopeLabel(scope))}</span>`;
+            return `<span class="gg-tag-pill gg-scope-pill${selectedClass}" data-value="${escapeHtml(scope)}">${escapeHtml(getScopeLabel(scope))}</span>`;
         }).join('');
     }
 
     function renderTagPills(tags) {
-        return tags.map(tag => `<span class="gg-tag-pill">${escapeHtml(tag)}</span>`).join('');
+        return tags.map(tag => `<span class="gg-tag-pill gg-tag-filter-pill">${escapeHtml(tag)}</span>`).join('');
     }
 
     function escapeHtml(value) {
@@ -750,6 +750,32 @@
             color: #fff;
         }
 
+        /* Main HUD controls stay visually quiet so the metas remain dominant. */
+        #gg-meta-admin-btn:hover,
+        #gg-meta-add-btn:hover,
+        #gg-settings-btn:hover {
+            background: rgba(255, 255, 255, 0.3);
+            border-color: rgba(255, 255, 255, 0.22);
+        }
+
+        #gg-meta-admin-btn:focus-visible,
+        #gg-meta-add-btn:focus-visible,
+        #gg-settings-btn:focus-visible {
+            outline: none;
+        }
+
+        #gg-meta-admin-btn:focus-visible,
+        #gg-meta-add-btn:focus-visible,
+        #gg-settings-btn:focus-visible {
+            box-shadow: 0 0 0 2px rgba(255, 255, 255, 0.24);
+        }
+
+        #gg-meta-admin-btn:active,
+        #gg-meta-add-btn:active,
+        #gg-settings-btn:active {
+            transform: translateY(1px);
+        }
+
         .gg-resize-control-btn.gg-save-size {
             background: #7950e5;
             border-color: #5f3dc4;
@@ -815,26 +841,47 @@
 
         .gg-tag-pill {
             cursor: pointer;
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            transition: background 0.2s;
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.16);
+            color: rgba(255, 255, 255, 0.72);
+            transition: background 0.2s, border-color 0.2s, color 0.2s, box-shadow 0.2s;
         }
 
         .gg-tag-pill:hover {
-            background: rgba(255, 255, 255, 0.4);
+            background: rgba(255, 255, 255, 0.2);
+            border-color: rgba(255, 255, 255, 0.3);
+            color: #fff;
         }
 
         .gg-tag-pill.gg-tag-selected {
-            background: var(--gg-primary-green); /* GeoGuessr Green */
+            background: var(--gg-tag-grey-active);
             color: #fff;
-            border-color: var(--gg-primary-border);
-            box-shadow: 0 2px 4px rgba(0,0,0,0.3);
+            border-color: rgba(255, 255, 255, 0.78);
+            box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.18), 0 2px 5px rgba(0,0,0,0.34);
+        }
+
+        .gg-scope-pill {
+            background: var(--gg-scope-blue-soft);
+            border-color: rgba(96, 165, 250, 0.36);
+            color: #bfdbfe;
+        }
+
+        .gg-scope-pill:hover {
+            background: rgba(96, 165, 250, 0.24);
+        }
+
+        .gg-scope-pill.gg-tag-selected {
+            background: #2563a9;
+            border-color: #93c5fd;
+            color: #fff;
+            box-shadow: 0 0 0 1px rgba(147, 197, 253, 0.22), 0 2px 5px rgba(0,0,0,0.34);
         }
 
         .gg-tag-static {
             display: inline-flex;
             align-items: center;
             justify-content: center;
-            background: rgba(255, 255, 255, 0.2);
+            background: var(--gg-tag-grey);
             color: #fff;
             padding: 1px 6px;
             border-radius: 12px;
@@ -890,7 +937,7 @@
             align-items: center;
             justify-content: center;
             background: rgba(249, 115, 22, 0.15);
-            color: #fb923c;
+            color: var(--gg-country-orange);
             border: 1px solid rgba(249, 115, 22, 0.4);
             padding: 2px 4px;
             border-radius: 4px;
@@ -1034,6 +1081,16 @@
             --gg-primary-green: #97e851;
             --gg-primary-border: #479440;
             --gg-primary-gradient: linear-gradient(#97e851, #479440);
+            --gg-edit-yellow: #f4c542;
+            --gg-edit-yellow-dark: #a97912;
+            --gg-edit-gradient: linear-gradient(180deg, #f4c542 0%, #d9a91f 100%);
+            --gg-danger-red: #ef4444;
+            --gg-danger-red-soft: rgba(239, 68, 68, 0.14);
+            --gg-tag-grey: rgba(255, 255, 255, 0.18);
+            --gg-tag-grey-active: rgba(107, 114, 128, 0.82);
+            --gg-scope-blue: #60a5fa;
+            --gg-scope-blue-soft: rgba(96, 165, 250, 0.14);
+            --gg-country-orange: #fb923c;
             --gg-primary-shadow: 0 0.275rem 1.125rem rgba(0, 0, 0, 0.25),
                 inset 0 0.0625rem 0 rgba(255, 255, 255, 0.2),
                 inset 0 -0.125rem 0 rgba(0, 0, 0, 0.3);
@@ -1121,9 +1178,6 @@
         .gg-dialog-actions #gg-dialog-edit {
             flex: 0 0 100%;
             min-width: 0;
-            padding-left: 14px;
-            padding-right: 14px;
-            text-transform: none;
         }
 
         #gg-dialog-edit .gg-dialog-edit-label {
@@ -1308,6 +1362,22 @@
             transform: scale(var(--gg-button-active-scale));
         }
 
+        /* Editing and GitHub-token-backed management actions */
+        .gg-btn-primary.gg-btn-edit {
+            background: var(--gg-edit-gradient);
+            border-color: var(--gg-edit-yellow-dark);
+            color: #fff;
+        }
+
+        .gg-btn-primary.gg-btn-edit:focus-visible {
+            box-shadow: 0 0 0 2px rgba(244, 197, 66, 0.35), 0 4px 12px rgba(0, 0, 0, 0.25);
+        }
+
+        .gg-btn-primary.gg-btn-edit:hover {
+            background: linear-gradient(180deg, #ffd766 0%, #e8b733 100%);
+            color: #fff;
+        }
+
         .gg-btn-primary:disabled,
         .gg-btn-secondary:disabled,
         .gg-btn-danger:disabled,
@@ -1367,7 +1437,7 @@
 
         .gg-btn-danger {
             background: transparent;
-            color: #f97316;
+            color: var(--gg-danger-red);
             border: none;
             padding: var(--modal-related-gap) 0;
             border-radius: var(--modal-btn-radius); /* Match primary button */
@@ -1380,7 +1450,7 @@
             letter-spacing: 0.04em;
             transition: background 0.2s, color 0.2s;
             box-sizing: border-box;
-            box-shadow: inset 0 0 0 2px #f97316;
+            box-shadow: inset 0 0 0 2px var(--gg-danger-red);
             height: var(--modal-btn-height); /* Fixed height for consistency */
             display: flex;
             align-items: center;
@@ -1394,12 +1464,12 @@
 
         .gg-btn-danger:focus-visible {
             outline: none;
-            box-shadow: inset 0 0 0 2px #f97316, inset 0 0 0 4px rgba(249, 115, 22, 0.35);
+            box-shadow: inset 0 0 0 2px var(--gg-danger-red), inset 0 0 0 4px rgba(239, 68, 68, 0.3);
         }
 
         .gg-btn-danger:hover {
-            background: rgba(249, 115, 22, 0.15);
-            box-shadow: inset 0 0 0 2px #f97316;
+            background: var(--gg-danger-red-soft);
+            box-shadow: inset 0 0 0 2px var(--gg-danger-red);
         }
 
         #gg-resize-window {
@@ -1494,9 +1564,9 @@
         }
 
         .gg-scope-static {
-            border-color: rgba(212, 175, 55, 0.45);
-            background: rgba(212, 175, 55, 0.14);
-            color: #f5d574;
+            border-color: rgba(96, 165, 250, 0.4);
+            background: var(--gg-scope-blue-soft);
+            color: #bfdbfe;
         }
 
         .gg-modal-header-with-back {
@@ -1627,6 +1697,12 @@
 
         .gg-admin-details-grid .gg-form-group {
             margin-bottom: var(--modal-section-gap);
+        }
+
+        #meta-details-view > .gg-form-group:not(:last-of-type),
+        .gg-admin-details-grid > .gg-form-group:not(:last-child) {
+            border-bottom: 1px solid rgba(100, 90, 150, 0.3);
+            padding-bottom: var(--modal-section-gap);
         }
 
         .gg-admin-actions {
@@ -1766,8 +1842,8 @@
         }
 
         .gg-btn-link-meta.gg-btn-admin-edit {
-            background: linear-gradient(180deg, #f4c542 0%, #d9a91f 100%);
-            border-color: #a97912;
+            background: var(--gg-edit-gradient);
+            border-color: var(--gg-edit-yellow-dark);
             color: #fff;
         }
 
@@ -1780,17 +1856,19 @@
         }
 
         .gg-btn-link-meta.gg-btn-transfer-meta {
-            background: linear-gradient(180deg, #ff6b44 0%, #d94b28 100%);
-            border-color: #9e2f16;
-            color: #fff;
+            background: transparent;
+            border: 1px solid var(--gg-danger-red);
+            color: var(--gg-danger-red);
+            box-shadow: none;
+            text-shadow: none;
         }
 
         .gg-btn-link-meta.gg-btn-transfer-meta:focus-visible {
-            box-shadow: 0 0 0 2px rgba(255, 107, 68, 0.35), 0 2px 6px rgba(0, 0, 0, 0.25);
+            box-shadow: 0 0 0 2px rgba(239, 68, 68, 0.3);
         }
 
         .gg-btn-link-meta.gg-btn-transfer-meta:hover {
-            background: linear-gradient(180deg, #ff7d59 0%, #e95a35 100%);
+            background: var(--gg-danger-red-soft);
         }
 
         .gg-meta-linked-indicator {
@@ -2745,7 +2823,7 @@
         const backdrop = document.getElementById('gg-modal-backdrop');
         if (!dialog) return Promise.resolve(null);
 
-        const actionLabel = action === 'unlink' ? 'Remove' : 'Link';
+        const actionLabel = action === 'unlink' ? 'Unlink' : 'Link';
         const actionClass = action === 'unlink' ? 'gg-btn-danger' : 'gg-btn-primary';
         const metaTitle = String(title || '').trim();
         const maxEditTitleLength = 46;
@@ -2760,7 +2838,7 @@
         dialog.innerHTML = `
             <div class="gg-modal-header">Meta Actions</div>
             <div class="gg-dialog-actions">
-                ${canEdit ? `<button class="gg-btn-secondary" id="gg-dialog-edit" title="${escapeHtml(editTitle)}"><span class="gg-dialog-edit-label">${escapeHtml(editLabel)}</span></button>` : ''}
+                ${canEdit ? `<button class="gg-btn-primary gg-btn-edit" id="gg-dialog-edit" title="${escapeHtml(editTitle)}"><span class="gg-dialog-edit-label">${escapeHtml(editLabel)}</span></button>` : ''}
                 <button class="gg-btn-secondary" id="gg-dialog-cancel">Cancel</button>
                 ${action ? `<button class="${actionClass}" id="gg-dialog-toggle">${escapeHtml(actionLabel)}</button>` : ''}
             </div>
@@ -2804,21 +2882,21 @@
                 <span class="gg-normal-title">BetterMetas</span>
                 <span class="gg-resize-mode-title">Resizing Window...</span>
                 <div class="gg-normal-controls">
-                    <button id="gg-meta-admin-btn" title="Manage Metas">
+                    <button id="gg-meta-admin-btn" title="Manage Metas" aria-label="Manage Metas">
                         <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><ellipse cx="12" cy="5" rx="9" ry="3"></ellipse><path d="M3 5v14c0 1.66 4.03 3 9 3s9-1.34 9-3V5"></path><path d="M3 12c0 1.66 4.03 3 9 3s9-1.34 9-3"></path></svg>
                     </button>
-                    <button id="gg-settings-btn" title="Settings">
+                    <button id="gg-settings-btn" title="Settings" aria-label="Open Settings">
                         <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg>
                     </button>
 
-                    <button id="gg-meta-add-btn">+ Add</button>
+                    <button id="gg-meta-add-btn" title="Add or Link Metas" aria-label="Add or Link Metas">+ Add</button>
                 </div>
                 <div class="gg-resize-controls">
                     <div class="gg-resize-help-text">Drag the bottom-right corner to resize this window.</div>
                     <div class="gg-resize-button-row">
-                        <button class="gg-resize-control-btn gg-save-size" id="gg-resize-save">Save</button>
-                        <button class="gg-resize-control-btn" id="gg-resize-reset">Reset</button>
-                        <button class="gg-resize-control-btn" id="gg-resize-close">Close</button>
+                        <button class="gg-resize-control-btn" id="gg-resize-close">Cancel</button>
+                        <button class="gg-resize-control-btn" id="gg-resize-reset">Use Default</button>
+                        <button class="gg-resize-control-btn gg-save-size" id="gg-resize-save">Save Size</button>
                     </div>
                 </div>
             </div>
@@ -2880,6 +2958,13 @@
                 <hr class="gg-modal-divider">
 
                 <div class="gg-form-group">
+                    <label class="gg-form-label">Additional Settings</label>
+                    <button class="gg-btn-secondary" id="gg-resize-window">Resize HUD</button>
+                </div>
+
+                <hr class="gg-modal-divider">
+
+                <div class="gg-form-group">
                     <label class="gg-form-label">Saved User Data</label>
                     <button class="gg-btn-danger" id="gg-delete-user-data">Delete Saved User Data</button>
                     <div class="gg-form-hint">Deletes user_metas.json and user_locations.json. Plonkit data stays untouched.</div>
@@ -2887,16 +2972,9 @@
 
                 <hr class="gg-modal-divider">
 
-                <div class="gg-form-group">
-                    <label class="gg-form-label">Additional Settings</label>
-                    <button class="gg-btn-secondary" id="gg-resize-window">Resize Window</button>
-                </div>
-
-                <hr class="gg-modal-divider">
-
                 <button class="gg-btn-primary" id="gg-save-settings">Save Changes</button>
                 
-                <button class="gg-btn-secondary" id="gg-close-settings">Close</button>
+                <button class="gg-btn-secondary" id="gg-close-settings">Cancel</button>
             </div>
         `;
         document.body.appendChild(settingsModal);
@@ -2938,7 +3016,7 @@
 
             <div id="gg-admin-details-view" class="gg-modal-subview gg-hidden">
                 <div class="gg-modal-header gg-modal-header-with-back">
-                    <button id="gg-admin-back-btn" class="gg-modal-back-btn">
+                    <button id="gg-admin-back-btn" class="gg-modal-back-btn" title="Back to Meta List" aria-label="Back to Meta List">
                         <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="19" y1="12" x2="5" y2="12"></line><polyline points="12 19 5 12 12 5"></polyline></svg>
                     </button>
                     Meta Details
@@ -2987,18 +3065,18 @@
                 <hr class="gg-modal-divider">
 
                 <div class="gg-admin-actions">
-                    <button class="gg-btn-primary" id="gg-admin-save-btn">Save Meta</button>
-                    <button class="gg-btn-danger" id="gg-admin-transfer-toggle-btn">Transfer Delete</button>
+                    <button class="gg-btn-primary gg-btn-edit" id="gg-admin-save-btn">Save Meta</button>
+                    <button class="gg-btn-danger" id="gg-admin-transfer-toggle-btn">Delete &amp; Reassign Links</button>
                     <button class="gg-btn-danger" id="gg-admin-delete-btn">Delete Meta</button>
                 </div>
             </div>
 
             <div id="gg-admin-transfer-view" class="gg-modal-subview gg-hidden">
                 <div class="gg-modal-header gg-modal-header-with-back">
-                    <button id="gg-admin-transfer-back-btn" class="gg-modal-back-btn">
+                    <button id="gg-admin-transfer-back-btn" class="gg-modal-back-btn" title="Back to Meta Details" aria-label="Back to Meta Details">
                         <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="19" y1="12" x2="5" y2="12"></line><polyline points="12 19 5 12 12 5"></polyline></svg>
                     </button>
-                    Transfer Delete
+                    Delete &amp; Reassign Links
                 </div>
 
                 <div class="gg-form-group">
@@ -3008,7 +3086,7 @@
 
                 <hr class="gg-modal-divider">
 
-                <button class="gg-btn-secondary" id="gg-admin-transfer-cancel-btn">Cancel</button>
+                <button class="gg-btn-secondary" id="gg-admin-transfer-cancel-btn">Cancel Reassignment</button>
             </div>
         `;
         document.body.appendChild(adminModal);
@@ -3068,8 +3146,8 @@
                 <hr class="gg-modal-divider">
 
                 <div>
-                    <button class="gg-btn-primary" id="meta-details-btn">
-                        Add another meta
+                    <button class="gg-btn-primary gg-btn-edit" id="meta-details-btn">
+                        Create New Meta
                     </button>
                 </div>
 
@@ -3080,7 +3158,7 @@
 
             <div id="meta-details-view" class="gg-modal-subview gg-hidden">
                 <div class="gg-modal-header gg-modal-header-with-back">
-                    <button id="meta-back-btn" class="gg-modal-back-btn">
+                    <button id="meta-back-btn" class="gg-modal-back-btn" title="Back to Meta Selection" aria-label="Back to Meta Selection">
                         <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="19" y1="12" x2="5" y2="12"></line><polyline points="12 19 5 12 12 5"></polyline></svg>
                     </button>
                     Meta Details
@@ -3120,7 +3198,7 @@
 
                 <hr class="gg-modal-divider">
 
-                <button class="gg-btn-primary" id="meta-generate-btn">${META_SAVE_BUTTON_LABEL}</button>
+                <button class="gg-btn-primary gg-btn-edit" id="meta-generate-btn">${META_SAVE_BUTTON_LABEL}</button>
             </div>
         `;
 
@@ -3445,14 +3523,14 @@
             const confirmed = await showToolConfirm(
                 'Delete Saved User Data',
                 'This deletes your own BetterMetas entries from GitHub: user_metas.json and user_locations.json. Plonkit data stays untouched.',
-                { confirmText: 'Continue', cancelText: 'Cancel', danger: true }
+                { confirmText: 'Review Deletion', cancelText: 'Cancel', danger: true }
             );
             if (!confirmed) return;
 
             const reallyConfirmed = await showToolConfirm(
                 'Delete Saved User Data?',
                 'Your saved user metas and saved user location links will be lost.',
-                { confirmText: 'Delete', cancelText: 'Cancel', danger: true }
+                { confirmText: 'Delete User Data', cancelText: 'Cancel', danger: true }
             );
             if (reallyConfirmed) await deleteSavedUserData();
         });
@@ -3814,7 +3892,7 @@
 
         container.innerHTML = uniqueFiltered.map(meta => renderMetaListItem(meta, {
             titleFallback: true,
-            actionHtml: `<button class="gg-btn-link-meta gg-btn-transfer-meta" data-meta-id="${escapeHtml(meta.id)}">Transfer</button>`,
+            actionHtml: `<button class="gg-btn-link-meta gg-btn-transfer-meta" data-meta-id="${escapeHtml(meta.id)}">Reassign Here</button>`,
         })).join('');
 
         attachMetaPreview(container, 'gg-meta-admin-modal', { requireModal: true, titleFallback: true, descriptionFallback: true });
@@ -3984,7 +4062,7 @@
         const linkedUserMetaIds = new Set(getLocationMetaIds(userLocationMap[panoid]));
         const removableMetaIds = metaIds.filter(id => linkedUserMetaIds.has(id));
         if (removableMetaIds.length === 0) {
-            await showToolAlert('Cannot Remove Meta', 'This meta is not linked through your BetterMetas data and cannot be removed here.');
+            await showToolAlert('Cannot Unlink Meta', 'This meta is not linked through your BetterMetas data and cannot be unlinked here.');
             return;
         }
 
@@ -4011,7 +4089,7 @@
 
         const finishUi = beginMutationUi({
             scope: document.getElementById('gg-meta-hud'),
-            busyText: 'Removing...',
+            busyText: 'Unlinking...',
             statusText: `Removing ${removableMetaIds.length} meta${removableMetaIds.length === 1 ? '' : 's'}...`
         });
         if (!finishUi) return;
@@ -4020,7 +4098,7 @@
 
         try {
             applyLocalLocationUnlinks(panoid, removableMetaIds);
-            updateStatus('Removed. Syncing...');
+            updateStatus('Unlinked. Syncing...');
 
             await updateGitHubJsonFile(
                 API_USER_LOCATIONS_URL,
@@ -4033,13 +4111,13 @@
                 `Unlink ${removableMetaIds.length} metas from ${panoid} via BetterMetas`
             );
 
-            updateStatus('Removed!');
+            updateStatus('Unlinked!');
             scheduleBackgroundDataRefresh();
         } catch (e) {
             console.error(e);
             restoreLocalDataSnapshot(snapshot);
-            await showToolAlert('Remove Failed', e.message);
-            updateStatus('Remove Failed');
+            await showToolAlert('Unlink Failed', e.message);
+            updateStatus('Unlink Failed');
         } finally {
             finishUi();
         }
@@ -4114,7 +4192,7 @@
             const submitIssue = await showToolConfirm(
                 'Submit Community Contribution?',
                 'No GitHub token was found. Submit this meta as a community contribution via GitHub Issues?',
-                { confirmText: 'Submit', cancelText: 'Show JSON' }
+                { confirmText: 'Open GitHub Issue', cancelText: 'Show JSON Instead' }
             );
 
             if (submitIssue) {
@@ -4316,11 +4394,15 @@
         const counts = getAdminMetaLocationCounts(existingMeta.id);
         const actionLabel = normalizedTransferTargetId
             ? `delete "${existingMeta.title || existingMeta.id}" and transfer ${counts.total} locations to "${transferTarget.title || transferTarget.id}"?`
-            : `delete "${existingMeta.title || existingMeta.id}" and remove it from ${counts.total} locations?`;
+            : `delete "${existingMeta.title || existingMeta.id}" and unlink it from ${counts.total} locations?`;
         const confirmed = await showToolConfirm(
             'Delete Meta',
             `This will ${actionLabel}`,
-            { confirmText: 'Delete', cancelText: 'Cancel', danger: true }
+            {
+                confirmText: normalizedTransferTargetId ? 'Delete & Reassign' : 'Delete Meta',
+                cancelText: 'Cancel',
+                danger: true
+            }
         );
         if (!confirmed) return;
 
@@ -4329,7 +4411,7 @@
         const finishUi = beginMutationUi({
             scope: document.getElementById('gg-meta-admin-modal'),
             button: actionBtn,
-            busyText: normalizedTransferTargetId ? 'Transferring...' : 'Deleting...',
+            busyText: normalizedTransferTargetId ? 'Reassigning...' : 'Deleting...',
             statusText: normalizedTransferTargetId
                 ? `Transferring ${existingMeta.id}...`
                 : `Deleting meta ${existingMeta.id}...`
@@ -4343,7 +4425,7 @@
             applyAdminDeleteLocally(deletedMetaId, normalizedTransferTargetId);
             showAdminMainView();
             renderAdminMetas(document.getElementById('gg-admin-search')?.value || '');
-            updateStatus(normalizedTransferTargetId ? 'Transferred. Syncing...' : 'Deleted. Syncing...');
+            updateStatus(normalizedTransferTargetId ? 'Reassigned. Syncing...' : 'Deleted. Syncing...');
 
             const updateLocations = normalizedTransferTargetId
                 ? locations => {
@@ -4403,7 +4485,7 @@
             refreshAfterAdminMutation().catch(err => {
                 console.warn('[BetterMetas] Admin data refresh after delete failed:', err);
             });
-            updateStatus(normalizedTransferTargetId ? 'Transfer complete!' : 'Meta deleted!');
+            updateStatus(normalizedTransferTargetId ? 'Reassignment complete!' : 'Meta deleted!');
         } catch (err) {
             console.error(err);
             restoreLocalDataSnapshot(snapshot);
@@ -4472,7 +4554,7 @@
              const titleText = m.title || m.id;
              const titleTooltip = canEditMetas
                  ? 'Click for Meta Actions'
-                 : (titleAction === 'link' ? 'Click to Link to this Location' : 'Click to Remove from this Location');
+                 : (titleAction === 'link' ? 'Click to Link to this Location' : 'Click to Unlink from this Location');
              const titleAttr = (titleAction || canEditMetas)
                  ? `class="gg-clickable-meta-title" data-meta-id="${escapeHtml(m.id)}" data-meta-title="${escapeHtml(titleText)}" data-action="${escapeHtml(titleAction)}" title="${escapeHtml(titleTooltip)}"`
                  : '';
@@ -4562,9 +4644,9 @@
     win.quickToggleMeta = async function(metaId, title, action = 'link') {
         if (action === 'unlink') {
             const confirmed = await showToolConfirm(
-                'Remove Meta',
-                `Remove "${title}" from this location?`,
-                { confirmText: 'Remove', cancelText: 'Cancel', danger: true }
+                'Unlink Meta',
+                `Unlink "${title}" from this location? The meta itself will not be deleted.`,
+                { confirmText: 'Unlink', cancelText: 'Cancel', danger: true }
             );
             if (confirmed) {
                 unlinkMultipleMetas([metaId]);
