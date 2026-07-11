@@ -1570,5 +1570,17 @@
     "region": "Nayarit",
     "city": "San Luis de Lozada",
     "road": "San Luis de Lozada- Miguel Hidalgo"
+  },
+  "hn1zHlVmka0RbGC4Ew0cWw": {
+    "metas": [
+      "meta_luxembourg_F5fO"
+    ],
+    "lat": 49.64544,
+    "lng": 6.41436,
+    "country": "Luxembourg",
+    "nominatimCountry": "Luxembourg",
+    "region": "Gr\u00e9iwemaacher",
+    "city": "Fluessweiler",
+    "road": "CR146"
   }
 }
