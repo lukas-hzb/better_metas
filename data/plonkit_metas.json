@@ -12897,7 +12897,7 @@
         "description": "Oil palm plantations can only be found on Road 4, as well as some of its rural offroads, just north of Preah Nob.",
         "note": "Oil palm plantations are much more common in Malaysia and Indonesia. Only use this clue to region-guess if you are certain that you are in Cambodia, and not to identify the country.",
         "imageUrl": "https://www.plonkit.net/images/cambodia/Oil_palms.png",
-        "scope": "region",
+        "scope": "road",
         "tags": [
           "plants",
           "road"
