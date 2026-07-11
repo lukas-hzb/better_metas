@@ -1714,5 +1714,17 @@
     "region": "State of Minas Gerais",
     "city": "Nova Ponte",
     "road": null
+  },
+  "ZAcjXmLINL29GYSY0Bo72g": {
+    "metas": [
+      "meta_russia_FB0Q"
+    ],
+    "lat": 57.93848,
+    "lng": 125.5064,
+    "country": "Russia",
+    "nominatimCountry": "Russia",
+    "region": "Respublika Sakha (Yakutiya)",
+    "city": "Aldanskiy Ulus",
+    "road": "A-360"
   }
 }
