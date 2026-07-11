@@ -1810,5 +1810,17 @@
     "region": "Vila Real",
     "city": "Sabrosa",
     "road": "CM1268-1"
+  },
+  "zsWbfwcvnGzO39LLpkS2eQ": {
+    "metas": [
+      "meta_cambodia_iFSu"
+    ],
+    "lat": 10.8412,
+    "lng": 103.74103,
+    "country": "Cambodia",
+    "nominatimCountry": "Cambodia",
+    "region": "Sihanoukville",
+    "city": "\ubd07\ubc45\ub9c8\uc744",
+    "road": "Phnom Penh - Sihanoukville Expressway"
   }
 }
