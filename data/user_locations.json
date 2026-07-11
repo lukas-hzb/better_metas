@@ -1498,5 +1498,17 @@
     "region": "Jawa Tengah",
     "city": "Kabupaten Kebumen",
     "road": "Jogopaten"
+  },
+  "nrhm81b7EAvwnbPpUbLo1w": {
+    "metas": [
+      "meta_brazil_yPwJ"
+    ],
+    "lat": -6.1591,
+    "lng": -38.65605,
+    "country": "Brazil",
+    "nominatimCountry": "Brazil",
+    "region": "Cear\u00e1",
+    "city": "Jaguaribe",
+    "road": "Rodovia Presidente Epit\u00e1cio Pessoa"
   }
 }
