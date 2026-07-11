@@ -1762,5 +1762,17 @@
     "region": "Uva Province",
     "city": "Hali-ela",
     "road": "Ettampitiya-Ketawala-Keenakele Road"
+  },
+  "grgdYrT25EpUx_sNxnJZnA": {
+    "metas": [
+      "meta_finland_rc3m"
+    ],
+    "lat": 68.20484,
+    "lng": 25.78569,
+    "country": "Finland",
+    "nominatimCountry": "Finland",
+    "region": "Lappi",
+    "city": "Kittil\u00e4",
+    "road": "Inarintie"
   }
 }
