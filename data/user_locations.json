@@ -1438,5 +1438,17 @@
     "region": "Rioja",
     "city": "Alberite",
     "road": "Cuesta de las Piscinas"
+  },
+  "LdF3mMuGbc859Yx-24IIag": {
+    "metas": [
+      "meta_eswatini_pB4I"
+    ],
+    "lat": -26.8188,
+    "lng": 31.06502,
+    "country": "Eswatini",
+    "nominatimCountry": "Eswatini",
+    "region": "Shiselweni Region",
+    "city": "Sicunusa",
+    "road": null
   }
 }
