@@ -1546,5 +1546,17 @@
     "region": "Matam Region",
     "city": "Ranerou Ferlo",
     "road": "N3"
+  },
+  "rXRi4vl6UtQiXC4YnDVG2Q": {
+    "metas": [
+      "meta_argentina_muxx"
+    ],
+    "lat": -29.46143,
+    "lng": -65.67047,
+    "country": "Argentina",
+    "nominatimCountry": "Argentina",
+    "region": "Catamarca",
+    "city": "Capay\u00e1n",
+    "road": "Ruta Nacional 60"
   }
 }
