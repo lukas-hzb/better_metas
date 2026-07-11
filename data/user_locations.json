@@ -1426,5 +1426,17 @@
     "region": "Nouvelle-Aquitaine",
     "city": "Saint-Perdon",
     "road": "Route de Haut Mauco"
+  },
+  "mI338e8HZkjWDbhdC8RHjQ": {
+    "metas": [
+      "meta_spain_OutB"
+    ],
+    "lat": 42.38957,
+    "lng": -2.44206,
+    "country": "Spain",
+    "nominatimCountry": "Spain",
+    "region": "Rioja",
+    "city": "Alberite",
+    "road": "Cuesta de las Piscinas"
   }
 }
