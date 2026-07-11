@@ -1522,5 +1522,17 @@
     "region": "Los Lagos",
     "city": "Palena",
     "road": "W-887"
+  },
+  "9Gt-Ofdq3p52ohozQJLurA": {
+    "metas": [
+      "meta_indonesia_K7j1"
+    ],
+    "lat": -5.03406,
+    "lng": 120.26344,
+    "country": "Indonesia",
+    "nominatimCountry": "Indonesia",
+    "region": "South Sulawesi",
+    "city": "Bone Regency",
+    "road": "Jalan Cekdam"
   }
 }
