@@ -1031,9 +1031,12 @@
             --modal-control-bg-active: rgba(0, 0, 0, 0.4);
             --modal-control-border: rgba(100, 90, 150, 0.4);
             --modal-control-radius: 8px;
-            --gg-primary-green: #8cd45a;
-            --gg-primary-border: #3d8c2a;
-            --gg-primary-gradient: linear-gradient(180deg, #8cd45a 0%, #6cc04a 50%, #5ab840 100%);
+            --gg-primary-green: #97e851;
+            --gg-primary-border: #479440;
+            --gg-primary-gradient: linear-gradient(#97e851, #479440);
+            --gg-primary-shadow: 0 0.275rem 1.125rem rgba(0, 0, 0, 0.25),
+                inset 0 0.0625rem 0 rgba(255, 255, 255, 0.2),
+                inset 0 -0.125rem 0 rgba(0, 0, 0, 0.3);
         }
 
         /* Modal Base Styles - GeoGuessr Native Style */
@@ -1221,7 +1224,8 @@
         }
 
         #meta-desc,
-        #gg-admin-meta-desc {
+        #gg-admin-meta-desc,
+        #gg-admin-meta-note {
             text-align: left;
         }
 
@@ -1252,11 +1256,13 @@
 
         /* Buttons - GeoGuessr Green Style */
         .gg-btn-primary {
+            --gg-button-hover-scale: 1.02;
+            --gg-button-active-scale: 0.99;
             background: var(--gg-primary-gradient);
             color: #fff;
             border: none;
-            border-bottom: 2px solid var(--gg-primary-border);
             padding: var(--modal-related-gap) 0;
+            padding-bottom: calc(var(--modal-related-gap) + 0.125rem);
             border-radius: var(--modal-btn-radius);
             cursor: pointer;
             width: 100%;
@@ -1267,9 +1273,10 @@
             text-transform: uppercase;
             letter-spacing: 0.03em;
             margin-top: var(--modal-section-gap);
-            transition: transform 0.1s, box-shadow 0.1s, border-bottom 0.1s;
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.25);
-            text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.3);
+            transition: transform 0.15s, background 0.15s;
+            box-shadow: var(--gg-primary-shadow);
+            text-shadow: 0 0.0625rem 0.125rem #171235;
+            will-change: transform;
             box-sizing: border-box;
             height: var(--modal-btn-height); /* Fixed height for consistency */
             display: flex;
@@ -1294,14 +1301,11 @@
         }
 
         .gg-btn-primary:hover {
-            transform: translateY(-1px);
-            box-shadow: 0 6px 16px rgba(0, 0, 0, 0.35);
+            transform: scale(var(--gg-button-hover-scale));
         }
 
         .gg-btn-primary:active {
-            transform: translateY(1px);
-            border-bottom: 1px solid var(--gg-primary-border);
-            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
+            transform: scale(var(--gg-button-active-scale));
         }
 
         .gg-btn-primary:disabled,
@@ -1696,14 +1700,15 @@
         }
 
         .gg-btn-link-meta {
+            --gg-button-hover-scale: 1.05;
+            --gg-button-active-scale: 0.975;
             display: inline-flex;
             align-items: center;
             justify-content: center;
             background: var(--gg-primary-gradient);
             color: #fff;
             border: none;
-            border-bottom: 2px solid var(--gg-primary-border);
-            padding: 4px 10px;
+            padding: 4px 10px calc(4px + 0.125rem);
             border-radius: 12px;
             cursor: pointer;
             font-size: 0.7rem;
@@ -1712,9 +1717,10 @@
             line-height: 1;
             text-transform: uppercase;
             letter-spacing: 0.03em;
-            transition: transform 0.1s, box-shadow 0.1s, border-bottom 0.1s;
-            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.25);
-            text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.3);
+            transition: transform 0.15s, background 0.15s;
+            box-shadow: var(--gg-primary-shadow);
+            text-shadow: 0 0.0625rem 0.125rem #171235;
+            will-change: transform;
             flex-shrink: 0;
             user-select: none;
             -webkit-user-select: none;
@@ -1730,14 +1736,11 @@
         }
 
         .gg-btn-link-meta:hover {
-            transform: translateY(-1px);
-            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.35);
+            transform: scale(var(--gg-button-hover-scale));
         }
 
         .gg-btn-link-meta:active {
-            transform: translateY(1px);
-            border-bottom: 1px solid var(--gg-primary-border);
-            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
+            transform: scale(var(--gg-button-active-scale));
         }
 
         .gg-btn-link-meta.gg-tag-selected {
@@ -3095,6 +3098,8 @@
                         ${renderTagPills(TAG_PRESETS)}
                     </div>
                 </div>
+
+                <hr class="gg-modal-divider">
 
                 <button class="gg-btn-primary" id="meta-generate-btn">${META_SAVE_BUTTON_LABEL}</button>
             </div>
