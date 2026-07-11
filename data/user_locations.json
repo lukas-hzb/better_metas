@@ -1534,5 +1534,17 @@
     "region": "South Sulawesi",
     "city": "Bone Regency",
     "road": "Jalan Cekdam"
+  },
+  "mbodzDEVxcrPV79xBiJu-w": {
+    "metas": [
+      "meta_senegal_2NXs"
+    ],
+    "lat": 15.37798,
+    "lng": -13.70552,
+    "country": "Senegal",
+    "nominatimCountry": "Senegal",
+    "region": "Matam Region",
+    "city": "Ranerou Ferlo",
+    "road": "N3"
   }
 }
