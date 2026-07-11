@@ -1702,5 +1702,17 @@
     "region": "Biobio Region",
     "city": "Alto Biob\u00edo",
     "road": "Comunidad Vegas de Ralco"
+  },
+  "A4bjee3nSSewuuvUEafJ5w": {
+    "metas": [
+      "meta_brazil_Dz8D"
+    ],
+    "lat": -19.14791,
+    "lng": -47.69718,
+    "country": "Brazil",
+    "nominatimCountry": "Brazil",
+    "region": "State of Minas Gerais",
+    "city": "Nova Ponte",
+    "road": null
   }
 }
