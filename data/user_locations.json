@@ -1786,5 +1786,17 @@
     "region": "Troms",
     "city": "Alta",
     "road": "Langfjordveien"
+  },
+  "3IAVbvg_45rdoXsVuckAKg": {
+    "metas": [
+      "meta_south_africa_nSzl"
+    ],
+    "lat": -33.51223,
+    "lng": 19.57001,
+    "country": "South Africa",
+    "nominatimCountry": "South Africa",
+    "region": "Western Cape",
+    "city": "Cape Winelands District Municipality",
+    "road": "N1"
   }
 }
