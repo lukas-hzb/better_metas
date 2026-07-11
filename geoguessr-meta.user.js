@@ -32,15 +32,12 @@
     const SYSTEM_METAS_FILE = 'data/plonkit_metas.json';
     const SYSTEM_LOCATIONS_FILE = 'data/plonkit_locations.json';
     
-    const getRawUserLocationsUrl = () => `https://raw.githubusercontent.com/${REPO_OWNER}/${REPO_NAME}/${REPO_BRANCH}/${USER_LOCATIONS_FILE}?t=${Date.now()}`;
-    const getRawUserMetasUrl = () => `https://raw.githubusercontent.com/${REPO_OWNER}/${REPO_NAME}/${REPO_BRANCH}/${USER_METAS_FILE}?t=${Date.now()}`;
-    const getRawSystemMetasUrl = () => `https://raw.githubusercontent.com/${REPO_OWNER}/${REPO_NAME}/${REPO_BRANCH}/${SYSTEM_METAS_FILE}?t=${Date.now()}`;
-    const getRawSystemLocationsUrl = () => `https://raw.githubusercontent.com/${REPO_OWNER}/${REPO_NAME}/${REPO_BRANCH}/${SYSTEM_LOCATIONS_FILE}?t=${Date.now()}`;
-    
-    const API_USER_LOCATIONS_URL = `https://api.github.com/repos/${REPO_OWNER}/${REPO_NAME}/contents/${USER_LOCATIONS_FILE}`;
-    const API_USER_METAS_URL = `https://api.github.com/repos/${REPO_OWNER}/${REPO_NAME}/contents/${USER_METAS_FILE}`;
-    const API_SYSTEM_LOCATIONS_URL = `https://api.github.com/repos/${REPO_OWNER}/${REPO_NAME}/contents/${SYSTEM_LOCATIONS_FILE}`;
-    const API_SYSTEM_METAS_URL = `https://api.github.com/repos/${REPO_OWNER}/${REPO_NAME}/contents/${SYSTEM_METAS_FILE}`;
+    const getRawFileUrl = (file) => `https://raw.githubusercontent.com/${REPO_OWNER}/${REPO_NAME}/${REPO_BRANCH}/${file}?t=${Date.now()}`;
+    const getApiFileUrl = (file) => `https://api.github.com/repos/${REPO_OWNER}/${REPO_NAME}/contents/${file}`;
+    const API_USER_LOCATIONS_URL = getApiFileUrl(USER_LOCATIONS_FILE);
+    const API_USER_METAS_URL = getApiFileUrl(USER_METAS_FILE);
+    const API_SYSTEM_LOCATIONS_URL = getApiFileUrl(SYSTEM_LOCATIONS_FILE);
+    const API_SYSTEM_METAS_URL = getApiFileUrl(SYSTEM_METAS_FILE);
     const getApiUrlForBranch = (apiUrl) => `${apiUrl}?ref=${encodeURIComponent(REPO_BRANCH)}`;
     
     const win = (typeof unsafeWindow !== 'undefined') ? unsafeWindow : window;
@@ -113,12 +110,9 @@
 
     function normalizeCoordinate(value) {
         if (value === null || value === undefined || value === '') return null;
-        if (typeof value === 'number') return Number.isFinite(value) ? value : null;
-        if (typeof value === 'string') {
-            const parsed = Number(value);
-            return Number.isFinite(parsed) ? parsed : null;
-        }
-        return null;
+        if (typeof value !== 'number' && typeof value !== 'string') return null;
+        const parsed = Number(value);
+        return Number.isFinite(parsed) ? parsed : null;
     }
 
     function normalizeLocationEntry(entry) {
@@ -248,10 +242,6 @@
             : [];
     }
 
-    function normalizeUserMetas(value) {
-        return normalizeMetaList(value);
-    }
-
     function normalizeSystemMetas(value) {
         if (!Array.isArray(value)) return [];
         return value.flatMap(entry => {
@@ -273,13 +263,13 @@
         return {
             userLocationMap: normalizeLocationMap(value.userLocationMap),
             systemLocationMap: normalizeLocationMap(value.systemLocationMap),
-            userMetas: normalizeUserMetas(value.userMetas),
+            userMetas: normalizeMetaList(value.userMetas),
             systemMetas: normalizeSystemMetas(value.systemMetas)
         };
     }
 
     function buildUniqueMetas(userMetas, systemMetas) {
-        const combined = [...normalizeUserMetas(userMetas), ...normalizeUserMetas(systemMetas)];
+        const combined = [...normalizeMetaList(userMetas), ...normalizeMetaList(systemMetas)];
         const seen = new Set();
         return combined.filter(meta => {
             if (!meta || !meta.id || seen.has(meta.id)) return false;
@@ -311,47 +301,44 @@
         return { pending, userMetas: tempUserMetas, userLocationMap: tempUserLocationMap };
     }
 
-    function readDataCache() {
+    function readStoredValue(key, defaultValue = null) {
         if (typeof GM_getValue === 'function') {
-            return GM_getValue(DATA_CACHE_STORAGE_KEY, null);
+            return GM_getValue(key, defaultValue);
         }
-
-        return localStorage.getItem(DATA_CACHE_STORAGE_KEY);
+        return localStorage.getItem(key) ?? defaultValue;
     }
 
-    function writeDataCache(value) {
+    function writeStoredValue(key, value) {
         if (typeof GM_setValue === 'function') {
-            GM_setValue(DATA_CACHE_STORAGE_KEY, value);
+            GM_setValue(key, value);
             return;
         }
-
-        localStorage.setItem(DATA_CACHE_STORAGE_KEY, value);
+        localStorage.setItem(key, value);
     }
 
-    function clearDataCache() {
+    function clearStoredValue(key) {
         if (typeof GM_setValue === 'function') {
-            GM_setValue(DATA_CACHE_STORAGE_KEY, null);
+            GM_setValue(key, null);
         }
-
-        localStorage.removeItem(DATA_CACHE_STORAGE_KEY);
+        localStorage.removeItem(key);
     }
 
     function loadCachedDataSnapshot() {
         try {
-            const cached = JSON.parse(readDataCache() || 'null');
+            const cached = JSON.parse(readStoredValue(DATA_CACHE_STORAGE_KEY) || 'null');
             if (!cached || typeof cached !== 'object') return null;
             if (cached.version !== DATA_CACHE_VERSION) {
-                clearDataCache();
+                clearStoredValue(DATA_CACHE_STORAGE_KEY);
                 return null;
             }
             if (!cached.timestamp || Date.now() - cached.timestamp > DATA_CACHE_MAX_AGE_MS) {
-                clearDataCache();
+                clearStoredValue(DATA_CACHE_STORAGE_KEY);
                 return null;
             }
             return normalizeDataSnapshot(cached);
         } catch (err) {
             console.warn('[BetterMetas] Invalid cached data snapshot:', err);
-            clearDataCache();
+            clearStoredValue(DATA_CACHE_STORAGE_KEY);
             return null;
         }
     }
@@ -361,7 +348,7 @@
         if (!normalized) return;
 
         try {
-            writeDataCache(JSON.stringify({
+            writeStoredValue(DATA_CACHE_STORAGE_KEY, JSON.stringify({
                 version: DATA_CACHE_VERSION,
                 timestamp: Date.now(),
                 ...normalized
@@ -456,7 +443,7 @@
     function renderScopePills(scopes, selectedScopes = null) {
         return scopes.map(scope => {
             const selectedClass = selectedScopes && selectedScopes.has(scope) ? ' gg-tag-selected' : '';
-            return `<span class="gg-tag-pill${selectedClass}" data-value="${escapeAttribute(scope)}">${escapeHtml(getScopeLabel(scope))}</span>`;
+            return `<span class="gg-tag-pill${selectedClass}" data-value="${escapeHtml(scope)}">${escapeHtml(getScopeLabel(scope))}</span>`;
         }).join('');
     }
 
@@ -474,10 +461,6 @@
         }[char]));
     }
 
-    function escapeAttribute(value) {
-        return escapeHtml(value);
-    }
-
     function getSafeImageUrl(value) {
         if (!value) return '';
         try {
@@ -490,7 +473,7 @@
 
     function renderMetaImage(imageUrl) {
         const safeUrl = getSafeImageUrl(imageUrl);
-        return safeUrl ? `<img src="${escapeAttribute(safeUrl)}" class="gg-meta-image">` : '';
+        return safeUrl ? `<img src="${escapeHtml(safeUrl)}" class="gg-meta-image">` : '';
     }
 
     function renderStaticTags(tags) {
@@ -821,7 +804,7 @@
             justify-content: center;
             background: rgba(255, 255, 255, 0.2);
             color: #fff;
-            padding: calc(2px - var(--gg-text-optical-shift)) 8px calc(2px + var(--gg-text-optical-shift));
+            padding: 2px 8px;
             border-radius: 12px;
             font-size: 0.75rem;
             margin-right: 4px;
@@ -853,7 +836,7 @@
             justify-content: center;
             background: rgba(255, 255, 255, 0.2);
             color: #fff;
-            padding: calc(1px - var(--gg-text-optical-shift)) 6px calc(1px + var(--gg-text-optical-shift));
+            padding: 1px 6px;
             border-radius: 12px;
             font-size: 0.65rem;
             margin-right: 6px;
@@ -1134,6 +1117,19 @@
 
         .gg-dialog-actions #gg-dialog-edit {
             flex: 0 0 100%;
+            min-width: 0;
+            padding-left: 14px;
+            padding-right: 14px;
+            text-transform: none;
+        }
+
+        #gg-dialog-edit .gg-dialog-edit-label {
+            display: block;
+            max-width: 100%;
+            min-width: 0;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
         }
 
         .gg-modal-subview {
@@ -1558,14 +1554,67 @@
             margin-right: 0;
         }
 
-        .gg-admin-sort-options {
-            margin-top: var(--modal-related-gap);
-            margin-bottom: var(--modal-related-gap);
+        .gg-admin-controls {
+            margin-bottom: 8px;
         }
 
-        .gg-admin-sort-options .gg-tag-pill {
-            font-size: 0.68rem;
-            padding: calc(3px - var(--gg-text-optical-shift)) 8px calc(3px + var(--gg-text-optical-shift));
+        .gg-admin-sort-control {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 2px;
+            margin-top: 6px;
+        }
+
+        .gg-admin-sort-control .gg-form-label {
+            margin: 0;
+            color: rgba(255, 255, 255, 0.45);
+            font-size: 0.72rem;
+            letter-spacing: 0.02em;
+            white-space: nowrap;
+        }
+
+        .gg-admin-sort-select-wrap {
+            position: relative;
+            display: inline-flex;
+            align-items: center;
+        }
+
+        .gg-admin-sort-select-wrap::after {
+            content: '';
+            position: absolute;
+            right: 10px;
+            top: calc(50% - 5px);
+            width: 6px;
+            height: 6px;
+            border-right: 1.5px solid rgba(255, 255, 255, 0.65);
+            border-bottom: 1.5px solid rgba(255, 255, 255, 0.65);
+            pointer-events: none;
+            transform: rotate(45deg);
+            transition: border-color 0.2s;
+        }
+
+        .gg-admin-sort-select {
+            width: auto;
+            padding: 3px 22px 3px 4px;
+            background: transparent;
+            border: 0;
+            border-radius: var(--modal-control-radius);
+            cursor: pointer;
+            color: rgba(255, 255, 255, 0.9);
+            font-size: 0.8rem;
+            text-align: left;
+            appearance: none;
+            -webkit-appearance: none;
+        }
+
+        .gg-admin-sort-select:focus {
+            background: transparent;
+            border: 0;
+        }
+
+        .gg-admin-sort-select-wrap:focus-within::after {
+            border-color: rgba(200, 190, 255, 0.95);
         }
 
         .gg-admin-details-grid {
@@ -1877,7 +1926,7 @@
 
         #gg-meta-preview-popup .gg-meta-tags .gg-tag-static {
             font-size: 0.6rem;
-            padding: calc(1px - var(--gg-text-optical-shift)) 4px calc(1px + var(--gg-text-optical-shift));
+            padding: 1px 4px;
             margin: 0;
         }
 
@@ -2133,7 +2182,7 @@
         delete previewPopup.dataset.ggPreviewCleanupId;
         previewPopup.dataset.ggPreviewMode = 'image-url';
         previewPopup.classList.add('gg-image-url-preview');
-        previewPopup.innerHTML = `<img src="${escapeAttribute(safeUrl)}" class="gg-meta-image" alt="">`;
+        previewPopup.innerHTML = `<img src="${escapeHtml(safeUrl)}" class="gg-meta-image" alt="">`;
         previewPopup.querySelector('img')?.addEventListener('load', positionAdminImageUrlPreview, { once: true });
         previewPopup.querySelector('img')?.addEventListener('error', hideAdminImageUrlPreview, { once: true });
         positionAdminImageUrlPreview();
@@ -2234,7 +2283,7 @@
         }
 
         container.innerHTML = linkedLocations.map(location => `
-            <button type="button" class="gg-admin-location-item" data-map-url="${escapeAttribute(getGoogleMapsUrlForLocation(location))}">
+            <button type="button" class="gg-admin-location-item" data-map-url="${escapeHtml(getGoogleMapsUrlForLocation(location))}">
                 ${escapeHtml(formatAdminLocationLabel(location))}
             </button>
         `).join('');
@@ -2676,14 +2725,20 @@
 
         const actionLabel = action === 'unlink' ? 'Remove' : 'Link';
         const actionClass = action === 'unlink' ? 'gg-btn-danger' : 'gg-btn-primary';
+        const metaTitle = String(title || '').trim();
+        const maxEditTitleLength = 46;
+        const truncatedMetaTitle = metaTitle.length > maxEditTitleLength
+            ? `${metaTitle.slice(0, maxEditTitleLength - 3).trimEnd()}...`
+            : metaTitle;
+        const editLabel = truncatedMetaTitle ? `Edit "${truncatedMetaTitle}"` : 'Edit Meta';
+        const editTitle = metaTitle ? `Edit "${metaTitle}"` : 'Edit Meta';
         const backdropWasVisible = Boolean(backdrop && backdrop.classList.contains('gg-visible'));
         const backgroundModals = getVisibleModalElementsForDialogBlur();
 
         dialog.innerHTML = `
             <div class="gg-modal-header">Meta Actions</div>
-            <div class="gg-dialog-message">${escapeHtml(title || 'Select an action for this meta.')}</div>
             <div class="gg-dialog-actions">
-                ${canEdit ? '<button class="gg-btn-secondary" id="gg-dialog-edit">Edit Meta</button>' : ''}
+                ${canEdit ? `<button class="gg-btn-secondary" id="gg-dialog-edit" title="${escapeHtml(editTitle)}"><span class="gg-dialog-edit-label">${escapeHtml(editLabel)}</span></button>` : ''}
                 <button class="gg-btn-secondary" id="gg-dialog-cancel">Cancel</button>
                 ${action ? `<button class="${actionClass}" id="gg-dialog-toggle">${escapeHtml(actionLabel)}</button>` : ''}
             </div>
@@ -2840,13 +2895,18 @@
         adminModal.innerHTML = `
             <div id="gg-admin-main-view" class="gg-modal-subview">
                 <div class="gg-modal-header">Manage Metas</div>
-                <div class="gg-form-group">
+                <div class="gg-form-group gg-admin-controls">
                     <input type="text" id="gg-admin-search" class="gg-form-input" placeholder="Filter by country, title or tags (e.g. Kenya; snorkel)">
-                    <div id="gg-admin-sort-options" class="gg-pill-grid gg-admin-sort-options">
-                        <span class="gg-tag-pill gg-tag-selected" data-sort="country">Country</span>
-                        <span class="gg-tag-pill" data-sort="scope">Scope</span>
-                        <span class="gg-tag-pill" data-sort="tags">Tags</span>
-                        <span class="gg-tag-pill" data-sort="newest">Recently Added</span>
+                    <div class="gg-admin-sort-control">
+                        <label class="gg-form-label" for="gg-admin-sort-options">Sort by</label>
+                        <span class="gg-admin-sort-select-wrap">
+                            <select id="gg-admin-sort-options" class="gg-form-input gg-admin-sort-select">
+                                <option value="country">Country</option>
+                                <option value="scope">Scope</option>
+                                <option value="tags">Tags</option>
+                                <option value="newest">Recently Added</option>
+                            </select>
+                        </span>
                     </div>
                 </div>
                 <div id="gg-admin-meta-list" class="gg-admin-meta-list"></div>
@@ -3219,11 +3279,8 @@
             renderAdminMetas(e.target.value);
         });
 
-        document.getElementById('gg-admin-sort-options').addEventListener('click', (e) => {
-            const target = getEventElementTarget(e);
-            if (!target || !target.classList.contains('gg-tag-pill')) return;
-
-            adminSortMode = target.dataset.sort || 'country';
+        document.getElementById('gg-admin-sort-options').addEventListener('change', (e) => {
+            adminSortMode = e.target.value || 'country';
             updateAdminSortButtons();
             renderAdminMetas(document.getElementById('gg-admin-search')?.value || '');
         });
@@ -3468,12 +3525,19 @@
     }
 
     function updateAdminSortButtons() {
-        const sortContainer = document.getElementById('gg-admin-sort-options');
-        if (!sortContainer) return;
+        const sortSelect = document.getElementById('gg-admin-sort-options');
+        if (!sortSelect) return;
 
-        sortContainer.querySelectorAll('.gg-tag-pill').forEach(pill => {
-            pill.classList.toggle('gg-tag-selected', pill.dataset.sort === adminSortMode);
-        });
+        sortSelect.value = adminSortMode;
+        const selectedOption = sortSelect.selectedOptions[0];
+        if (!selectedOption) return;
+
+        const context = document.createElement('canvas').getContext('2d');
+        if (!context) return;
+
+        const styles = getComputedStyle(sortSelect);
+        context.font = `${styles.fontStyle} ${styles.fontVariant} ${styles.fontWeight} ${styles.fontSize} ${styles.fontFamily}`;
+        sortSelect.style.width = `${Math.ceil(context.measureText(selectedOption.text).width + 26)}px`;
     }
 
     function compareAdminText(a, b) {
@@ -3520,28 +3584,98 @@
         });
     }
 
+    function getMetaSearchTerms(searchTerm) {
+        return searchTerm.toLowerCase().split(/[;,]/).map(term => term.trim()).filter(Boolean);
+    }
+
+    function matchesMetaSearch(meta, terms, extraValues = []) {
+        if (terms.length === 0) return true;
+        const searchableContent = [
+            ...extraValues,
+            meta.country || '',
+            meta.title || '',
+            meta.description || '',
+            (meta.tags || []).join(' ')
+        ].join(' ').toLowerCase();
+        return terms.every(term => searchableContent.includes(term));
+    }
+
+    function deduplicateMetasBySignature(metas, chooseMeta = group => group[0]) {
+        const groups = new Map();
+        metas.forEach(meta => {
+            const tagsSignature = (meta.tags || []).slice().sort().join(',');
+            const signature = `${meta.country}|${meta.title}|${meta.description}|${tagsSignature}`;
+            if (!groups.has(signature)) groups.set(signature, []);
+            groups.get(signature).push(meta);
+        });
+        return [...groups.values()].map(chooseMeta);
+    }
+
+    function renderMetaListItem(meta, options) {
+        const title = options.titleFallback ? meta.title || meta.id : meta.title;
+        return `
+            <div class="gg-meta-list-item${options.itemClass || ''}" data-meta-id="${escapeHtml(meta.id)}">
+                <div class="gg-meta-list-main">
+                    <span class="gg-country-badge" title="${escapeHtml(meta.country || 'Unknown Country')}">${escapeHtml(getCountryCode(meta.country))}</span>
+                    <div class="gg-meta-list-title">${escapeHtml(title)}</div>
+                    <div class="gg-meta-list-tags">
+                        ${options.showScope ? `<span class="gg-tag-static gg-scope-static">${escapeHtml(getScopeLabel(normalizeScope(meta.scope)))}</span>` : ''}
+                        ${renderStaticTags(meta.tags)}
+                    </div>
+                </div>
+                ${options.actionHtml}
+            </div>
+        `;
+    }
+
+    function attachMetaPreview(container, modalId, options = {}) {
+        const previewPopup = document.getElementById('gg-meta-preview-popup');
+        const modal = document.getElementById(modalId);
+
+        container.querySelectorAll(options.itemSelector || '.gg-meta-list-item').forEach(item => {
+            item.addEventListener('mouseenter', () => {
+                const meta = metasData.find(candidate => candidate.id === item.dataset.metaId);
+                if (!meta || !previewPopup || (options.requireModal && !modal)) return;
+
+                delete previewPopup.dataset.ggPreviewCleanupId;
+                previewPopup.dataset.ggPreviewMode = 'meta';
+                previewPopup.classList.remove('gg-image-url-preview');
+                previewPopup.innerHTML = `
+                    <div class="gg-meta-item-title">${escapeHtml(options.titleFallback ? meta.title || meta.id : meta.title)}</div>
+                    ${renderMetaImage(meta.imageUrl)}
+                    <div class="gg-meta-description">${escapeHtml(options.descriptionFallback ? meta.description || '' : meta.description)}</div>
+                    <div class="gg-meta-tags">
+                        ${renderStaticTags(meta.tags)}
+                    </div>
+                `;
+
+                if (!modal) return;
+                const modalRect = modal.getBoundingClientRect();
+                const itemRect = item.getBoundingClientRect();
+                previewPopup.style.left = `${modalRect.left - 290}px`;
+                previewPopup.classList.add('gg-visible');
+                previewPopup.style.top = `${itemRect.top + (itemRect.height / 2) - (previewPopup.offsetHeight / 2)}px`;
+            });
+            item.addEventListener('mouseleave', hidePreviewPopup);
+        });
+    }
+
     function renderAdminMetas(searchTerm = '') {
         const container = document.getElementById('gg-admin-meta-list');
         if (!container) return;
 
-        const terms = searchTerm.toLowerCase().split(/[;,]/).map(s => s.trim()).filter(Boolean);
+        const terms = getMetaSearchTerms(searchTerm);
 
         const filtered = metasData.map((meta, index) => ({ meta, index })).filter(entry => {
             const meta = entry.meta;
-            if (terms.length === 0) return true;
             const source = getAdminMetaSourceLabel(getAdminMetaSource(meta.id));
-            const searchableContent = [
+            return matchesMetaSearch(meta, terms, [
                 meta.id || '',
                 source,
-                meta.country || '',
                 meta.section || '',
-                meta.title || '',
-                meta.description || '',
                 meta.note || '',
                 meta.scope || '',
-                (meta.tags || []).join(' ')
-            ].join(' ').toLowerCase();
-            return terms.every(term => searchableContent.includes(term));
+            ]);
         });
 
         const sorted = sortAdminMetaEntries(filtered);
@@ -3551,58 +3685,14 @@
             return;
         }
 
-        container.innerHTML = sorted.map(entry => {
-            const meta = entry.meta;
-            const countryCode = getCountryCode(meta.country);
-            return `
-                <div class="gg-meta-list-item gg-admin-meta-item" data-meta-id="${escapeAttribute(meta.id)}">
-                    <div class="gg-meta-list-main">
-                        <span class="gg-country-badge" title="${escapeAttribute(meta.country || 'Unknown Country')}">${escapeHtml(countryCode)}</span>
-                        <div class="gg-meta-list-title">${escapeHtml(meta.title || meta.id)}</div>
-                        <div class="gg-meta-list-tags">
-                            <span class="gg-tag-static gg-scope-static">${escapeHtml(getScopeLabel(normalizeScope(meta.scope)))}</span>
-                            ${renderStaticTags(meta.tags)}
-                        </div>
-                    </div>
-                    <button class="gg-btn-link-meta gg-btn-admin-edit" data-meta-id="${escapeAttribute(meta.id)}">Edit</button>
-                </div>
-            `;
-        }).join('');
+        container.innerHTML = sorted.map(({ meta }) => renderMetaListItem(meta, {
+            itemClass: ' gg-admin-meta-item',
+            titleFallback: true,
+            showScope: true,
+            actionHtml: `<button class="gg-btn-link-meta gg-btn-admin-edit" data-meta-id="${escapeHtml(meta.id)}">Edit</button>`,
+        })).join('');
 
-        const previewPopup = document.getElementById('gg-meta-preview-popup');
-        const modal = document.getElementById('gg-meta-admin-modal');
-
-        container.querySelectorAll('.gg-admin-meta-item').forEach(item => {
-            item.addEventListener('mouseenter', () => {
-                const meta = metasData.find(m => m.id === item.dataset.metaId);
-                if (!meta || !previewPopup || !modal) return;
-
-                delete previewPopup.dataset.ggPreviewCleanupId;
-                previewPopup.dataset.ggPreviewMode = 'meta';
-                previewPopup.classList.remove('gg-image-url-preview');
-                previewPopup.innerHTML = `
-                    <div class="gg-meta-item-title">${escapeHtml(meta.title || meta.id)}</div>
-                    ${renderMetaImage(meta.imageUrl)}
-                    <div class="gg-meta-description">${escapeHtml(meta.description || '')}</div>
-                    <div class="gg-meta-tags">
-                        ${renderStaticTags(meta.tags)}
-                    </div>
-                `;
-
-                const modalRect = modal.getBoundingClientRect();
-                const itemRect = item.getBoundingClientRect();
-                const leftPos = modalRect.left - 290;
-
-                previewPopup.style.left = `${leftPos}px`;
-                previewPopup.classList.add('gg-visible');
-
-                const height = previewPopup.offsetHeight;
-                const adjustedTop = itemRect.top + (itemRect.height / 2) - (height / 2);
-                previewPopup.style.top = `${adjustedTop}px`;
-            });
-
-            item.addEventListener('mouseleave', hidePreviewPopup);
-        });
+        attachMetaPreview(container, 'gg-meta-admin-modal', { itemSelector: '.gg-admin-meta-item', requireModal: true, titleFallback: true, descriptionFallback: true });
 
         container.querySelectorAll('.gg-btn-admin-edit').forEach(btn => {
             btn.addEventListener('click', (e) => {
@@ -3685,86 +3775,25 @@
             return;
         }
 
-        const terms = searchTerm.toLowerCase().split(/[;,]/).map(s => s.trim()).filter(Boolean);
+        const terms = getMetaSearchTerms(searchTerm);
         const filtered = metasData.filter(meta => {
             if (!meta || meta.id === sourceMeta.id) return false;
-            if (terms.length === 0) return true;
-
-            const searchableContent = [
-                meta.country || '',
-                meta.title || '',
-                meta.description || '',
-                (meta.tags || []).join(' ')
-            ].join(' ').toLowerCase();
-
-            return terms.every(term => searchableContent.includes(term));
+            return matchesMetaSearch(meta, terms);
         });
 
-        const groups = new Map();
-        filtered.forEach(meta => {
-            const tagsSig = (meta.tags || []).slice().sort().join(',');
-            const sig = `${meta.country}|${meta.title}|${meta.description}|${tagsSig}`;
-            if (!groups.has(sig)) groups.set(sig, []);
-            groups.get(sig).push(meta);
-        });
-
-        const uniqueFiltered = Array.from(groups.values()).map(group => group[0]);
+        const uniqueFiltered = deduplicateMetasBySignature(filtered);
 
         if (uniqueFiltered.length === 0) {
             container.innerHTML = '<div class="gg-form-hint gg-list-empty-state">No metas found.</div>';
             return;
         }
 
-        container.innerHTML = uniqueFiltered.map(meta => {
-            const countryCode = getCountryCode(meta.country);
-            return `
-                <div class="gg-meta-list-item" data-meta-id="${escapeAttribute(meta.id)}">
-                    <div class="gg-meta-list-main">
-                        <span class="gg-country-badge" title="${escapeAttribute(meta.country || 'Unknown Country')}">${escapeHtml(countryCode)}</span>
-                        <div class="gg-meta-list-title">${escapeHtml(meta.title || meta.id)}</div>
-                        <div class="gg-meta-list-tags">
-                            ${renderStaticTags(meta.tags)}
-                        </div>
-                    </div>
-                    <button class="gg-btn-link-meta gg-btn-transfer-meta" data-meta-id="${escapeAttribute(meta.id)}">Transfer</button>
-                </div>
-            `;
-        }).join('');
+        container.innerHTML = uniqueFiltered.map(meta => renderMetaListItem(meta, {
+            titleFallback: true,
+            actionHtml: `<button class="gg-btn-link-meta gg-btn-transfer-meta" data-meta-id="${escapeHtml(meta.id)}">Transfer</button>`,
+        })).join('');
 
-        const previewPopup = document.getElementById('gg-meta-preview-popup');
-        const modal = document.getElementById('gg-meta-admin-modal');
-
-        container.querySelectorAll('.gg-meta-list-item').forEach(item => {
-            item.addEventListener('mouseenter', () => {
-                const meta = metasData.find(m => m.id === item.dataset.metaId);
-                if (!meta || !previewPopup || !modal) return;
-
-                delete previewPopup.dataset.ggPreviewCleanupId;
-                previewPopup.dataset.ggPreviewMode = 'meta';
-                previewPopup.classList.remove('gg-image-url-preview');
-                previewPopup.innerHTML = `
-                    <div class="gg-meta-item-title">${escapeHtml(meta.title || meta.id)}</div>
-                    ${renderMetaImage(meta.imageUrl)}
-                    <div class="gg-meta-description">${escapeHtml(meta.description || '')}</div>
-                    <div class="gg-meta-tags">
-                        ${renderStaticTags(meta.tags)}
-                    </div>
-                `;
-
-                const modalRect = modal.getBoundingClientRect();
-                const itemRect = item.getBoundingClientRect();
-                const leftPos = modalRect.left - 290;
-
-                previewPopup.style.left = `${leftPos}px`;
-                previewPopup.classList.add('gg-visible');
-
-                const height = previewPopup.offsetHeight;
-                const adjustedTop = itemRect.top + (itemRect.height / 2) - (height / 2);
-                previewPopup.style.top = `${adjustedTop}px`;
-            });
-
-            item.addEventListener('mouseleave', hidePreviewPopup);
-        });
+        attachMetaPreview(container, 'gg-meta-admin-modal', { requireModal: true, titleFallback: true, descriptionFallback: true });
 
         container.querySelectorAll('.gg-btn-transfer-meta').forEach(btn => {
             btn.addEventListener('click', (e) => {
@@ -3784,38 +3813,13 @@
         const panoid = currentPanoid || MISSING_PANOID_PLACEHOLDER;
         const linkedMetaIds = new Set(getLocationMetaIds(locationMap[panoid]));
 
-        // Support multi-term search split by semicolon or comma.
-        const terms = searchTerm.toLowerCase().split(/[;,]/).map(s => s.trim()).filter(s => s);
+        const terms = getMetaSearchTerms(searchTerm);
 
-        const filtered = metasData.filter(m => {
-            if (terms.length === 0) return true;
-
-            const searchableContent = [
-                m.country || '',
-                m.title || '',
-                m.description || '',
-                (m.tags || []).join(' ')
-            ].join(' ').toLowerCase();
-
-            // All terms must be present
-            return terms.every(term => searchableContent.includes(term));
-        });
-
-        // Deduplicate by signature (Country+Title+Desc+Tags)
-        const groups = new Map();
-        filtered.forEach(m => {
-             const tagsSig = (m.tags || []).slice().sort().join(',');
-             const sig = `${m.country}|${m.title}|${m.description}|${tagsSig}`;
-             if (!groups.has(sig)) groups.set(sig, []);
-             groups.get(sig).push(m);
-        });
-
-        const uniqueFiltered = [];
-        groups.forEach(group => {
-             // If any meta in this group is currently selected or already linked, prefer showing it.
-             const linked = group.find(m => linkedMetaIds.has(m.id));
-             const selected = group.find(m => selectedMetaIds.has(m.id));
-             uniqueFiltered.push(linked || selected || group[0]);
+        const filtered = metasData.filter(meta => matchesMetaSearch(meta, terms));
+        const uniqueFiltered = deduplicateMetasBySignature(filtered, group => {
+            const linked = group.find(meta => linkedMetaIds.has(meta.id));
+            const selected = group.find(meta => selectedMetaIds.has(meta.id));
+            return linked || selected || group[0];
         });
         
         if (uniqueFiltered.length === 0) {
@@ -3823,84 +3827,18 @@
             return;
         }
 
-        container.innerHTML = uniqueFiltered.map(m => {
-            const isSelected = selectedMetaIds.has(m.id);
-            const isLinked = linkedMetaIds.has(m.id);
-            const countryCode = getCountryCode(m.country);
-            return `
-                <div class="gg-meta-list-item" data-meta-id="${escapeAttribute(m.id)}">
-                    <div class="gg-meta-list-main">
-                        <span class="gg-country-badge" title="${escapeAttribute(m.country || 'Unknown Country')}">${escapeHtml(countryCode)}</span>
-                        <div class="gg-meta-list-title">${escapeHtml(m.title)}</div>
-                        <div class="gg-meta-list-tags">
-                            ${renderStaticTags(m.tags)}
-                        </div>
-                    </div>
-                    ${isLinked
+        container.innerHTML = uniqueFiltered.map(meta => {
+            const isSelected = selectedMetaIds.has(meta.id);
+            const isLinked = linkedMetaIds.has(meta.id);
+            const actionHtml = isLinked
                         ? '<span class="gg-meta-linked-indicator" title="Already linked to this location">Linked</span>'
-                        : `<button class="gg-btn-link-meta ${isSelected ? 'gg-tag-selected' : ''}" data-meta-id="${escapeAttribute(m.id)}">
+                        : `<button class="gg-btn-link-meta ${isSelected ? 'gg-tag-selected' : ''}" data-meta-id="${escapeHtml(meta.id)}">
                             ${isSelected ? 'Selected' : 'Link'}
-                        </button>`
-                    }
-                </div>
-            `;
+                        </button>`;
+            return renderMetaListItem(meta, { titleFallback: false, actionHtml });
         }).join('');
 
-        // Hover Preview Logic
-        const previewPopup = document.getElementById('gg-meta-preview-popup');
-        const modal = document.getElementById('gg-meta-modal');
-        
-        container.querySelectorAll('.gg-meta-list-item').forEach(item => {
-            item.addEventListener('mouseenter', (e) => {
-                const metaId = item.dataset.metaId;
-                const meta = metasData.find(m => m.id === metaId);
-                if (!meta || !previewPopup) return;
-                
-                // Populate
-                delete previewPopup.dataset.ggPreviewCleanupId;
-                previewPopup.dataset.ggPreviewMode = 'meta';
-                previewPopup.classList.remove('gg-image-url-preview');
-                previewPopup.innerHTML = `
-                    <div class="gg-meta-item-title">${escapeHtml(meta.title)}</div>
-                    ${renderMetaImage(meta.imageUrl)}
-                    <div class="gg-meta-description">${escapeHtml(meta.description)}</div>
-                    <div class="gg-meta-tags">
-                        ${renderStaticTags(meta.tags)}
-                    </div>
-                `;
-
-                // Position (Left of Modal)
-                if (modal) {
-                    const modalRect = modal.getBoundingClientRect();
-                    const itemRect = item.getBoundingClientRect();
-                    
-                    // X: Left of modal - width - padding
-                    const leftPos = modalRect.left - 290; // 280 width + 10 gap
-                    
-                    // Y: Center of hovered item
-                    // But keep it within screen bounds? 
-                    // Let's just center it on the item first.
-                    // Pointer is in the middle of popup (50%), so we want popup center to trigger item center
-                    const topPos = itemRect.top + (itemRect.height / 2) - (previewPopup.offsetHeight / 2);
-                    
-                    previewPopup.style.left = `${leftPos}px`;
-                    // Check bounds to ensure we don't calculate before display (offsetHeight might be 0 if hidden?)
-                    // Actually, we need to show it to measure it? Or just set top based on itemRect.top
-                    // Let's set it visible first?
-                    
-                    previewPopup.classList.add('gg-visible');
-                    
-                    // Re-adjust top after rendering content
-                    const height = previewPopup.offsetHeight;
-                    const adjustedTop = itemRect.top + (itemRect.height / 2) - (height / 2);
-                    previewPopup.style.top = `${adjustedTop}px`;
-                }
-            });
-
-            item.addEventListener('mouseleave', () => {
-                hidePreviewPopup();
-            });
-        });
+        attachMetaPreview(container, 'gg-meta-modal');
 
         // Add click handlers
         container.querySelectorAll('.gg-btn-link-meta').forEach(btn => {
@@ -4182,7 +4120,7 @@
             await updateGitHubJsonFile(
                 API_USER_METAS_URL,
                 token,
-                normalizeUserMetas,
+                normalizeMetaList,
                 metas => {
                     if (!metas.some(meta => meta.id === newMeta.id)) {
                         metas.push(newMeta);
@@ -4220,7 +4158,7 @@
     }
 
     async function refreshAfterAdminMutation({ optimisticMeta = null } = {}) {
-        clearDataCache();
+        clearStoredValue(DATA_CACHE_STORAGE_KEY);
         if (optimisticMeta) applyAdminMetaLocally(optimisticMeta);
         await fetchLocationData();
         if (optimisticMeta) applyAdminMetaLocally(optimisticMeta);
@@ -4272,7 +4210,7 @@
                 await updateGitHubJsonFileIfChanged(
                     API_USER_METAS_URL,
                     token,
-                    normalizeUserMetas,
+                    normalizeMetaList,
                     metas => {
                         let found = false;
                         const updatedMetas = metas.map(meta => {
@@ -4407,7 +4345,7 @@
                 await updateGitHubJsonFile(
                     API_USER_METAS_URL,
                     token,
-                    normalizeUserMetas,
+                    normalizeMetaList,
                     metas => {
                         const updatedMetas = metas.filter(meta => meta.id !== deletedMetaId);
                         if (updatedMetas.length === metas.length) {
@@ -4464,7 +4402,7 @@
             await updateGitHubJsonFile(
                 API_USER_METAS_URL,
                 token,
-                normalizeUserMetas,
+                normalizeMetaList,
                 () => [],
                 "Delete saved BetterMetas user metas"
             );
@@ -4507,7 +4445,7 @@
                  ? 'Click for Meta Actions'
                  : (titleAction === 'link' ? 'Click to Link to this Location' : 'Click to Remove from this Location');
              const titleAttr = (titleAction || canEditMetas)
-                 ? `class="gg-clickable-meta-title" data-meta-id="${escapeAttribute(m.id)}" data-meta-title="${escapeAttribute(titleText)}" data-action="${escapeAttribute(titleAction)}" title="${escapeAttribute(titleTooltip)}"`
+                 ? `class="gg-clickable-meta-title" data-meta-id="${escapeHtml(m.id)}" data-meta-title="${escapeHtml(titleText)}" data-action="${escapeHtml(titleAction)}" title="${escapeHtml(titleTooltip)}"`
                  : '';
              
              // Badge logic
@@ -5433,9 +5371,7 @@
 
     function readGitHubWriteLock() {
         try {
-            const value = typeof GM_getValue === 'function'
-                ? GM_getValue(GITHUB_WRITE_LOCK_STORAGE_KEY, null)
-                : localStorage.getItem(GITHUB_WRITE_LOCK_STORAGE_KEY);
+            const value = readStoredValue(GITHUB_WRITE_LOCK_STORAGE_KEY);
             return value ? JSON.parse(value) : null;
         } catch (error) {
             console.warn('[BetterMetas] Could not read GitHub write lock:', error);
@@ -5444,21 +5380,11 @@
     }
 
     function writeGitHubWriteLock(value) {
-        const serialized = JSON.stringify(value);
-        if (typeof GM_setValue === 'function') {
-            GM_setValue(GITHUB_WRITE_LOCK_STORAGE_KEY, serialized);
-            return;
-        }
-
-        localStorage.setItem(GITHUB_WRITE_LOCK_STORAGE_KEY, serialized);
+        writeStoredValue(GITHUB_WRITE_LOCK_STORAGE_KEY, JSON.stringify(value));
     }
 
     function clearGitHubWriteLock() {
-        if (typeof GM_setValue === 'function') {
-            GM_setValue(GITHUB_WRITE_LOCK_STORAGE_KEY, null);
-        }
-
-        localStorage.removeItem(GITHUB_WRITE_LOCK_STORAGE_KEY);
+        clearStoredValue(GITHUB_WRITE_LOCK_STORAGE_KEY);
     }
 
     async function acquireGitHubWriteLock(label) {
@@ -5511,45 +5437,17 @@
         return run;
     }
 
-    async function updateGitHubJsonFile(apiUrl, token, normalizeContent, updateContent, message) {
+    async function updateGitHubJsonFileWithOptions(apiUrl, token, normalizeContent, updateContent, message, skipUnchanged) {
         return withGitHubWriteLock(message, async () => {
             let lastError = null;
 
             for (let attempt = 1; attempt <= GITHUB_CONTENT_UPDATE_MAX_ATTEMPTS; attempt++) {
                 const file = await getGitHubJsonFile(apiUrl, token);
                 const content = normalizeContent(file.content);
+                const before = skipUnchanged ? stringifyJsonContent(content) : null;
                 const updatedContent = updateContent(content) || content;
 
-                try {
-                    return await putGitHubJsonFile(apiUrl, token, file.sha, updatedContent, message);
-                } catch (error) {
-                    lastError = error;
-                    if (!isGitHubContentConflict(error) || attempt === GITHUB_CONTENT_UPDATE_MAX_ATTEMPTS) {
-                        throw error;
-                    }
-
-                    const delay = GITHUB_CONTENT_UPDATE_RETRY_DELAY_MS * attempt + Math.floor(Math.random() * GITHUB_CONTENT_UPDATE_RETRY_DELAY_MS);
-                    console.warn(`[BetterMetas] GitHub content conflict while saving ${apiUrl}; retrying with latest file (${attempt + 1}/${GITHUB_CONTENT_UPDATE_MAX_ATTEMPTS}) after ${delay}ms.`, error);
-                    await wait(delay);
-                }
-            }
-
-            throw lastError;
-        });
-    }
-
-    async function updateGitHubJsonFileIfChanged(apiUrl, token, normalizeContent, updateContent, message) {
-        return withGitHubWriteLock(message, async () => {
-            let lastError = null;
-
-            for (let attempt = 1; attempt <= GITHUB_CONTENT_UPDATE_MAX_ATTEMPTS; attempt++) {
-                const file = await getGitHubJsonFile(apiUrl, token);
-                const content = normalizeContent(file.content);
-                const before = stringifyJsonContent(content);
-                const updatedContent = updateContent(content) || content;
-                const after = stringifyJsonContent(updatedContent);
-
-                if (before === after) {
+                if (skipUnchanged && before === stringifyJsonContent(updatedContent)) {
                     return { skipped: true };
                 }
 
@@ -5569,6 +5467,14 @@
 
             throw lastError;
         });
+    }
+
+    function updateGitHubJsonFile(apiUrl, token, normalizeContent, updateContent, message) {
+        return updateGitHubJsonFileWithOptions(apiUrl, token, normalizeContent, updateContent, message, false);
+    }
+
+    function updateGitHubJsonFileIfChanged(apiUrl, token, normalizeContent, updateContent, message) {
+        return updateGitHubJsonFileWithOptions(apiUrl, token, normalizeContent, updateContent, message, true);
     }
 
     function fetchGitHubContentJson(apiUrl, token) {
@@ -5624,70 +5530,36 @@
         throw lastError || new Error(`${label} load failed`);
     }
 
-    async function loadUserLocationsData(token) {
+    async function loadDataSource(token, options) {
         if (token) {
             try {
-                const locations = await fetchGitHubContentJson(API_USER_LOCATIONS_URL, token);
-                console.log(`[BetterMetas] Loaded ${Object.keys(normalizeLocationMap(locations)).length} user location mappings from GitHub API.`);
-                return normalizeLocationMap(locations);
+                const data = options.normalize(await fetchGitHubContentJson(options.apiUrl, token));
+                console.log(`[BetterMetas] Loaded ${options.count(data)} ${options.description} from GitHub API.`);
+                return data;
             } catch (err) {
-                console.warn('[BetterMetas] GitHub API user_locations fetch failed, falling back to raw:', err);
+                console.warn(`[BetterMetas] GitHub API ${options.apiLogName} fetch failed, falling back to raw:`, err);
             }
         }
 
-        const locations = await fetchRawJsonWithRetry(getRawUserLocationsUrl, 'user_locations.json', normalizeLocationMap, {}, { allowMissing: true });
-        console.log(`[BetterMetas] Loaded ${Object.keys(locations).length} user location mappings from raw.`);
-        return locations;
+        const data = await fetchRawJsonWithRetry(
+            () => getRawFileUrl(options.file),
+            options.logName,
+            options.normalize,
+            options.defaultValue,
+            { allowMissing: options.allowMissing }
+        );
+        console.log(`[BetterMetas] Loaded ${options.count(data)} ${options.description} from raw.`);
+        return data;
     }
 
-    async function loadUserMetasData(token) {
-        if (token) {
-            try {
-                const metas = await fetchGitHubContentJson(API_USER_METAS_URL, token);
-                console.log(`[BetterMetas] Loaded ${normalizeUserMetas(metas).length} user metas from GitHub API.`);
-                return normalizeUserMetas(metas);
-            } catch (err) {
-                console.warn('[BetterMetas] GitHub API user_metas fetch failed, falling back to raw:', err);
-            }
-        }
-
-        const metas = await fetchRawJsonWithRetry(getRawUserMetasUrl, 'user_metas.json', normalizeUserMetas, [], { allowMissing: true });
-        console.log(`[BetterMetas] Loaded ${metas.length} user metas from raw.`);
-        return metas;
-    }
-
-    async function loadSystemLocationsData(token) {
-        if (token) {
-            try {
-                const locations = await fetchGitHubContentJson(API_SYSTEM_LOCATIONS_URL, token);
-                console.log(`[BetterMetas] Loaded ${Object.keys(normalizeLocationMap(locations)).length} system location mappings from GitHub API.`);
-                return normalizeLocationMap(locations);
-            } catch (err) {
-                console.warn('[BetterMetas] GitHub API plonkit_locations fetch failed, falling back to raw:', err);
-            }
-        }
-
-        const locations = await fetchRawJsonWithRetry(getRawSystemLocationsUrl, 'plonkit_locations.json', normalizeLocationMap, {});
-        console.log(`[BetterMetas] Loaded ${Object.keys(locations).length} system location mappings from raw.`);
-        return locations;
-    }
-
-    async function loadSystemMetasData(token) {
-        if (token) {
-            try {
-                const metas = await fetchGitHubContentJson(API_SYSTEM_METAS_URL, token);
-                console.log(`[BetterMetas] Loaded ${normalizeSystemMetas(metas).length} system metas from GitHub API.`);
-                return normalizeSystemMetas(metas);
-            } catch (err) {
-                console.warn('[BetterMetas] GitHub API plonkit_metas fetch failed, falling back to raw:', err);
-            }
-        }
-
-        const metas = await fetchRawJsonWithRetry(getRawSystemMetasUrl, 'plonkit_metas.json', value => normalizeSystemMetas(value), []);
-        console.log(`[BetterMetas] Loaded ${metas.length} system metas from raw.`);
-        return metas;
-    }
-
+    const locationCount = (data) => Object.keys(data).length;
+    const metaCount = (data) => data.length;
+    const DATA_SOURCES = {
+        userLocations: { apiUrl: API_USER_LOCATIONS_URL, file: USER_LOCATIONS_FILE, apiLogName: 'user_locations', logName: 'user_locations.json', normalize: normalizeLocationMap, defaultValue: {}, allowMissing: true, count: locationCount, description: 'user location mappings' },
+        userMetas: { apiUrl: API_USER_METAS_URL, file: USER_METAS_FILE, apiLogName: 'user_metas', logName: 'user_metas.json', normalize: normalizeMetaList, defaultValue: [], allowMissing: true, count: metaCount, description: 'user metas' },
+        systemLocations: { apiUrl: API_SYSTEM_LOCATIONS_URL, file: SYSTEM_LOCATIONS_FILE, apiLogName: 'plonkit_locations', logName: 'plonkit_locations.json', normalize: normalizeLocationMap, defaultValue: {}, allowMissing: false, count: locationCount, description: 'system location mappings' },
+        systemMetas: { apiUrl: API_SYSTEM_METAS_URL, file: SYSTEM_METAS_FILE, apiLogName: 'plonkit_metas', logName: 'plonkit_metas.json', normalize: normalizeSystemMetas, defaultValue: [], allowMissing: false, count: metaCount, description: 'system metas' },
+    };
 
     // --- Data Fetching ---
     async function fetchLocationData() {
@@ -5698,10 +5570,10 @@
 
         try {
             const [loadedUserLocationMap, loadedSystemLocationMap, loadedUserMetas, loadedSystemMetas] = await Promise.all([
-                loadUserLocationsData(token),
-                loadSystemLocationsData(token),
-                loadUserMetasData(token),
-                loadSystemMetasData(token)
+                loadDataSource(token, DATA_SOURCES.userLocations),
+                loadDataSource(token, DATA_SOURCES.systemLocations),
+                loadDataSource(token, DATA_SOURCES.userMetas),
+                loadDataSource(token, DATA_SOURCES.systemMetas)
             ]);
 
             if (loadId !== dataLoadSequence) {
@@ -5709,19 +5581,14 @@
                 return;
             }
 
-            const applied = applyDataSnapshot({
+            const snapshot = {
                 userLocationMap: loadedUserLocationMap,
                 systemLocationMap: loadedSystemLocationMap,
                 userMetas: loadedUserMetas,
                 systemMetas: loadedSystemMetas
-            }, { prunePending: true });
-
-            saveDataSnapshotCache({
-                userLocationMap: loadedUserLocationMap,
-                systemLocationMap: loadedSystemLocationMap,
-                userMetas: loadedUserMetas,
-                systemMetas: loadedSystemMetas
-            });
+            };
+            const applied = applyDataSnapshot(snapshot, { prunePending: true });
+            saveDataSnapshotCache(snapshot);
 
             const locCount = Object.keys(locationMap).length;
             const userLocCount = Object.keys(userLocationMap).length;

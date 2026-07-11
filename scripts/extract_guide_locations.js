@@ -1,84 +1,23 @@
-const fs = require('fs');
 const https = require('https');
 const path = require('path');
-const { stringifyJsonAscii } = require('./json_utils');
-
-const BASE_URL = 'https://www.plonkit.net';
-const GUIDE_URL = `${BASE_URL}/guide`;
+const { getLowerCaseArg, parseIntArg } = require('./cli_utils');
+const { readJson, writeJsonAscii } = require('./json_utils');
+const {
+    BASE_URL,
+    extractPreloadedData,
+    fetchText,
+    scrapeGuideIndex,
+} = require('./plonkit_utils');
 const PLONKIT_DATA_PATH = path.join(__dirname, '../data/plonkit_metas.json');
 const LOCATIONS_DATA_PATH = path.join(__dirname, '../data/plonkit_locations.json');
 const NOMINATIM_RATE_LIMIT_MS = 1200;
 
-const VALID_GUIDE_CATEGORIES = new Set([
-    'Africa',
-    'Antarctica',
-    'Asia',
-    'Europe',
-    'North America',
-    'Oceania',
-    'South America',
-]);
-
 function parseArgs(argv) {
-    const args = {
+    return {
         dryRun: argv.includes('--dry-run'),
-        country: null,
-        limit: null,
+        country: getLowerCaseArg(argv, '--country='),
+        limit: parseIntArg(argv, '--limit='),
     };
-
-    const countryArg = argv.find((arg) => arg.startsWith('--country='));
-    if (countryArg) args.country = countryArg.split('=').slice(1).join('=').trim().toLowerCase();
-
-    const limitArg = argv.find((arg) => arg.startsWith('--limit='));
-    if (limitArg) args.limit = Number.parseInt(limitArg.split('=')[1], 10);
-
-    return args;
-}
-
-function fetchText(url, headers = {}) {
-    return new Promise((resolve, reject) => {
-        https.get(url, {
-            headers: {
-                'User-Agent': 'BetterMetasLocationExtractor/1.0',
-                ...headers,
-            },
-        }, (res) => {
-            if (res.statusCode >= 300 && res.statusCode < 400 && res.headers.location) {
-                const nextUrl = new URL(res.headers.location, url).toString();
-                res.resume();
-                fetchText(nextUrl, headers).then(resolve, reject);
-                return;
-            }
-
-            if (res.statusCode !== 200) {
-                res.resume();
-                reject(new Error(`GET ${url} failed with HTTP ${res.statusCode}`));
-                return;
-            }
-
-            let body = '';
-            res.setEncoding('utf8');
-            res.on('data', (chunk) => { body += chunk; });
-            res.on('end', () => resolve(body));
-        }).on('error', reject);
-    });
-}
-
-function extractPreloadedData(html, url) {
-    const match = html.match(/<script id="__PRELOADED_DATA__" type="application\/json">\s*([\s\S]*?)\s*<\/script>/);
-    if (!match) throw new Error(`No __PRELOADED_DATA__ found in ${url}`);
-
-    const payload = JSON.parse(match[1]);
-    if (!payload.success) throw new Error(`Plonkit payload was not successful for ${url}`);
-    return payload.data;
-}
-
-function isGuideEntry(entry) {
-    return Array.isArray(entry.cat) && entry.cat.some((cat) => VALID_GUIDE_CATEGORIES.has(cat));
-}
-
-function stableMetaId(slug, itemId) {
-    return `meta_${slug}_${itemId}`.replace(/[^a-zA-Z0-9_]+/g, '_');
 }
 
 function normalizeImagePath(url) {
@@ -88,11 +27,6 @@ function normalizeImagePath(url) {
 
 function isMapsUrl(url) {
     return /(?:google\.com\/maps|goo\.gl\/maps|maps\.app\.goo\.gl)/.test(url || '');
-}
-
-function loadJsonFile(filePath, fallback) {
-    if (!fs.existsSync(filePath)) return fallback;
-    return JSON.parse(fs.readFileSync(filePath, 'utf8'));
 }
 
 function buildMetaLookup(plonkitData) {
@@ -109,14 +43,9 @@ function buildMetaLookup(plonkitData) {
     return lookup;
 }
 
-async function scrapeGuideIndex() {
-    const html = await fetchText(GUIDE_URL);
-    return extractPreloadedData(html, GUIDE_URL).filter(isGuideEntry);
-}
-
 async function scrapeLocationTasks(entry, metaLookup) {
     const url = `${BASE_URL}/${entry.slug}`;
-    const html = await fetchText(url);
+    const html = await fetchText(url, { 'User-Agent': 'BetterMetasLocationExtractor/1.0' });
     const guide = extractPreloadedData(html, url).public;
     const tasks = [];
 
@@ -144,17 +73,19 @@ async function scrapeLocationTasks(entry, metaLookup) {
 }
 
 async function resolveUrl(url) {
-    if (!url.includes('goo.gl') && !url.includes('maps.app.goo.gl')) return url;
-    return new Promise((resolve) => {
-        https.get(url, { headers: { 'User-Agent': 'BetterMetasLocationExtractor/1.0' } }, (res) => {
-            if (res.statusCode >= 300 && res.statusCode < 400 && res.headers.location) {
-                resolve(new URL(res.headers.location, url).toString());
-            } else {
-                resolve(res.responseUrl || url);
-            }
-            res.resume();
-        }).on('error', () => resolve(url));
-    });
+    let resolvedUrl = url;
+    for (let redirects = 0; redirects < 2 && /(?:goo\.gl|maps\.app\.goo\.gl)/.test(resolvedUrl); redirects += 1) {
+        resolvedUrl = await new Promise((resolve) => {
+            https.get(resolvedUrl, { headers: { 'User-Agent': 'BetterMetasLocationExtractor/1.0' } }, (res) => {
+                const nextUrl = res.statusCode >= 300 && res.statusCode < 400 && res.headers.location
+                    ? new URL(res.headers.location, resolvedUrl).toString()
+                    : resolvedUrl;
+                res.resume();
+                resolve(nextUrl);
+            }).on('error', () => resolve(resolvedUrl));
+        });
+    }
+    return resolvedUrl;
 }
 
 function extractMapsLocation(url) {
@@ -232,11 +163,11 @@ function mergeLocation(locationsData, panoid, task, location) {
 
 async function main() {
     const args = parseArgs(process.argv.slice(2));
-    const plonkitData = loadJsonFile(PLONKIT_DATA_PATH, []);
-    const locationsData = loadJsonFile(LOCATIONS_DATA_PATH, {});
+    const plonkitData = readJson(PLONKIT_DATA_PATH, []);
+    const locationsData = readJson(LOCATIONS_DATA_PATH, {});
     const metaLookup = buildMetaLookup(plonkitData);
 
-    let entries = await scrapeGuideIndex();
+    let entries = await scrapeGuideIndex({ 'User-Agent': 'BetterMetasLocationExtractor/1.0' });
     if (args.country) {
         entries = entries.filter((entry) => (
             entry.slug.toLowerCase() === args.country
@@ -260,7 +191,7 @@ async function main() {
     let failed = 0;
 
     for (const [index, task] of tasks.entries()) {
-        const finalUrl = await resolveUrl(await resolveUrl(task.mapsUrl));
+        const finalUrl = await resolveUrl(task.mapsUrl);
         const parsed = extractMapsLocation(finalUrl);
         if (!parsed) {
             failed += 1;
@@ -292,7 +223,7 @@ async function main() {
         resolved += 1;
 
         if (!args.dryRun && resolved % 25 === 0) {
-            fs.writeFileSync(LOCATIONS_DATA_PATH, stringifyJsonAscii(locationsData));
+            writeJsonAscii(LOCATIONS_DATA_PATH, locationsData);
         }
 
         if ((index + 1) % 100 === 0) {
@@ -309,11 +240,18 @@ async function main() {
         return;
     }
 
-    fs.writeFileSync(LOCATIONS_DATA_PATH, stringifyJsonAscii(locationsData));
+    writeJsonAscii(LOCATIONS_DATA_PATH, locationsData);
     console.log(`Saved ${Object.keys(locationsData).length} locations to ${LOCATIONS_DATA_PATH}`);
 }
 
-main().catch((err) => {
-    console.error('Fatal error:', err);
-    process.exitCode = 1;
-});
+if (require.main === module) {
+    main().catch((err) => {
+        console.error('Fatal error:', err);
+        process.exitCode = 1;
+    });
+}
+
+module.exports = {
+    extractMapsLocation,
+    resolveUrl,
+};

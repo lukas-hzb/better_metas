@@ -1,6 +1,6 @@
-const fs = require('fs');
 const path = require('path');
-const { stringifyJsonAscii } = require('./json_utils');
+const { getLowerCaseArg } = require('./cli_utils');
+const { readJson, writeJsonAscii } = require('./json_utils');
 
 const PLONKIT_METAS_PATH = path.join(__dirname, '../data/plonkit_metas.json');
 
@@ -142,13 +142,13 @@ function determineTags(title, description, note) {
 function parseArgs(argv) {
     return {
         dryRun: argv.includes('--dry-run'),
-        country: (argv.find((arg) => arg.startsWith('--country=')) || '').split('=').slice(1).join('=').trim().toLowerCase() || null,
+        country: getLowerCaseArg(argv, '--country='),
     };
 }
 
 function main() {
     const args = parseArgs(process.argv.slice(2));
-    const data = JSON.parse(fs.readFileSync(PLONKIT_METAS_PATH, 'utf8'));
+    const data = readJson(PLONKIT_METAS_PATH);
     const stats = Object.fromEntries([...Object.keys(TAG_PATTERNS), '(none)'].map((tag) => [tag, 0]));
 
     let count = 0;
@@ -176,7 +176,7 @@ function main() {
         return;
     }
 
-    fs.writeFileSync(PLONKIT_METAS_PATH, stringifyJsonAscii(data));
+    writeJsonAscii(PLONKIT_METAS_PATH, data);
     console.log(`Saved tags to ${PLONKIT_METAS_PATH}`);
 }
 

@@ -1,6 +1,6 @@
-const fs = require('fs');
 const path = require('path');
-const { stringifyJsonAscii } = require('./json_utils');
+const { getLowerCaseArg } = require('./cli_utils');
+const { readJson, writeJsonAscii } = require('./json_utils');
 
 const PLONKIT_METAS_PATH = path.join(__dirname, '../data/plonkit_metas.json');
 
@@ -17,8 +17,6 @@ function matchesAny(value, patterns) {
 function determineScope(title = '', description = '', note = '', section = '') {
     const d = String(description || '').toLowerCase();
     const t = String(title || '').toLowerCase();
-    const n = String(note || '').toLowerCase();
-    const allText = `${d} ${t} ${n}`;
 
     const uniquePatterns = [
         /only found (at|in|near|around)\s+[A-Z]/i,
@@ -147,22 +145,19 @@ function determineScope(title = '', description = '', note = '', section = '') {
     if (['map', 'header', 'overview', 'notes'].some((word) => t.includes(word))) return fallbackScopeForSection(section);
     if (/(along|throughout)\s+the\s+road/i.test(d)) return fallbackScopeForSection(section);
     if (d.includes('can be found') && d.length < 100) return 'countrywide';
-    if (section === 'Step 1') return 'countrywide';
-    if (section === 'Step 2') return 'region';
-    if (section === 'Step 3') return '10km';
     return fallbackScopeForSection(section);
 }
 
 function parseArgs(argv) {
     return {
         dryRun: argv.includes('--dry-run'),
-        country: (argv.find((arg) => arg.startsWith('--country=')) || '').split('=').slice(1).join('=').trim().toLowerCase() || null,
+        country: getLowerCaseArg(argv, '--country='),
     };
 }
 
 function main() {
     const args = parseArgs(process.argv.slice(2));
-    const data = JSON.parse(fs.readFileSync(PLONKIT_METAS_PATH, 'utf8'));
+    const data = readJson(PLONKIT_METAS_PATH);
     const stats = {
         countrywide: 0,
         region: 0,
@@ -199,7 +194,7 @@ function main() {
         return;
     }
 
-    fs.writeFileSync(PLONKIT_METAS_PATH, stringifyJsonAscii(data));
+    writeJsonAscii(PLONKIT_METAS_PATH, data);
     console.log(`Saved scopes to ${PLONKIT_METAS_PATH}`);
 }
 

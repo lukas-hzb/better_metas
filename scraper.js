@@ -1,22 +1,15 @@
-const fs = require('fs');
-const https = require('https');
 const path = require('path');
-const { stringifyJsonAscii } = require('./scripts/json_utils');
-
-const BASE_URL = 'https://www.plonkit.net';
-const GUIDE_URL = `${BASE_URL}/guide`;
+const { getLowerCaseArg, parseIntArg } = require('./scripts/cli_utils');
+const { readJson, stringifyJsonAscii, writeJsonAscii } = require('./scripts/json_utils');
+const {
+    BASE_URL,
+    extractPreloadedData,
+    fetchText,
+    scrapeGuideIndex,
+    stableMetaId,
+} = require('./scripts/plonkit_utils');
 const PLONKIT_METAS_PATH = path.join(__dirname, 'data/plonkit_metas.json');
 const TODAY_ISO_DATE = new Date().toISOString().slice(0, 10);
-
-const VALID_GUIDE_CATEGORIES = new Set([
-    'Africa',
-    'Antarctica',
-    'Asia',
-    'Europe',
-    'North America',
-    'Oceania',
-    'South America',
-]);
 
 const TAG_MAP = {
     'architecture': 'architecture',
@@ -57,55 +50,10 @@ function parseArgs(argv) {
         test: argv.includes('--test'),
         dryRun: argv.includes('--dry-run'),
         help: argv.includes('--help') || argv.includes('-h'),
-        country: null,
-        limit: null,
+        country: getLowerCaseArg(argv, '--country='),
+        limit: parseIntArg(argv, '--limit='),
     };
-
-    const countryArg = argv.find((arg) => arg.startsWith('--country='));
-    if (countryArg) args.country = countryArg.split('=').slice(1).join('=').trim().toLowerCase();
-
-    const limitArg = argv.find((arg) => arg.startsWith('--limit='));
-    if (limitArg) args.limit = Number.parseInt(limitArg.split('=')[1], 10);
-
     return args;
-}
-
-function fetchText(url) {
-    return new Promise((resolve, reject) => {
-        https.get(url, {
-            headers: {
-                'User-Agent': 'BetterMetasScraper/1.0 (+https://github.com/)',
-                'Accept': 'text/html,application/xhtml+xml',
-            },
-        }, (res) => {
-            if (res.statusCode >= 300 && res.statusCode < 400 && res.headers.location) {
-                const nextUrl = new URL(res.headers.location, url).toString();
-                res.resume();
-                fetchText(nextUrl).then(resolve, reject);
-                return;
-            }
-
-            if (res.statusCode !== 200) {
-                res.resume();
-                reject(new Error(`GET ${url} failed with HTTP ${res.statusCode}`));
-                return;
-            }
-
-            let body = '';
-            res.setEncoding('utf8');
-            res.on('data', (chunk) => { body += chunk; });
-            res.on('end', () => resolve(body));
-        }).on('error', reject);
-    });
-}
-
-function extractPreloadedData(html, url) {
-    const match = html.match(/<script id="__PRELOADED_DATA__" type="application\/json">\s*([\s\S]*?)\s*<\/script>/);
-    if (!match) throw new Error(`No __PRELOADED_DATA__ found in ${url}`);
-
-    const payload = JSON.parse(match[1]);
-    if (!payload.success) throw new Error(`Plonkit payload was not successful for ${url}`);
-    return payload.data;
 }
 
 function toAbsoluteUrl(url) {
@@ -152,10 +100,6 @@ function normalizeForMatch(value) {
         .trim();
 }
 
-function stableMetaId(slug, itemId) {
-    return `meta_${slug}_${itemId}`.replace(/[^a-zA-Z0-9_]+/g, '_');
-}
-
 function stableLocalMetaId(slug, meta) {
     const canonicalPrefix = stableMetaId(slug, 'local');
     if (String(meta.id || '').startsWith(`${canonicalPrefix}_`)) return meta.id;
@@ -182,12 +126,12 @@ function fallbackScopeForSection(section) {
 }
 
 function convertTags(tags) {
-    const converted = [];
+    const converted = new Set();
     for (const rawTag of tags || []) {
         const mapped = TAG_MAP[String(rawTag).toLowerCase()];
-        if (mapped && !converted.includes(mapped)) converted.push(mapped);
+        if (mapped) converted.add(mapped);
     }
-    return converted;
+    return [...converted];
 }
 
 function orderMetaFields(meta) {
@@ -220,16 +164,6 @@ function orderCountryFields(country) {
         updatedAt: country.updatedAt,
         metas: (country.metas || []).map(orderMetaFields),
     };
-}
-
-function isGuideEntry(entry) {
-    return Array.isArray(entry.cat) && entry.cat.some((cat) => VALID_GUIDE_CATEGORIES.has(cat));
-}
-
-async function scrapeGuideIndex() {
-    const html = await fetchText(GUIDE_URL);
-    const entries = extractPreloadedData(html, GUIDE_URL);
-    return entries.filter(isGuideEntry);
 }
 
 function flattenGuideItems(countryData) {
@@ -276,53 +210,86 @@ function flattenGuideItems(countryData) {
 
 async function scrapeCountry(slug) {
     const url = `${BASE_URL}/${slug}`;
-    const html = await fetchText(url);
+    const html = await fetchText(url, {
+        'User-Agent': 'BetterMetasScraper/1.0 (+https://github.com/)',
+        'Accept': 'text/html,application/xhtml+xml',
+    });
     return flattenGuideItems(extractPreloadedData(html, url));
 }
 
 function loadExistingData() {
-    if (!fs.existsSync(PLONKIT_METAS_PATH)) return [];
-    return JSON.parse(fs.readFileSync(PLONKIT_METAS_PATH, 'utf8'));
+    return readJson(PLONKIT_METAS_PATH, []);
 }
 
 function buildCountryLookup(existingData) {
     const bySlug = new Map();
     const byCountry = new Map();
+    const lookup = { bySlug, byCountry };
 
     for (const entry of existingData) {
-        if (entry.slug) bySlug.set(String(entry.slug).toLowerCase(), entry);
-        if (entry.country) byCountry.set(String(entry.country).toLowerCase(), entry);
-        if (entry.url) {
-            const slug = entry.url.split('/').filter(Boolean).pop();
-            if (slug) bySlug.set(slug.toLowerCase(), entry);
-        }
+        addCountryToLookup(lookup, entry);
     }
 
-    return { bySlug, byCountry };
+    return lookup;
 }
 
-function findExistingCountry(existingData, scrapedCountry) {
-    const lookup = buildCountryLookup(existingData);
+function addCountryToLookup(lookup, entry) {
+    if (entry.slug) lookup.bySlug.set(String(entry.slug).toLowerCase(), entry);
+    if (entry.country) lookup.byCountry.set(String(entry.country).toLowerCase(), entry);
+    if (entry.url) {
+        const slug = entry.url.split('/').filter(Boolean).pop();
+        if (slug) lookup.bySlug.set(slug.toLowerCase(), entry);
+    }
+}
+
+function removeCountryFromLookup(lookup, entry) {
+    for (const map of Object.values(lookup)) {
+        for (const [key, value] of map) {
+            if (value === entry) map.delete(key);
+        }
+    }
+}
+
+function findExistingCountry(lookup, scrapedCountry) {
     return lookup.bySlug.get(scrapedCountry.slug.toLowerCase())
         || lookup.byCountry.get(scrapedCountry.country.toLowerCase())
         || null;
 }
 
-function findExistingMeta(existingMetas, scrapedMeta) {
-    const byPlonkitId = existingMetas.find((meta) => meta.plonkitId && meta.plonkitId === scrapedMeta.plonkitId);
+function buildMetaLookup(existingMetas) {
+    const lookup = {
+        byPlonkitId: new Map(),
+        byStableId: new Map(),
+        byImage: new Map(),
+        byDescription: new Map(),
+    };
+
+    for (const meta of existingMetas) {
+        if (meta.plonkitId && !lookup.byPlonkitId.has(meta.plonkitId)) lookup.byPlonkitId.set(meta.plonkitId, meta);
+        if (!lookup.byStableId.has(meta.id)) lookup.byStableId.set(meta.id, meta);
+        if (meta.imageUrl) {
+            const imagePath = new URL(meta.imageUrl).pathname;
+            if (!lookup.byImage.has(imagePath)) lookup.byImage.set(imagePath, meta);
+        }
+        const description = normalizeForMatch(meta.description);
+        if (!lookup.byDescription.has(description)) lookup.byDescription.set(description, meta);
+    }
+
+    return lookup;
+}
+
+function findExistingMeta(lookup, scrapedMeta) {
+    const byPlonkitId = scrapedMeta.plonkitId && lookup.byPlonkitId.get(scrapedMeta.plonkitId);
     if (byPlonkitId) return byPlonkitId;
 
-    const byStableId = existingMetas.find((meta) => meta.id === scrapedMeta.id);
+    const byStableId = lookup.byStableId.get(scrapedMeta.id);
     if (byStableId) return byStableId;
 
     const imagePath = scrapedMeta.imageUrl ? new URL(scrapedMeta.imageUrl).pathname : '';
-    const byImage = imagePath
-        ? existingMetas.find((meta) => meta.imageUrl && new URL(meta.imageUrl).pathname === imagePath)
-        : null;
+    const byImage = imagePath && lookup.byImage.get(imagePath);
     if (byImage) return byImage;
 
-    const scrapedDescription = normalizeForMatch(scrapedMeta.description);
-    return existingMetas.find((meta) => normalizeForMatch(meta.description) === scrapedDescription) || null;
+    return lookup.byDescription.get(normalizeForMatch(scrapedMeta.description)) || null;
 }
 
 function mergeMeta(existingMeta, scrapedMeta) {
@@ -350,11 +317,12 @@ function mergeMeta(existingMeta, scrapedMeta) {
 
 function mergeCountry(existingCountry, scrapedCountry, stats) {
     const existingMetas = existingCountry?.metas || [];
+    const existingMetaLookup = buildMetaLookup(existingMetas);
     const usedExisting = new Set();
     const mergedMetas = [];
 
     for (const scrapedMeta of scrapedCountry.metas) {
-        const existingMeta = findExistingMeta(existingMetas, scrapedMeta);
+        const existingMeta = findExistingMeta(existingMetaLookup, scrapedMeta);
         if (existingMeta) {
             usedExisting.add(existingMeta);
             mergedMetas.push(mergeMeta(existingMeta, scrapedMeta));
@@ -397,19 +365,22 @@ function mergeScrapedData(existingData, scrapedData) {
     };
 
     const output = [...existingData];
+    const countryLookup = buildCountryLookup(output);
 
     for (const scrapedCountry of scrapedData) {
-        const existingCountry = findExistingCountry(output, scrapedCountry);
+        const existingCountry = findExistingCountry(countryLookup, scrapedCountry);
         const mergedCountry = mergeCountry(existingCountry, scrapedCountry, stats);
 
         if (existingCountry) {
             const index = output.indexOf(existingCountry);
             output[index] = mergedCountry;
+            removeCountryFromLookup(countryLookup, existingCountry);
             stats.countriesUpdated += 1;
         } else {
             output.push(mergedCountry);
             stats.countriesAdded += 1;
         }
+        addCountryToLookup(countryLookup, mergedCountry);
     }
 
     return { data: output, stats };
@@ -422,7 +393,10 @@ async function main() {
         return;
     }
 
-    const guideEntries = await scrapeGuideIndex();
+    const guideEntries = await scrapeGuideIndex({
+        'User-Agent': 'BetterMetasScraper/1.0 (+https://github.com/)',
+        'Accept': 'text/html,application/xhtml+xml',
+    });
     console.log(`Found ${guideEntries.length} Plonkit guide entries.`);
 
     let targets = guideEntries;
@@ -469,11 +443,18 @@ async function main() {
         return;
     }
 
-    fs.writeFileSync(PLONKIT_METAS_PATH, stringifyJsonAscii(data));
+    writeJsonAscii(PLONKIT_METAS_PATH, data);
     console.log(`Saved merged data to ${PLONKIT_METAS_PATH}`);
 }
 
-main().catch((err) => {
-    console.error('Fatal error:', err);
-    process.exitCode = 1;
-});
+if (require.main === module) {
+    main().catch((err) => {
+        console.error('Fatal error:', err);
+        process.exitCode = 1;
+    });
+}
+
+module.exports = {
+    convertTags,
+    mergeScrapedData,
+};

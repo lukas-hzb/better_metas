@@ -1,6 +1,6 @@
-const fs = require('fs');
 const path = require('path');
-const { stringifyJsonAscii } = require('./json_utils');
+const { getArg, getLowerCaseArg, parseIntArg } = require('./cli_utils');
+const { readJson, writeJsonAscii } = require('./json_utils');
 
 const PLONKIT_METAS_PATH = path.join(__dirname, '../data/plonkit_metas.json');
 const DEFAULT_OLLAMA_MODEL = process.env.OLLAMA_MODEL || 'gemma4:e2b';
@@ -12,23 +12,11 @@ function parseArgs(argv) {
         provider: getArg(argv, '--provider=') || process.env.TITLE_PROVIDER || 'ollama',
         model: getArg(argv, '--model=') || null,
         limit: parseIntArg(argv, '--limit='),
-        country: (getArg(argv, '--country=') || '').toLowerCase() || null,
+        country: getLowerCaseArg(argv, '--country='),
         saveEvery: parseIntArg(argv, '--save-every=') || 100,
         dryRun: argv.includes('--dry-run'),
         force: argv.includes('--force'),
     };
-}
-
-function getArg(argv, prefix) {
-    const arg = argv.find((value) => value.startsWith(prefix));
-    return arg ? arg.slice(prefix.length).trim() : null;
-}
-
-function parseIntArg(argv, prefix) {
-    const value = getArg(argv, prefix);
-    if (!value) return null;
-    const parsed = Number.parseInt(value, 10);
-    return Number.isInteger(parsed) && parsed > 0 ? parsed : null;
 }
 
 function buildPrompt(meta) {
@@ -243,7 +231,7 @@ function collectTargets(data, args) {
 
 async function main() {
     const args = parseArgs(process.argv.slice(2));
-    const data = JSON.parse(fs.readFileSync(PLONKIT_METAS_PATH, 'utf8'));
+    const data = readJson(PLONKIT_METAS_PATH);
     const targets = collectTargets(data, args);
 
     console.log(`Provider: ${args.provider}`);
@@ -263,7 +251,7 @@ async function main() {
             generated += 1;
             console.log(`[${index + 1}/${targets.length}] ${meta.country}: ${oldTitle || '(empty)'} -> ${meta.title}`);
             if (!args.dryRun && generated % args.saveEvery === 0) {
-                fs.writeFileSync(PLONKIT_METAS_PATH, stringifyJsonAscii(data));
+                writeJsonAscii(PLONKIT_METAS_PATH, data);
                 console.log(`Checkpoint saved after ${generated} generated titles.`);
             }
         } catch (err) {
@@ -282,7 +270,7 @@ async function main() {
     }
 
     if (generated > 0) {
-        fs.writeFileSync(PLONKIT_METAS_PATH, stringifyJsonAscii(data));
+        writeJsonAscii(PLONKIT_METAS_PATH, data);
         console.log(`Saved titles to ${PLONKIT_METAS_PATH}`);
     }
 }
