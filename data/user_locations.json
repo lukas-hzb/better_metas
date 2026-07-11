@@ -1366,5 +1366,17 @@
     "region": "Sicily",
     "city": "Noto",
     "road": "Strada provinciale Codalupo"
+  },
+  "AjYQ6CTwEy4rak3tBqSjAg": {
+    "metas": [
+      "meta_mexico_vZJe"
+    ],
+    "lat": 19.20336,
+    "lng": -98.14779,
+    "country": "Mexico",
+    "nominatimCountry": "Mexico",
+    "region": "Tlaxcala",
+    "city": "Mazatecochco",
+    "road": null
   }
 }
