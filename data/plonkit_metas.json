@@ -37645,7 +37645,7 @@
         "description": "Sunflowers are mostly found in the southwest of the country, particularly around Toulouse.",
         "note": "",
         "imageUrl": "https://www.plonkit.net/images/france/2_sunflower.png",
-        "scope": "region",
+        "scope": "100km",
         "tags": []
       },
       {
