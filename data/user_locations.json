@@ -1918,5 +1918,17 @@
     "region": "Jalisco",
     "city": "Uni\u00f3n de San Antonio",
     "road": "Jalisco 302"
+  },
+  "V79jcf0Vg9Du5eBlMlWVQw": {
+    "metas": [
+      "meta_ghana_H4D5"
+    ],
+    "lat": 4.93979,
+    "lng": -2.35373,
+    "country": "Ghana",
+    "nominatimCountry": "Ghana",
+    "region": "Western Region",
+    "city": "Esiama",
+    "road": "N1"
   }
 }
