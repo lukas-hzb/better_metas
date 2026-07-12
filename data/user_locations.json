@@ -2086,5 +2086,17 @@
     "region": "Gifu Prefecture",
     "city": "Yamagata",
     "road": null
+  },
+  "v5RrbnW3GguzoSCeAkjHVQ": {
+    "metas": [
+      "meta_bangladesh_ZrT6"
+    ],
+    "lat": 23.71635,
+    "lng": 89.69579,
+    "country": "Bangladesh",
+    "nominatimCountry": "Bangladesh",
+    "region": "Dhaka Division",
+    "city": "Rajbari District",
+    "road": "Alipur"
   }
 }
