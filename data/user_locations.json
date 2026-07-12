@@ -2207,5 +2207,17 @@
     "region": "Coimbra District",
     "city": "Penacova",
     "road": "Mata"
+  },
+  "roCor108CPj9WjhSzmLIfA": {
+    "metas": [
+      "meta_namibia_vIAf"
+    ],
+    "lat": -28.3321,
+    "lng": 17.39385,
+    "country": "Namibia",
+    "nominatimCountry": "Namibia",
+    "region": "Karas Region",
+    "city": "Aussenkehr",
+    "road": "C13"
   }
 }
