@@ -2170,5 +2170,17 @@
     "region": "South Sulawesi",
     "city": "Tibojong",
     "road": "Tibojong"
+  },
+  "2smpTsnM9qh4A746aCJbFg": {
+    "metas": [
+      "meta_argentina_local_s86wg"
+    ],
+    "lat": -22.53162,
+    "lng": -63.80179,
+    "country": "Argentina",
+    "nominatimCountry": "Argentina",
+    "region": "Salta",
+    "city": "Tartagal",
+    "road": "General Mosconi"
   }
 }
