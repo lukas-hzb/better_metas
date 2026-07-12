@@ -2340,5 +2340,15 @@
     "country": "Ecuador",
     "region": "Guayas",
     "road": "Vía Simón Bolívar - Mariscal Sucre"
+  },
+  "RPxyrx0btE80ug39JdzmRQ": {
+    "metas": [
+      "meta_chile_R9PE"
+    ],
+    "lat": -28.26683,
+    "lng": -71.15162,
+    "country": "Chile",
+    "region": "Atacama",
+    "road": "Ruta C-10"
   }
 }
