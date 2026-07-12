@@ -1990,5 +1990,17 @@
     "region": "Occitania",
     "city": "Abeilhan",
     "road": "Chemin des Passes"
+  },
+  "QPGRiy-F4mD0dc-fTIah-A": {
+    "metas": [
+      "meta_canada_c5Ap"
+    ],
+    "lat": 50.68817,
+    "lng": -103.98212,
+    "country": "Canada",
+    "nominatimCountry": "Canada",
+    "region": "Saskatchewan",
+    "city": "Edgeley",
+    "road": "Donamar Road (Twp Rd 202)"
   }
 }
