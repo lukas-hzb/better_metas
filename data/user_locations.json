@@ -1954,5 +1954,17 @@
     "region": "Ashanti Region",
     "city": "Adamso",
     "road": "Dunkwa - Obuasi Road"
+  },
+  "arAa3HrKQBQ2KnxC6q1Tfw": {
+    "metas": [
+      "meta_spain_5Z5E"
+    ],
+    "lat": 37.21198,
+    "lng": -6.29305,
+    "country": "Spain",
+    "nominatimCountry": "Spain",
+    "region": "Andalusia",
+    "city": "Villamanrique de la Condesa",
+    "road": "Villamanrique de la Condesa"
   }
 }
