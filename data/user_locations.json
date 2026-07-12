@@ -2038,5 +2038,17 @@
     "region": "Magadanskaya oblast'",
     "city": "Tenkinsky District",
     "road": "\u041f\u0430\u043b\u0430\u0442\u043a\u0430"
+  },
+  "0muwM93J9gy5VsmkgyUdHg": {
+    "metas": [
+      "meta_montenegro_59VX"
+    ],
+    "lat": 42.8521,
+    "lng": 20.18481,
+    "country": "Montenegro",
+    "nominatimCountry": "Montenegro",
+    "region": "Op\u0161tina Ro\u017eaje",
+    "city": "Ro\u017eaje",
+    "road": "R-5"
   }
 }
