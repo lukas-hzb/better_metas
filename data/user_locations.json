@@ -2183,5 +2183,17 @@
     "region": "Salta",
     "city": "Tartagal",
     "road": "General Mosconi"
+  },
+  "pKHsH_cdsWBkrIbtV3I8pg": {
+    "metas": [
+      "meta_ecuador_iFnv"
+    ],
+    "lat": 0.07463,
+    "lng": -77.22699,
+    "country": "Ecuador",
+    "nominatimCountry": "Ecuador",
+    "region": "Sucumb\u00edos",
+    "city": "Cascales",
+    "road": "Ecuador 45"
   }
 }
