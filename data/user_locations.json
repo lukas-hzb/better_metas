@@ -2461,5 +2461,17 @@
     "region": "Jihomoravsk\u00fd kraj",
     "city": "B\u0159eclav",
     "road": "Lipov\u00e1"
+  },
+  "BfiuPfLQCyo29R10ewxYOw": {
+    "metas": [
+      "meta_chile_0Utw"
+    ],
+    "lat": -45.40186,
+    "lng": -72.49824,
+    "country": "Chile",
+    "nominatimCountry": "Chile",
+    "region": "Ays\u00e9n",
+    "city": "Ays\u00e9n",
+    "road": "Ruta 240"
   }
 }
