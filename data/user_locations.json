@@ -1906,5 +1906,17 @@
     "region": "Saskatchewan",
     "city": "Aberdeen",
     "road": "Saskatchewan 784"
+  },
+  "pd2PFwAPtLs7W0WbUEhUPg": {
+    "metas": [
+      "meta_mexico_ORWw"
+    ],
+    "lat": 21.09633,
+    "lng": -102.01121,
+    "country": "Mexico",
+    "nominatimCountry": "Mexico",
+    "region": "Jalisco",
+    "city": "Uni\u00f3n de San Antonio",
+    "road": "Jalisco 302"
   }
 }
