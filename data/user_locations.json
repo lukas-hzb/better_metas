@@ -2330,5 +2330,15 @@
     "country": "Cambodia",
     "region": "Mondulkiri Province",
     "road": null
+  },
+  "g0Q3MaRu1EnbQFBiOwprPQ": {
+    "metas": [
+      "meta_ecuador_4Cwf"
+    ],
+    "lat": -2.0972,
+    "lng": -79.50233,
+    "country": "Ecuador",
+    "region": "Guayas",
+    "road": "Vía Simón Bolívar - Mariscal Sucre"
   }
 }
