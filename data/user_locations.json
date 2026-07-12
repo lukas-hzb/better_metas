@@ -2510,5 +2510,17 @@
     "region": "Coahuila de Zaragoza",
     "city": "El Hundido",
     "road": "San Pedro De las Colonias - Cuatro Ci\u00e9negas"
+  },
+  "DnTFyj9BaKnf3d_JWkYaaw": {
+    "metas": [
+      "meta_russia_8PIl"
+    ],
+    "lat": 47.63028,
+    "lng": 142.5873,
+    "country": "Russia",
+    "nominatimCountry": "Russia",
+    "region": "Sakhalinskaya oblast'",
+    "city": "Firsovo",
+    "road": "64N-1"
   }
 }
