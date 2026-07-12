@@ -2655,5 +2655,17 @@
     "region": "Bay of Plenty Region",
     "city": "Papamoa",
     "road": "Welcome Bay Road"
+  },
+  "gXZBe2aJwZBE6xQMHo565A": {
+    "metas": [
+      "meta_luxembourg_F5fO"
+    ],
+    "lat": 49.52587,
+    "lng": 6.34124,
+    "country": "Luxembourg",
+    "nominatimCountry": "Luxembourg",
+    "region": "Remich",
+    "city": "Schengen",
+    "road": "Mont\u00e9e des Vignes"
   }
 }
