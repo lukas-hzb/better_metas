@@ -68,8 +68,8 @@ jobs:
                 return;
             }
 
-            const LOCATIONS_FILE = 'data/locations.json';
-            const METAS_FILE = 'data/metas.json';
+            const LOCATIONS_FILE = 'data/user_locations.json';
+            const METAS_FILE = 'data/user_metas.json';
 
             // Load existing files
             let locations = {};
@@ -112,7 +112,7 @@ jobs:
             }
 
             if (submission.action === "add_meta") {
-                // Add new meta to metas.json
+                // Add new meta to user_metas.json
                 const newMeta = submission.meta;
                 if (!newMeta || !newMeta.id) {
                     core.setFailed("add_meta: Missing meta object or meta.id");
@@ -152,7 +152,7 @@ jobs:
         run: |
           git config user.name "GitHub Actions"
           git config user.email "actions@github.com"
-          git add data/locations.json data/metas.json
+          git add data/user_locations.json data/user_metas.json
           git commit -m "Auto-add meta from Issue #${{ github.event.issue.number }}" || echo "No changes to commit"
           git pull --rebase origin main_v4
           git push origin HEAD:main_v4

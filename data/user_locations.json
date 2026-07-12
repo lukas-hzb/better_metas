@@ -2279,5 +2279,15 @@
     "region": "SOCCSKSARGEN",
     "city": "Bagumbayan",
     "road": null
+  },
+  "dd-L8HrLle4OIu2-YM1UDw": {
+    "metas": [
+      "meta_japan_nLH3"
+    ],
+    "lat": 31.36193,
+    "lng": 130.79835,
+    "country": "Japan",
+    "region": "Kagoshima",
+    "road": null
   }
 }

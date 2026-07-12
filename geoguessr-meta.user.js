@@ -1693,7 +1693,7 @@
 
         /* Existing Metas List */
         #gg-existing-metas {
-            max-height: 150px;
+            height: 150px;
             overflow-y: auto;
             scrollbar-width: thin;
             scrollbar-color: rgba(255,255,255,0.2) transparent;
@@ -1802,7 +1802,7 @@
         }
 
         .gg-admin-meta-list {
-            max-height: 260px;
+            height: 260px;
             overflow-y: auto;
             scrollbar-width: thin;
             scrollbar-color: rgba(255,255,255,0.2) transparent;
@@ -4001,18 +4001,10 @@
         return terms.every(term => searchableContent.includes(term));
     }
 
-    function resetIncrementalList(container, html = '', { preserveHeight = false } = {}) {
+    function resetIncrementalList(container, html = '') {
         const previous = incrementalListStates.get(container);
         previous?.observer?.disconnect();
         incrementalListStates.delete(container);
-
-        if (preserveHeight) {
-            const currentHeight = container.getBoundingClientRect().height;
-            if (currentHeight > 0) container.style.minHeight = `${Math.ceil(currentHeight)}px`;
-        } else {
-            container.style.minHeight = '';
-        }
-
         container.innerHTML = html;
     }
 
@@ -4151,11 +4143,7 @@
         const sorted = sortAdminMetaEntries(filtered);
 
         if (sorted.length === 0) {
-            resetIncrementalList(
-                container,
-                '<div class="gg-form-hint gg-list-empty-state">No metas found.</div>',
-                { preserveHeight: terms.length > 0 }
-            );
+            resetIncrementalList(container, '<div class="gg-form-hint gg-list-empty-state">No metas found.</div>');
             return;
         }
 
@@ -4261,11 +4249,7 @@
         const uniqueFiltered = filtered;
 
         if (uniqueFiltered.length === 0) {
-            resetIncrementalList(
-                container,
-                '<div class="gg-form-hint gg-list-empty-state">No metas found.</div>',
-                { preserveHeight: terms.length > 0 }
-            );
+            resetIncrementalList(container, '<div class="gg-form-hint gg-list-empty-state">No metas found.</div>');
             return;
         }
 
@@ -4299,11 +4283,7 @@
         const uniqueFiltered = filtered;
         
         if (uniqueFiltered.length === 0) {
-            resetIncrementalList(
-                container,
-                '<div class="gg-form-hint gg-list-empty-state">No metas found.</div>',
-                { preserveHeight: terms.length > 0 }
-            );
+            resetIncrementalList(container, '<div class="gg-form-hint gg-list-empty-state">No metas found.</div>');
             return;
         }
 
