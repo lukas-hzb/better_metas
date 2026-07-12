@@ -339,7 +339,7 @@
         "description": "Vineyards are exclusively found around Aussenkehr on the South African border in the south.",
         "note": "",
         "imageUrl": "https://www.plonkit.net/images/namibia/23.png",
-        "scope": "unique",
+        "scope": "1km",
         "tags": []
       },
       {
