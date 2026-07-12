@@ -2310,5 +2310,15 @@
     "country": "Norway",
     "region": "Innlandet",
     "road": "Sørsåsvegen"
+  },
+  "vyLZOBWDDrlV6MCSONI3Xg": {
+    "metas": [
+      "meta_montenegro_59VX"
+    ],
+    "lat": 42.86341,
+    "lng": 20.06761,
+    "country": "Montenegro",
+    "region": "Opština Rožaje",
+    "road": "Berane - Rožaje"
   }
 }
