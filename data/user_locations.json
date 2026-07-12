@@ -2643,5 +2643,17 @@
     "region": "Krasnodarskiy kray",
     "city": "Lebedi",
     "road": "Oktyabr'skaya Ulitsa"
+  },
+  "rKSqZVsJPeyYSaXnI-cuwQ": {
+    "metas": [
+      "meta_new_zealand_nmR0"
+    ],
+    "lat": -37.724,
+    "lng": 176.28123,
+    "country": "New Zealand",
+    "nominatimCountry": "New Zealand",
+    "region": "Bay of Plenty Region",
+    "city": "Papamoa",
+    "road": "Welcome Bay Road"
   }
 }
