@@ -1870,5 +1870,17 @@
     "region": "Galicia",
     "city": "R\u00edo Barba",
     "road": "Pista de R\u00edo Barba a Ponte do Porto"
+  },
+  "_6eTXjw85s3FZIvHOTjhvA": {
+    "metas": [
+      "meta_senegal_2NXs"
+    ],
+    "lat": 15.50206,
+    "lng": -13.42931,
+    "country": "Senegal",
+    "nominatimCountry": "Senegal",
+    "region": "Matam Region",
+    "city": "Matam",
+    "road": "N3"
   }
 }
