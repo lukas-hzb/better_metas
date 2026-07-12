@@ -2050,5 +2050,17 @@
     "region": "Op\u0161tina Ro\u017eaje",
     "city": "Ro\u017eaje",
     "road": "R-5"
+  },
+  "Vd6mlTDJrBMo_7lRJyGBdg": {
+    "metas": [
+      "meta_mexico_8Ipc"
+    ],
+    "lat": 21.79224,
+    "lng": -105.15726,
+    "country": "Mexico",
+    "nominatimCountry": "Mexico",
+    "region": "Nayarit",
+    "city": "Valle Zaragoza",
+    "road": "El Valle Zaragoza"
   }
 }
