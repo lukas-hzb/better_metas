@@ -11643,7 +11643,7 @@
         "description": "Vast rice fields with almost nothing else in view can be seen in the border area between the states of Dhaka, Mymensingh and Sylhet.",
         "note": "",
         "imageUrl": "https://www.plonkit.net/images/bangladesh/empty.png",
-        "scope": "region",
+        "scope": "10km",
         "tags": [
           "plants"
         ]
