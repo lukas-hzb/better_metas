@@ -2413,5 +2413,53 @@
     "region": "Apulia",
     "city": "Sava",
     "road": null
+  },
+  "FB0plT_sgf2szoc4PF8djg": {
+    "metas": [
+      "meta_panama_4bdQ"
+    ],
+    "lat": 8.92206,
+    "lng": -79.56592,
+    "country": "Panama",
+    "nominatimCountry": "Panama",
+    "region": "Provincia de Panam\u00e1 Oeste",
+    "city": "Arraij\u00e1n",
+    "road": "V\u00eda A Veracruz"
+  },
+  "sv9nhvv6uHwapP01v4pgYg": {
+    "metas": [
+      "meta_guatemala_UW8N"
+    ],
+    "lat": 17.24469,
+    "lng": -89.64018,
+    "country": "Guatemala",
+    "nominatimCountry": "Guatemala",
+    "region": "Pet\u00e9n",
+    "city": "Flores",
+    "road": "RD-PET-3"
+  },
+  "hEzbGb3nQCumNfSBM_bOaA": {
+    "metas": [
+      "meta_sri_lanka_5c1p"
+    ],
+    "lat": 6.76574,
+    "lng": 80.96075,
+    "country": "Sri Lanka",
+    "nominatimCountry": "Sri Lanka",
+    "region": "Uva Province",
+    "city": "Haputale",
+    "road": null
+  },
+  "HRe-ifRhscQNyXOm3SJX_A": {
+    "metas": [
+      "meta_czechia_n1YQ"
+    ],
+    "lat": 48.73572,
+    "lng": 16.77159,
+    "country": "Czechia",
+    "nominatimCountry": "Czechia",
+    "region": "Jihomoravsk\u00fd kraj",
+    "city": "B\u0159eclav",
+    "road": "Lipov\u00e1"
   }
 }
