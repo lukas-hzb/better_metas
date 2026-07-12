@@ -2219,5 +2219,17 @@
     "region": "Karas Region",
     "city": "Aussenkehr",
     "road": "C13"
+  },
+  "0YjM-qrKIhAoKiS-_t_O3A": {
+    "metas": [
+      "meta_portugal_MPGC"
+    ],
+    "lat": 37.09802,
+    "lng": -7.74343,
+    "country": "Portugal",
+    "nominatimCountry": "Portugal",
+    "region": "Faro",
+    "city": "Luz",
+    "road": "Pereirinhas"
   }
 }
