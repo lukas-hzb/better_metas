@@ -37633,7 +37633,7 @@
         "description": "France is the second largest wine producer in the world, with many famed wine regions. The most common include the area around Bordeaux, southern coast and Champagne, East of Paris. Other regions include, but are not limited to, Loire Valley, Alsace and Corsica.",
         "note": "This map is highly simplified, see this map for more detailed and extensive description.",
         "imageUrl": "https://www.plonkit.net/images/france/2_vineyards2.png",
-        "scope": "region",
+        "scope": "10km",
         "tags": []
       },
       {
