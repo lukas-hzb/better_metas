@@ -2667,5 +2667,17 @@
     "region": "Remich",
     "city": "Schengen",
     "road": "Mont\u00e9e des Vignes"
+  },
+  "sZPIDdWTcuFpRzEj_bFfCw": {
+    "metas": [
+      "meta_argentina_cqF0"
+    ],
+    "lat": -24.19957,
+    "lng": -65.31304,
+    "country": "Argentina",
+    "nominatimCountry": "Argentina",
+    "region": "Jujuy",
+    "city": "San Salvador de Jujuy",
+    "road": "Ej\u00e9rcito del Norte"
   }
 }
