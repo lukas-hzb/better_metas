@@ -2486,5 +2486,17 @@
     "region": "Fukuoka",
     "city": "Miyama",
     "road": null
+  },
+  "JjC-TOE0k-qqy0Ox9amkLg": {
+    "metas": [
+      "meta_australia_M5MM"
+    ],
+    "lat": -33.69841,
+    "lng": 150.05618,
+    "country": "Australia",
+    "nominatimCountry": "Australia",
+    "region": "New South Wales",
+    "city": "Ganbenang",
+    "road": "Jenolan Caves Road"
   }
 }
