@@ -1894,5 +1894,17 @@
     "region": "Veracruz",
     "city": "Miguel Hidalgo (Kilometro 17)",
     "road": "A La Bomba"
+  },
+  "kZ5MIsOR-wdo8q7HaEkKBg": {
+    "metas": [
+      "meta_canada_c5Ap"
+    ],
+    "lat": 52.3183,
+    "lng": -106.31726,
+    "country": "Canada",
+    "nominatimCountry": "Canada",
+    "region": "Saskatchewan",
+    "city": "Aberdeen",
+    "road": "Saskatchewan 784"
   }
 }
