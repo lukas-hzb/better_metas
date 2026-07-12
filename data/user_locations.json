@@ -1966,5 +1966,17 @@
     "region": "Andalusia",
     "city": "Villamanrique de la Condesa",
     "road": "Villamanrique de la Condesa"
+  },
+  "GZ___wbcyW3_TMIuIn6cYA": {
+    "metas": [
+      "meta_chile_Imir"
+    ],
+    "lat": -40.67866,
+    "lng": -72.00526,
+    "country": "Chile",
+    "nominatimCountry": "Chile",
+    "region": "Los Lagos",
+    "city": "Osorno",
+    "road": "Ruta 215"
   }
 }
