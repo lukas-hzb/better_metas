@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         BetterMetas
 // @namespace    http://tampermonkey.net/
-// @version      0.4
+// @version      0.5
 // @description  Displays crowdsourced metas and hints for Geoguessr locations.
 // @author       Lukas Hzb
 // @updateURL    https://github.com/lukas-hzb/better_metas/raw/refs/heads/main_v4/geoguessr-meta.user.js
@@ -45,7 +45,7 @@
     const HUD_SIZE_STORAGE_KEY = 'gg_hud_size';
     const PENDING_LOCAL_CHANGES_STORAGE_KEY = 'gg_pending_local_changes';
     const DATA_CACHE_STORAGE_KEY = 'gg_data_cache';
-    const DATA_CACHE_VERSION = `${REPO_OWNER}/${REPO_NAME}/${REPO_BRANCH}:3`;
+    const DATA_CACHE_VERSION = `${REPO_OWNER}/${REPO_NAME}/${REPO_BRANCH}:4`;
     const ACTIVE_SCOPES_STORAGE_KEY = 'gg_active_scopes';
     const GITHUB_TOKEN_STORAGE_KEY = 'gg_gh_token';
     const DEFAULT_HUD_WIDTH = '320px';
@@ -5750,17 +5750,19 @@
 
     function githubApiRequest(url, token, method = 'GET', body = null, options = {}) {
         const timeout = options.timeout || GITHUB_API_TIMEOUT_MS;
+        const headers = {
+            'Accept': 'application/vnd.github.v3+json',
+            'X-GitHub-Api-Version': '2022-11-28',
+            'Content-Type': 'application/json',
+            'Cache-Control': 'no-cache'
+        };
+        if (token) headers.Authorization = `Bearer ${token}`;
+
         return new Promise((resolve, reject) => {
             GM_xmlhttpRequest({
                 method,
                 url,
-                headers: {
-                    'Authorization': `Bearer ${token}`,
-                    'Accept': 'application/vnd.github.v3+json',
-                    'X-GitHub-Api-Version': '2022-11-28',
-                    'Content-Type': 'application/json',
-                    'Cache-Control': 'no-cache'
-                },
+                headers,
                 timeout,
                 data: body ? JSON.stringify(body) : null,
                 onload: (response) => {
@@ -6014,14 +6016,12 @@
     }
 
     async function loadDataSource(token, options) {
-        if (token) {
-            try {
-                const data = options.normalize(await fetchGitHubContentJson(options.apiUrl, token));
-                console.log(`[BetterMetas] Loaded ${options.count(data)} ${options.description} from GitHub API.`);
-                return data;
-            } catch (err) {
-                console.warn(`[BetterMetas] GitHub API ${options.apiLogName} fetch failed, falling back to raw:`, err);
-            }
+        try {
+            const data = options.normalize(await fetchGitHubContentJson(options.apiUrl, token));
+            console.log(`[BetterMetas] Loaded ${options.count(data)} ${options.description} from GitHub API.`);
+            return data;
+        } catch (err) {
+            console.warn(`[BetterMetas] GitHub API ${options.apiLogName} fetch failed, falling back to raw:`, err);
         }
 
         const data = await fetchRawJsonWithRetry(
