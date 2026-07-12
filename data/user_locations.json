@@ -2243,5 +2243,17 @@
     "region": "Akershus",
     "city": "Frogn",
     "road": "Osloveien"
+  },
+  "azGNLJqfKrTBmP81Iqa2Gw": {
+    "metas": [
+      "meta_france_Xe70"
+    ],
+    "lat": 43.96431,
+    "lng": -1.15191,
+    "country": "France",
+    "nominatimCountry": "France",
+    "region": "Nouvelle-Aquitaine",
+    "city": "Lesperon",
+    "road": "Route de Linxe"
   }
 }
