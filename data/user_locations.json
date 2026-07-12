@@ -2110,5 +2110,17 @@
     "region": "Brandenburg",
     "city": "Schwielowsee",
     "road": "Berliner Ring"
+  },
+  "eC15ra9zJj7KQP6XXl5lPQ": {
+    "metas": [
+      "meta_russia_FB0Q"
+    ],
+    "lat": 51.42588,
+    "lng": 128.10697,
+    "country": "Russia",
+    "nominatimCountry": "Russia",
+    "region": "Amurskaya oblast'",
+    "city": "Svobodny",
+    "road": "Avtodoroga Svobodnyy-Shimanovsk"
   }
 }
