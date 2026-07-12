@@ -2425,5 +2425,17 @@
     "region": "Provincia de Panam\u00e1 Oeste",
     "city": "Arraij\u00e1n",
     "road": "V\u00eda A Veracruz"
+  },
+  "sv9nhvv6uHwapP01v4pgYg": {
+    "metas": [
+      "meta_guatemala_UW8N"
+    ],
+    "lat": 17.24469,
+    "lng": -89.64018,
+    "country": "Guatemala",
+    "nominatimCountry": "Guatemala",
+    "region": "Pet\u00e9n",
+    "city": "Flores",
+    "road": "RD-PET-3"
   }
 }
