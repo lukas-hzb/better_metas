@@ -2437,5 +2437,17 @@
     "region": "Pet\u00e9n",
     "city": "Flores",
     "road": "RD-PET-3"
+  },
+  "hEzbGb3nQCumNfSBM_bOaA": {
+    "metas": [
+      "meta_sri_lanka_5c1p"
+    ],
+    "lat": 6.76574,
+    "lng": 80.96075,
+    "country": "Sri Lanka",
+    "nominatimCountry": "Sri Lanka",
+    "region": "Uva Province",
+    "city": "Haputale",
+    "road": null
   }
 }
