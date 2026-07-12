@@ -2231,5 +2231,17 @@
     "region": "Faro",
     "city": "Luz",
     "road": "Pereirinhas"
+  },
+  "qBkSFRlyTXn-Cpo40wW5Bw": {
+    "metas": [
+      "meta_norway_cISF"
+    ],
+    "lat": 59.68744,
+    "lng": 10.67857,
+    "country": "Norway",
+    "nominatimCountry": "Norway",
+    "region": "Akershus",
+    "city": "Frogn",
+    "road": "Osloveien"
   }
 }
