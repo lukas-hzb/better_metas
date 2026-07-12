@@ -2631,5 +2631,17 @@
     "region": "Vestland",
     "city": "Bremanger",
     "road": "Sm\u00f8rhamnsvegen"
+  },
+  "fP3I4hOq-UkPCFPejEBE5w": {
+    "metas": [
+      "meta_russia_eHxy"
+    ],
+    "lat": 45.6154,
+    "lng": 38.2646,
+    "country": "Russia",
+    "nominatimCountry": "Russia",
+    "region": "Krasnodarskiy kray",
+    "city": "Lebedi",
+    "road": "Oktyabr'skaya Ulitsa"
   }
 }
