@@ -1978,5 +1978,17 @@
     "region": "Los Lagos",
     "city": "Osorno",
     "road": "Ruta 215"
+  },
+  "9kOkCIp1Y3tAl4LLRaIrSg": {
+    "metas": [
+      "meta_france_jPuX"
+    ],
+    "lat": 43.45043,
+    "lng": 3.30717,
+    "country": "France",
+    "nominatimCountry": "France",
+    "region": "Occitania",
+    "city": "Abeilhan",
+    "road": "Chemin des Passes"
   }
 }
