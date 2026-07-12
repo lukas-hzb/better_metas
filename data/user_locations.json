@@ -2134,5 +2134,17 @@
     "region": "Andaluc\u00eda",
     "city": "Huelva",
     "road": "Solar Sector Cam Catalan Oeste"
+  },
+  "lCyyatF6g0wK2d8kY7PslQ": {
+    "metas": [
+      "meta_france_jPuX"
+    ],
+    "lat": 48.60108,
+    "lng": 7.53989,
+    "country": "France",
+    "nominatimCountry": "France",
+    "region": "Grand Est",
+    "city": "Furdenheim",
+    "road": "D225"
   }
 }
