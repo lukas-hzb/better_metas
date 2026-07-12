@@ -2074,5 +2074,17 @@
     "region": "Sicilia",
     "city": "Libero consorzio comunale di Siracusa",
     "road": "Strada Statale 115 Sud Occidentale Sicula"
+  },
+  "CY8j0j9riEGtaQHeE6Ne9Q": {
+    "metas": [
+      "meta_japan_5e4A"
+    ],
+    "lat": 35.51593,
+    "lng": 136.76013,
+    "country": "Japan",
+    "nominatimCountry": "Japan",
+    "region": "Gifu Prefecture",
+    "city": "Yamagata",
+    "road": null
   }
 }
