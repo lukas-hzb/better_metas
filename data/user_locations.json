@@ -2098,5 +2098,17 @@
     "region": "Dhaka Division",
     "city": "Rajbari District",
     "road": "Alipur"
+  },
+  "ccIhVi_eyZ71QOYNEvpt5A": {
+    "metas": [
+      "meta_germany_jGsh"
+    ],
+    "lat": 52.29326,
+    "lng": 12.93099,
+    "country": "Germany",
+    "nominatimCountry": "Germany",
+    "region": "Brandenburg",
+    "city": "Schwielowsee",
+    "road": "Berliner Ring"
   }
 }
