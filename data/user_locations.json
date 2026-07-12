@@ -2146,5 +2146,17 @@
     "region": "Grand Est",
     "city": "Furdenheim",
     "road": "D225"
+  },
+  "wU3fK6NwCAVqhAuql5KWKA": {
+    "metas": [
+      "meta_eswatini_pB4I"
+    ],
+    "lat": -26.08337,
+    "lng": 31.13282,
+    "country": "Eswatini",
+    "nominatimCountry": "Eswatini",
+    "region": "Hhohho Region",
+    "city": "Nkhaba",
+    "road": null
   }
 }
