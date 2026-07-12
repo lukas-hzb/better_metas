@@ -2158,5 +2158,17 @@
     "region": "Hhohho Region",
     "city": "Nkhaba",
     "road": null
+  },
+  "bpDxkGAiyfmNtroQmJtJyg": {
+    "metas": [
+      "meta_indonesia_K7j1"
+    ],
+    "lat": -4.59876,
+    "lng": 120.34142,
+    "country": "Indonesia",
+    "nominatimCountry": "Indonesia",
+    "region": "South Sulawesi",
+    "city": "Tibojong",
+    "road": "Tibojong"
   }
 }
