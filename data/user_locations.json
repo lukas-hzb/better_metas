@@ -2320,5 +2320,15 @@
     "country": "Montenegro",
     "region": "Opština Rožaje",
     "road": "Berane - Rožaje"
+  },
+  "408wLfFgBtc5p2vmWxMADQ": {
+    "metas": [
+      "meta_cambodia_vddA"
+    ],
+    "lat": 12.51466,
+    "lng": 107.46618,
+    "country": "Cambodia",
+    "region": "Mondulkiri Province",
+    "road": null
   }
 }
