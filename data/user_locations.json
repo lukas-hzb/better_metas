@@ -2255,5 +2255,17 @@
     "region": "Nouvelle-Aquitaine",
     "city": "Lesperon",
     "road": "Route de Linxe"
+  },
+  "ZcJTSeOTmN8-kM_e61SnqA": {
+    "metas": [
+      "meta_singapore_U9vA"
+    ],
+    "lat": 1.29843,
+    "lng": 103.78751,
+    "country": "Singapore",
+    "nominatimCountry": "Singapore",
+    "region": null,
+    "city": "Singapore",
+    "road": "Ayer Rajah Avenue"
   }
 }
