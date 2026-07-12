@@ -2401,5 +2401,17 @@
     "region": "Lisboa",
     "city": "Alcoentre",
     "road": "N366"
+  },
+  "Nd-kEtL6CFX6GhS2rp8wxw": {
+    "metas": [
+      "meta_italy_kMZN"
+    ],
+    "lat": 40.42373,
+    "lng": 17.54847,
+    "country": "Italy",
+    "nominatimCountry": "Italy",
+    "region": "Apulia",
+    "city": "Sava",
+    "road": null
   }
 }
