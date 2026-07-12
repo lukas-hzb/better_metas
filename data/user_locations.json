@@ -2547,5 +2547,17 @@
     "region": "Hawke's Bay Region",
     "city": "Poukawa",
     "road": "Te Mahanga Road"
+  },
+  "1qD2O-WDVLmObcjrGiCRtQ": {
+    "metas": [
+      "meta_brazil_iILP"
+    ],
+    "lat": -8.1669,
+    "lng": -35.15761,
+    "country": "Brazil",
+    "nominatimCountry": "Brazil",
+    "region": "Pernambuco",
+    "city": "Moreno",
+    "road": "Estrada Javunda Cumar\u00fa"
   }
 }
