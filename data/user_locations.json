@@ -2607,5 +2607,17 @@
     "region": "Extremadura",
     "city": "Don Benito",
     "road": "Camio del Pozo Nuevo"
+  },
+  "4AJEJeUagCrPiiwGmN4E4w": {
+    "metas": [
+      "meta_slovakia_mwCI"
+    ],
+    "lat": 48.76642,
+    "lng": 17.08657,
+    "country": "Slovakia",
+    "nominatimCountry": "Slovakia",
+    "region": "Trnavsk\u00fd kraj",
+    "city": "Kop\u010dany",
+    "road": "2"
   }
 }
