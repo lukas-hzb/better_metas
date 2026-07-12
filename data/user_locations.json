@@ -2571,5 +2571,17 @@
     "region": "Cear\u00e1",
     "city": "Itapipoca",
     "road": "Rodovia Brunilo Jac\u00f3 de Castro e Silva"
+  },
+  "lKwbQrUVT11y7WRA5t2rBw": {
+    "metas": [
+      "meta_portugal_Pg4g"
+    ],
+    "lat": 38.5914,
+    "lng": -9.07885,
+    "country": "Portugal",
+    "nominatimCountry": "Portugal",
+    "region": "Set\u00fabal",
+    "city": "Arrentela",
+    "road": "Rua Josefa de \u00d3bidos"
   }
 }
