@@ -2388,5 +2388,17 @@
     "region": "Krasnodarskiy kray",
     "city": "Sochi",
     "road": "Politekhnicheskaya Ulitsa"
+  },
+  "ZevgILfQxrgdugbKljq9Rw": {
+    "metas": [
+      "meta_portugal_DGfn"
+    ],
+    "lat": 39.21665,
+    "lng": -8.97066,
+    "country": "Portugal",
+    "nominatimCountry": "Portugal",
+    "region": "Lisboa",
+    "city": "Alcoentre",
+    "road": "N366"
   }
 }
