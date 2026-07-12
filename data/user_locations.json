@@ -2413,5 +2413,17 @@
     "region": "Apulia",
     "city": "Sava",
     "road": null
+  },
+  "FB0plT_sgf2szoc4PF8djg": {
+    "metas": [
+      "meta_panama_4bdQ"
+    ],
+    "lat": 8.92206,
+    "lng": -79.56592,
+    "country": "Panama",
+    "nominatimCountry": "Panama",
+    "region": "Provincia de Panam\u00e1 Oeste",
+    "city": "Arraij\u00e1n",
+    "road": "V\u00eda A Veracruz"
   }
 }
