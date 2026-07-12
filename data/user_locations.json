@@ -2461,5 +2461,78 @@
     "region": "Jihomoravsk\u00fd kraj",
     "city": "B\u0159eclav",
     "road": "Lipov\u00e1"
+  },
+  "BfiuPfLQCyo29R10ewxYOw": {
+    "metas": [
+      "meta_chile_0Utw",
+      "meta_chile_C3HY"
+    ],
+    "lat": -45.40186,
+    "lng": -72.49824,
+    "country": "Chile",
+    "nominatimCountry": "Chile",
+    "region": "Ays\u00e9n",
+    "city": "Ays\u00e9n",
+    "road": "Ruta 240"
+  },
+  "4eLJqy0vLenAHKG0eHNJcQ": {
+    "metas": [
+      "meta_japan_kk8b"
+    ],
+    "lat": 33.09918,
+    "lng": 130.49647,
+    "country": "Japan",
+    "nominatimCountry": "Japan",
+    "region": "Fukuoka",
+    "city": "Miyama",
+    "road": null
+  },
+  "JjC-TOE0k-qqy0Ox9amkLg": {
+    "metas": [
+      "meta_australia_M5MM"
+    ],
+    "lat": -33.69841,
+    "lng": 150.05618,
+    "country": "Australia",
+    "nominatimCountry": "Australia",
+    "region": "New South Wales",
+    "city": "Ganbenang",
+    "road": "Jenolan Caves Road"
+  },
+  "7rhK2_KBiDRhDKx9NPUouw": {
+    "metas": [
+      "meta_mexico_hlxm"
+    ],
+    "lat": 26.70415,
+    "lng": -102.14199,
+    "country": "Mexico",
+    "nominatimCountry": "Mexico",
+    "region": "Coahuila de Zaragoza",
+    "city": "El Hundido",
+    "road": "San Pedro De las Colonias - Cuatro Ci\u00e9negas"
+  },
+  "DnTFyj9BaKnf3d_JWkYaaw": {
+    "metas": [
+      "meta_russia_8PIl"
+    ],
+    "lat": 47.63028,
+    "lng": 142.5873,
+    "country": "Russia",
+    "nominatimCountry": "Russia",
+    "region": "Sakhalinskaya oblast'",
+    "city": "Firsovo",
+    "road": "64N-1"
+  },
+  "qEU6cCVhl-SopI5Z3pYVag": {
+    "metas": [
+      "meta_ecuador_iFnv"
+    ],
+    "lat": -0.53462,
+    "lng": -76.89267,
+    "country": "Ecuador",
+    "nominatimCountry": "Ecuador",
+    "region": "Orellana",
+    "city": "Coca",
+    "road": "El Carmen"
   }
 }
