@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         BetterMetas
 // @namespace    http://tampermonkey.net/
-// @version      0.2
+// @version      0.3
 // @description  Displays crowdsourced metas and hints for Geoguessr locations.
 // @author       Lukas Hzb
 // @updateURL    https://raw.githubusercontent.com/lukas-hzb/better_metas/main_v4/geoguessr-meta.user.js
@@ -44,7 +44,7 @@
     const HUD_SIZE_STORAGE_KEY = 'gg_hud_size';
     const PENDING_LOCAL_CHANGES_STORAGE_KEY = 'gg_pending_local_changes';
     const DATA_CACHE_STORAGE_KEY = 'gg_data_cache';
-    const DATA_CACHE_VERSION = `${REPO_OWNER}/${REPO_NAME}/${REPO_BRANCH}:1`;
+    const DATA_CACHE_VERSION = `${REPO_OWNER}/${REPO_NAME}/${REPO_BRANCH}:2`;
     const ACTIVE_SCOPES_STORAGE_KEY = 'gg_active_scopes';
     const GITHUB_TOKEN_STORAGE_KEY = 'gg_gh_token';
     const DEFAULT_HUD_WIDTH = '320px';
