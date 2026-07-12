@@ -2595,5 +2595,17 @@
     "region": "Karas Region",
     "city": "Aussenkehr",
     "road": null
+  },
+  "uhcrEhGSmqRanMF3l1vfFg": {
+    "metas": [
+      "meta_spain_rzeV"
+    ],
+    "lat": 38.93429,
+    "lng": -5.88526,
+    "country": "Spain",
+    "nominatimCountry": "Spain",
+    "region": "Extremadura",
+    "city": "Don Benito",
+    "road": "Camio del Pozo Nuevo"
   }
 }
