@@ -2474,5 +2474,17 @@
     "region": "Ays\u00e9n",
     "city": "Ays\u00e9n",
     "road": "Ruta 240"
+  },
+  "4eLJqy0vLenAHKG0eHNJcQ": {
+    "metas": [
+      "meta_japan_kk8b"
+    ],
+    "lat": 33.09918,
+    "lng": 130.49647,
+    "country": "Japan",
+    "nominatimCountry": "Japan",
+    "region": "Fukuoka",
+    "city": "Miyama",
+    "road": null
   }
 }
