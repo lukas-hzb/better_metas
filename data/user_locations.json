@@ -2534,5 +2534,17 @@
     "region": "Orellana",
     "city": "Coca",
     "road": "El Carmen"
+  },
+  "RJYgYcSPr9ROZzZ5qRujcg": {
+    "metas": [
+      "meta_new_zealand_RcrP"
+    ],
+    "lat": -39.74416,
+    "lng": 176.74994,
+    "country": "New Zealand",
+    "nominatimCountry": "New Zealand",
+    "region": "Hawke's Bay Region",
+    "city": "Poukawa",
+    "road": "Te Mahanga Road"
   }
 }
