@@ -53230,7 +53230,9 @@
         "note": "",
         "imageUrl": "https://www.plonkit.net/images/spain/Maiz.png",
         "scope": "region",
-        "tags": []
+        "tags": [
+          "plants"
+        ]
       },
       {
         "id": "meta_spain_EBga",
