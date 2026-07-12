@@ -2498,5 +2498,17 @@
     "region": "New South Wales",
     "city": "Ganbenang",
     "road": "Jenolan Caves Road"
+  },
+  "7rhK2_KBiDRhDKx9NPUouw": {
+    "metas": [
+      "meta_mexico_hlxm"
+    ],
+    "lat": 26.70415,
+    "lng": -102.14199,
+    "country": "Mexico",
+    "nominatimCountry": "Mexico",
+    "region": "Coahuila de Zaragoza",
+    "city": "El Hundido",
+    "road": "San Pedro De las Colonias - Cuatro Ci\u00e9negas"
   }
 }
