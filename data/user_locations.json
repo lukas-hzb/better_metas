@@ -1846,5 +1846,17 @@
     "region": "State of Paran\u00e1",
     "city": "Boa Esperan\u00e7a",
     "road": "Juranda"
+  },
+  "lvjh30OcoKbpBxADcBY1xw": {
+    "metas": [
+      "meta_portugal_JOnQ"
+    ],
+    "lat": 41.49425,
+    "lng": -8.55556,
+    "country": "Portugal",
+    "nominatimCountry": "Portugal",
+    "region": "Braga",
+    "city": "Fonte Coberta",
+    "road": "CM1088"
   }
 }
