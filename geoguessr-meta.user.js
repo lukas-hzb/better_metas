@@ -59,6 +59,7 @@
     const DATA_FETCH_MAX_ATTEMPTS = 3;
     const DATA_FETCH_RETRY_DELAY_MS = 400;
     const GITHUB_CONTENT_UPDATE_MAX_ATTEMPTS = 8;
+    const GITHUB_TRANSIENT_WRITE_MAX_ATTEMPTS = 3;
     const GITHUB_CONTENT_UPDATE_RETRY_DELAY_MS = 500;
     const GITHUB_WRITE_LOCK_STORAGE_KEY = 'gg_github_write_lock';
     const GITHUB_WRITE_LOCK_TTL_MS = 60000;
@@ -68,9 +69,12 @@
     const DATA_CACHE_MAX_AGE_MS = 12 * 60 * 60 * 1000;
     const STREETVIEW_RETRY_DELAY_MS = 500;
     const RESULT_SCREEN_GRACE_MS = 500;
+    const QUEUED_PANO_FORCE_MS = 2000;
     const VISIBILITY_POLL_INTERVAL_MS = 200;
     const MISSING_PANOID_PLACEHOLDER = "YOUR_PANOID_HERE";
     const META_SAVE_BUTTON_LABEL = 'Save Meta';
+    const SEARCH_DEBOUNCE_MS = 120;
+    const META_LIST_PAGE_SIZE = 120;
 
     /** 
      * @typedef {Object} Meta
@@ -88,9 +92,19 @@
     let locationMap = {};
     let userLocationMap = {};
     let systemLocationMap = {};
+    let proximityIndexDirty = true;
+    let proximityIndexVersion = 0;
+    let lastProximityCacheKey = null;
+    let lastProximityMatches = [];
+    let indexedLocationEntries = [];
+    let indexedStaticMetas = [];
     
     /** @type {Meta[]} Loaded meta definitions */
     let metasData = [];
+    let metaById = new Map();
+    let metaSearchTextById = new Map();
+    const incrementalListStates = new WeakMap();
+    const metaListInteractionStates = new WeakMap();
     let userMetaIds = new Set();
     let systemMetaIds = new Set();
     let dataLoadSequence = 0;
@@ -269,7 +283,7 @@
     }
 
     function buildUniqueMetas(userMetas, systemMetas) {
-        const combined = [...normalizeMetaList(userMetas), ...normalizeMetaList(systemMetas)];
+        const combined = [...(userMetas || []), ...(systemMetas || [])];
         const seen = new Set();
         return combined.filter(meta => {
             if (!meta || !meta.id || seen.has(meta.id)) return false;
@@ -279,7 +293,7 @@
     }
 
     function applyDataSnapshot(snapshot, options = {}) {
-        const normalized = normalizeDataSnapshot(snapshot);
+        const normalized = options.alreadyNormalized ? snapshot : normalizeDataSnapshot(snapshot);
         if (!normalized) return null;
 
         const tempUserMetas = normalized.userMetas.slice();
@@ -294,11 +308,77 @@
         userLocationMap = tempUserLocationMap;
         systemLocationMap = normalized.systemLocationMap;
         locationMap = mergeLocationMaps(systemLocationMap, userLocationMap);
+        proximityIndexDirty = true;
         userMetaIds = new Set(tempUserMetas.map(meta => meta.id).filter(Boolean));
         systemMetaIds = new Set(normalized.systemMetas.map(meta => meta.id).filter(Boolean));
         metasData = buildUniqueMetas(tempUserMetas, normalized.systemMetas);
+        rebuildMetaIndexes();
 
         return { pending, userMetas: tempUserMetas, userLocationMap: tempUserLocationMap };
+    }
+
+    function rebuildMetaIndexes() {
+        metaById = new Map();
+        metaSearchTextById = new Map();
+        metasData.forEach(meta => {
+            metaById.set(meta.id, meta);
+            metaSearchTextById.set(meta.id, [
+                meta.id,
+                meta.country,
+                meta.title,
+                meta.description,
+                meta.section,
+                meta.note,
+                meta.scope,
+                ...(meta.tags || [])
+            ].filter(Boolean).join(' ').toLowerCase());
+        });
+        proximityIndexDirty = true;
+    }
+
+    function rebuildProximityIndexes() {
+        indexedLocationEntries = Object.values(locationMap).map(entry => {
+            const lat = normalizeCoordinate(entry.lat);
+            const lng = normalizeCoordinate(entry.lng);
+            const country = normalizeCountry(entry.nominatimCountry || entry.country, lat, lng);
+            return {
+                metaIds: getLocationMetaIds(entry),
+                lat,
+                lng,
+                country,
+                region: entry.region,
+                city: entry.city,
+                roads: getNormalizedRoadNames(entry.road)
+            };
+        });
+        indexedStaticMetas = metasData.map(meta => {
+            const lat = normalizeCoordinate(meta.lat);
+            const lng = normalizeCoordinate(meta.lng);
+            return {
+                meta,
+                lat,
+                lng,
+                country: normalizeCountry(meta.country, lat, lng),
+                region: meta.region,
+                city: meta.city,
+                roads: getNormalizedRoadNames(meta.road)
+            };
+        });
+        proximityIndexDirty = false;
+        proximityIndexVersion += 1;
+        lastProximityCacheKey = null;
+    }
+
+    function getMetaById(metaId) {
+        return metaById.get(metaId);
+    }
+
+    function debounce(callback, delay = SEARCH_DEBOUNCE_MS) {
+        let timer = null;
+        return function(...args) {
+            clearTimeout(timer);
+            timer = setTimeout(() => callback.apply(this, args), delay);
+        };
     }
 
     function readStoredValue(key, defaultValue = null) {
@@ -344,14 +424,16 @@
     }
 
     function saveDataSnapshotCache(snapshot) {
-        const normalized = normalizeDataSnapshot(snapshot);
-        if (!normalized) return;
+        if (!snapshot || typeof snapshot !== 'object') return;
 
         try {
             writeStoredValue(DATA_CACHE_STORAGE_KEY, JSON.stringify({
                 version: DATA_CACHE_VERSION,
                 timestamp: Date.now(),
-                ...normalized
+                userLocationMap: snapshot.userLocationMap || {},
+                systemLocationMap: snapshot.systemLocationMap || {},
+                userMetas: snapshot.userMetas || [],
+                systemMetas: snapshot.systemMetas || []
             }));
         } catch (err) {
             console.warn('[BetterMetas] Could not save data cache:', err);
@@ -362,7 +444,7 @@
         const cached = loadCachedDataSnapshot();
         if (!cached) return false;
 
-        applyDataSnapshot(cached);
+        applyDataSnapshot(cached, { alreadyNormalized: true });
         console.log(`[BetterMetas] Loaded cached DB: ${Object.keys(locationMap).length} locs, ${metasData.length} metas.`);
         if (currentPanoid) {
             updateStatus(`ID: ${currentPanoid.substring(0,12)}...`);
@@ -389,6 +471,7 @@
     // Locking & Visibility State
     let lastResultSeenTime = 0;
     let nextPanoid = null;
+    let nextPanoidQueuedAt = 0;
     let userDismissed = false;
 
     // Active StreetView Instance
@@ -397,6 +480,8 @@
     let googleWatcherInstalled = false;
     let watchedGoogleObject = null;
     let watchedMapsObject = null;
+    let locationExtractionSequence = 0;
+    const recentlyGeocodedLocations = new Set();
     const hookedStreetViewInstances = new WeakSet();
     
     /** Current Location State */
@@ -1628,6 +1713,26 @@
             border-bottom: 1px solid rgba(255,255,255,0.06);
         }
 
+        .gg-list-load-more {
+            width: 100%;
+            min-height: 36px;
+            border: 0;
+            border-top: 1px solid rgba(255,255,255,0.06);
+            background: transparent;
+            color: rgba(255,255,255,0.58);
+            cursor: pointer;
+            font: inherit;
+            font-size: 11px;
+            overflow-anchor: none;
+        }
+
+        .gg-list-load-more:hover,
+        .gg-list-load-more:focus-visible {
+            color: #fff;
+            background: rgba(255,255,255,0.05);
+            outline: none;
+        }
+
         .gg-meta-list-main {
             display: flex;
             align-items: baseline;
@@ -2543,7 +2648,7 @@
 
     function getSelectedAdminMeta() {
         if (!selectedAdminMetaId) return null;
-        return metasData.find(meta => meta.id === selectedAdminMetaId) || null;
+        return getMetaById(selectedAdminMetaId) || null;
     }
 
     function applyAdminMetaLocally(meta) {
@@ -2558,6 +2663,7 @@
         });
 
         if (!found) metasData.unshift(normalizedMeta);
+        rebuildMetaIndexes();
         return true;
     }
 
@@ -2567,14 +2673,18 @@
             ? locations => replaceMetaIdInLocationEntries(locations, metaId, normalizedTransferTargetId)
             : locations => removeMetaIdFromLocationEntries(locations, metaId);
 
+        userLocationMap = { ...userLocationMap };
+        systemLocationMap = { ...systemLocationMap };
         updateLocations(userLocationMap);
         updateLocations(systemLocationMap);
         metasData = metasData.filter(meta => meta.id !== metaId);
+        rebuildMetaIndexes();
         userMetaIds.delete(metaId);
         systemMetaIds.delete(metaId);
         selectedAdminMetaId = null;
         selectedAdminTransferTargetId = null;
         locationMap = mergeLocationMaps(systemLocationMap, userLocationMap);
+        proximityIndexDirty = true;
         if (currentPanoid) refreshDisplay();
     }
 
@@ -2582,14 +2692,20 @@
         return JSON.parse(JSON.stringify(value));
     }
 
+    function copyLocationMapForPanoid(locations, panoid) {
+        const copy = { ...(locations || {}) };
+        if (copy[panoid]) copy[panoid] = normalizeLocationEntry(copy[panoid]);
+        return copy;
+    }
+
     function createLocalDataSnapshot() {
         return {
-            userLocationMap: cloneJson(userLocationMap || {}),
-            systemLocationMap: cloneJson(systemLocationMap || {}),
-            locationMap: cloneJson(locationMap || {}),
-            metasData: cloneJson(metasData || []),
-            userMetaIds: Array.from(userMetaIds),
-            systemMetaIds: Array.from(systemMetaIds),
+            userLocationMap,
+            systemLocationMap,
+            locationMap,
+            metasData,
+            userMetaIds: new Set(userMetaIds),
+            systemMetaIds: new Set(systemMetaIds),
             pendingLocalChanges: cloneJson(loadPendingLocalChanges())
         };
     }
@@ -2597,12 +2713,14 @@
     function restoreLocalDataSnapshot(snapshot) {
         if (!snapshot) return;
 
-        userLocationMap = normalizeLocationMap(snapshot.userLocationMap);
-        systemLocationMap = normalizeLocationMap(snapshot.systemLocationMap);
-        locationMap = normalizeLocationMap(snapshot.locationMap);
-        metasData = normalizeMetaList(snapshot.metasData);
-        userMetaIds = new Set(snapshot.userMetaIds || []);
-        systemMetaIds = new Set(snapshot.systemMetaIds || []);
+        userLocationMap = snapshot.userLocationMap;
+        systemLocationMap = snapshot.systemLocationMap;
+        locationMap = snapshot.locationMap;
+        proximityIndexDirty = true;
+        metasData = snapshot.metasData;
+        rebuildMetaIndexes();
+        userMetaIds = snapshot.userMetaIds;
+        systemMetaIds = snapshot.systemMetaIds;
         savePendingLocalChanges(snapshot.pendingLocalChanges || getEmptyPendingLocalChanges());
 
         renderAdminMetas(document.getElementById('gg-admin-search')?.value || '');
@@ -2724,8 +2842,10 @@
         currentPanoid = panoid;
         nextPanoid = null;
         updateStatus(`ID: ${panoid.substring(0,12)}...`);
+        userLocationMap = copyLocationMapForPanoid(userLocationMap, panoid);
         addMetaIdsToLocationMap(userLocationMap, panoid, metaIds);
         locationMap = mergeLocationMaps(systemLocationMap, userLocationMap);
+        proximityIndexDirty = true;
         rememberLocalLocationLinks(panoid, metaIds);
         console.log('[BetterMetas] Applied local location links:', {
             panoid,
@@ -2739,8 +2859,10 @@
         currentPanoid = panoid;
         nextPanoid = null;
         updateStatus(`ID: ${panoid.substring(0,12)}...`);
+        userLocationMap = copyLocationMapForPanoid(userLocationMap, panoid);
         removeMetaIdsFromLocationMap(userLocationMap, panoid, metaIds);
         locationMap = mergeLocationMaps(systemLocationMap, userLocationMap);
+        proximityIndexDirty = true;
         forgetLocalLocationLinks(panoid, metaIds);
         console.log('[BetterMetas] Applied local location unlinks:', {
             panoid,
@@ -2755,13 +2877,16 @@
         nextPanoid = null;
         updateStatus(`ID: ${panoid.substring(0,12)}...`);
 
-        if (!metasData.some(existing => existing.id === meta.id)) {
-            metasData.unshift(meta);
+        if (!getMetaById(meta.id)) {
+            metasData = [meta, ...metasData];
+            rebuildMetaIndexes();
         }
 
         userMetaIds.add(meta.id);
+        userLocationMap = copyLocationMapForPanoid(userLocationMap, panoid);
         addMetaIdsToLocationMap(userLocationMap, panoid, [meta.id]);
         locationMap = mergeLocationMaps(systemLocationMap, userLocationMap);
+        proximityIndexDirty = true;
         rememberLocalMeta(meta, panoid);
         console.log('[BetterMetas] Applied local saved meta:', {
             panoid,
@@ -3548,9 +3673,9 @@
             hideBackdrop();
         });
 
-        document.getElementById('gg-admin-search').addEventListener('input', (e) => {
+        document.getElementById('gg-admin-search').addEventListener('input', debounce((e) => {
             renderAdminMetas(e.target.value);
-        });
+        }));
 
         document.getElementById('gg-admin-sort-options').addEventListener('change', (e) => {
             adminSortMode = e.target.value || 'country';
@@ -3577,9 +3702,9 @@
             showAdminTransferView();
         });
 
-        document.getElementById('gg-admin-transfer-search').addEventListener('input', (e) => {
+        document.getElementById('gg-admin-transfer-search').addEventListener('input', debounce((e) => {
             renderAdminTransferMetas(e.target.value);
-        });
+        }));
 
         document.getElementById('gg-admin-transfer-back-btn').addEventListener('click', () => {
             showAdminDetailsView();
@@ -3736,9 +3861,9 @@
         });
 
         // --- Existing Metas Browser ---
-        document.getElementById('meta-search').addEventListener('input', (e) => {
+        document.getElementById('meta-search').addEventListener('input', debounce((e) => {
             renderExistingMetas(e.target.value);
-        });
+        }));
     }
 
     /**
@@ -3863,25 +3988,70 @@
 
     function matchesMetaSearch(meta, terms, extraValues = []) {
         if (terms.length === 0) return true;
-        const searchableContent = [
-            ...extraValues,
-            meta.country || '',
-            meta.title || '',
-            meta.description || '',
-            (meta.tags || []).join(' ')
-        ].join(' ').toLowerCase();
+        const indexedContent = metaSearchTextById.get(meta.id) || '';
+        const searchableContent = extraValues.length
+            ? `${indexedContent} ${extraValues.filter(Boolean).join(' ').toLowerCase()}`
+            : indexedContent;
         return terms.every(term => searchableContent.includes(term));
     }
 
-    function deduplicateMetasBySignature(metas, chooseMeta = group => group[0]) {
-        const groups = new Map();
-        metas.forEach(meta => {
-            const tagsSignature = (meta.tags || []).slice().sort().join(',');
-            const signature = `${meta.country}|${meta.title}|${meta.description}|${tagsSignature}`;
-            if (!groups.has(signature)) groups.set(signature, []);
-            groups.get(signature).push(meta);
-        });
-        return [...groups.values()].map(chooseMeta);
+    function resetIncrementalList(container, html = '') {
+        const previous = incrementalListStates.get(container);
+        previous?.observer?.disconnect();
+        incrementalListStates.delete(container);
+        container.innerHTML = html;
+    }
+
+    function renderIncrementalList(container, items, renderItem) {
+        resetIncrementalList(container);
+
+        const state = { items, rendered: 0, observer: null };
+        const sentinel = document.createElement('button');
+        sentinel.type = 'button';
+        sentinel.className = 'gg-list-load-more';
+
+        const appendNextPage = () => {
+            if (state.rendered >= items.length) return;
+            const nextEnd = Math.min(state.rendered + META_LIST_PAGE_SIZE, items.length);
+            const template = document.createElement('template');
+            template.innerHTML = items.slice(state.rendered, nextEnd).map(renderItem).join('');
+            sentinel.before(template.content);
+            state.rendered = nextEnd;
+            const remaining = items.length - state.rendered;
+            if (remaining > 0) {
+                sentinel.textContent = `${remaining} more — scroll or click to load`;
+            } else {
+                sentinel.remove();
+                state.observer?.disconnect();
+            }
+        };
+
+        sentinel.addEventListener('click', appendNextPage);
+        container.appendChild(sentinel);
+        incrementalListStates.set(container, state);
+        appendNextPage();
+
+        if (sentinel.isConnected && typeof IntersectionObserver === 'function') {
+            state.observer = new IntersectionObserver(entries => {
+                if (entries.some(entry => entry.isIntersecting)) appendNextPage();
+            }, { root: container, rootMargin: '160px 0px' });
+            state.observer.observe(sentinel);
+        }
+    }
+
+    function setMetaListClickHandler(container, handler) {
+        let state = metaListInteractionStates.get(container);
+        if (!state) {
+            state = { clickHandler: null, preview: null, clickEventBound: false, previewEventsBound: false };
+            metaListInteractionStates.set(container, state);
+        }
+        if (!state.clickEventBound) {
+            state.clickEventBound = true;
+            container.addEventListener('click', event => {
+                metaListInteractionStates.get(container)?.clickHandler?.(event);
+            });
+        }
+        state.clickHandler = handler;
     }
 
     function renderMetaListItem(meta, options) {
@@ -3904,32 +4074,46 @@
     function attachMetaPreview(container, modalId, options = {}) {
         const previewPopup = document.getElementById('gg-meta-preview-popup');
         const modal = document.getElementById(modalId);
+        let state = metaListInteractionStates.get(container);
+        if (!state) {
+            state = { clickHandler: null, preview: null, clickEventBound: false, previewEventsBound: false };
+            metaListInteractionStates.set(container, state);
+        }
+        state.preview = { previewPopup, modal, options };
 
-        container.querySelectorAll(options.itemSelector || '.gg-meta-list-item').forEach(item => {
-            item.addEventListener('mouseenter', () => {
-                const meta = metasData.find(candidate => candidate.id === item.dataset.metaId);
-                if (!meta || !previewPopup || (options.requireModal && !modal)) return;
+        if (!state.previewEventsBound) {
+            state.previewEventsBound = true;
+            container.addEventListener('mouseover', event => {
+                const current = metaListInteractionStates.get(container)?.preview;
+                if (!current) return;
+                const item = event.target.closest(current.options.itemSelector || '.gg-meta-list-item');
+                if (!item || !container.contains(item) || item.contains(event.relatedTarget)) return;
+                const meta = getMetaById(item.dataset.metaId);
+                if (!meta || !current.previewPopup || (current.options.requireModal && !current.modal)) return;
 
-                delete previewPopup.dataset.ggPreviewCleanupId;
-                previewPopup.dataset.ggPreviewMode = 'meta';
-                previewPopup.classList.remove('gg-image-url-preview');
+                delete current.previewPopup.dataset.ggPreviewCleanupId;
+                current.previewPopup.dataset.ggPreviewMode = 'meta';
+                current.previewPopup.classList.remove('gg-image-url-preview');
                 const previewTags = renderStaticTags(meta.tags);
-                previewPopup.innerHTML = `
-                    <div class="gg-meta-item-title">${escapeHtml(options.titleFallback ? meta.title || meta.id : meta.title)}</div>
+                current.previewPopup.innerHTML = `
+                    <div class="gg-meta-item-title">${escapeHtml(current.options.titleFallback ? meta.title || meta.id : meta.title)}</div>
                     ${renderMetaImage(meta.imageUrl)}
-                    <div class="gg-meta-description">${escapeHtml(options.descriptionFallback ? meta.description || '' : meta.description)}</div>
+                    <div class="gg-meta-description">${escapeHtml(current.options.descriptionFallback ? meta.description || '' : meta.description)}</div>
                     ${previewTags ? `<div class="gg-meta-tags">${previewTags}</div>` : ''}
                 `;
 
-                if (!modal) return;
-                const modalRect = modal.getBoundingClientRect();
+                if (!current.modal) return;
+                const modalRect = current.modal.getBoundingClientRect();
                 const itemRect = item.getBoundingClientRect();
-                previewPopup.style.left = `${modalRect.left - 290}px`;
-                previewPopup.classList.add('gg-visible');
-                previewPopup.style.top = `${itemRect.top + (itemRect.height / 2) - (previewPopup.offsetHeight / 2)}px`;
+                current.previewPopup.style.left = `${modalRect.left - 290}px`;
+                current.previewPopup.classList.add('gg-visible');
+                current.previewPopup.style.top = `${itemRect.top + (itemRect.height / 2) - (current.previewPopup.offsetHeight / 2)}px`;
             });
-            item.addEventListener('mouseleave', hidePreviewPopup);
-        });
+            container.addEventListener('mouseout', event => {
+                const item = event.target.closest('.gg-meta-list-item');
+                if (item && !item.contains(event.relatedTarget)) hidePreviewPopup();
+            });
+        }
     }
 
     function renderAdminMetas(searchTerm = '') {
@@ -3953,25 +4137,24 @@
         const sorted = sortAdminMetaEntries(filtered);
 
         if (sorted.length === 0) {
-            container.innerHTML = '<div class="gg-form-hint gg-list-empty-state">No metas found.</div>';
+            resetIncrementalList(container, '<div class="gg-form-hint gg-list-empty-state">No metas found.</div>');
             return;
         }
 
-        container.innerHTML = sorted.map(({ meta }) => renderMetaListItem(meta, {
+        renderIncrementalList(container, sorted, ({ meta }) => renderMetaListItem(meta, {
             itemClass: ' gg-admin-meta-item',
             titleFallback: true,
             showScope: true,
             actionHtml: `<button class="gg-btn-link-meta gg-btn-admin-edit" data-meta-id="${escapeHtml(meta.id)}">Edit</button>`,
-        })).join('');
+        }));
 
         attachMetaPreview(container, 'gg-meta-admin-modal', { itemSelector: '.gg-admin-meta-item', requireModal: true, titleFallback: true, descriptionFallback: true });
-
-        container.querySelectorAll('.gg-btn-admin-edit').forEach(btn => {
-            btn.addEventListener('click', (e) => {
-                e.preventDefault();
-                e.stopPropagation();
-                openAdminMetaDetails(btn.dataset.metaId);
-            });
+        setMetaListClickHandler(container, event => {
+            const btn = event.target.closest('.gg-btn-admin-edit');
+            if (!btn) return;
+            event.preventDefault();
+            event.stopPropagation();
+            openAdminMetaDetails(btn.dataset.metaId);
         });
     }
 
@@ -4014,7 +4197,7 @@
     }
 
     function openAdminMetaDetails(metaId) {
-        const meta = metasData.find(m => m.id === metaId);
+        const meta = getMetaById(metaId);
         if (!meta) return;
 
         selectedAdminMetaId = metaId;
@@ -4047,7 +4230,7 @@
 
         const sourceMeta = getSelectedAdminMeta();
         if (!sourceMeta) {
-            container.innerHTML = '<div class="gg-form-hint gg-list-empty-state">No meta selected.</div>';
+            resetIncrementalList(container, '<div class="gg-form-hint gg-list-empty-state">No meta selected.</div>');
             return;
         }
 
@@ -4057,28 +4240,27 @@
             return matchesMetaSearch(meta, terms);
         });
 
-        const uniqueFiltered = deduplicateMetasBySignature(filtered);
+        const uniqueFiltered = filtered;
 
         if (uniqueFiltered.length === 0) {
-            container.innerHTML = '<div class="gg-form-hint gg-list-empty-state">No metas found.</div>';
+            resetIncrementalList(container, '<div class="gg-form-hint gg-list-empty-state">No metas found.</div>');
             return;
         }
 
-        container.innerHTML = uniqueFiltered.map(meta => renderMetaListItem(meta, {
+        renderIncrementalList(container, uniqueFiltered, meta => renderMetaListItem(meta, {
             titleFallback: true,
             actionHtml: `<button class="gg-btn-link-meta gg-btn-transfer-meta" data-meta-id="${escapeHtml(meta.id)}">Reassign Here</button>`,
-        })).join('');
+        }));
 
         attachMetaPreview(container, 'gg-meta-admin-modal', { requireModal: true, titleFallback: true, descriptionFallback: true });
-
-        container.querySelectorAll('.gg-btn-transfer-meta').forEach(btn => {
-            btn.addEventListener('click', (e) => {
-                e.preventDefault();
-                e.stopPropagation();
-                selectedAdminTransferTargetId = btn.dataset.metaId || null;
-                hidePreviewPopup();
-                deleteAdminMeta(selectedAdminTransferTargetId, btn);
-            });
+        setMetaListClickHandler(container, event => {
+            const btn = event.target.closest('.gg-btn-transfer-meta');
+            if (!btn) return;
+            event.preventDefault();
+            event.stopPropagation();
+            selectedAdminTransferTargetId = btn.dataset.metaId || null;
+            hidePreviewPopup();
+            deleteAdminMeta(selectedAdminTransferTargetId, btn);
         });
     }
 
@@ -4092,18 +4274,14 @@
         const terms = getMetaSearchTerms(searchTerm);
 
         const filtered = metasData.filter(meta => matchesMetaSearch(meta, terms));
-        const uniqueFiltered = deduplicateMetasBySignature(filtered, group => {
-            const linked = group.find(meta => linkedMetaIds.has(meta.id));
-            const selected = group.find(meta => selectedMetaIds.has(meta.id));
-            return linked || selected || group[0];
-        });
+        const uniqueFiltered = filtered;
         
         if (uniqueFiltered.length === 0) {
-            container.innerHTML = '<div class="gg-form-hint gg-list-empty-state">No metas found.</div>';
+            resetIncrementalList(container, '<div class="gg-form-hint gg-list-empty-state">No metas found.</div>');
             return;
         }
 
-        container.innerHTML = uniqueFiltered.map(meta => {
+        renderIncrementalList(container, uniqueFiltered, meta => {
             const isSelected = selectedMetaIds.has(meta.id);
             const isLinked = linkedMetaIds.has(meta.id);
             const actionHtml = isLinked
@@ -4112,22 +4290,18 @@
                             ${isSelected ? 'Selected' : 'Link'}
                         </button>`;
             return renderMetaListItem(meta, { titleFallback: false, actionHtml });
-        }).join('');
+        });
 
         attachMetaPreview(container, 'gg-meta-modal');
-
-        // Add click handlers
-        container.querySelectorAll('.gg-btn-link-meta').forEach(btn => {
-            btn.addEventListener('click', (e) => {
-                const metaId = btn.dataset.metaId;
-                if (selectedMetaIds.has(metaId)) {
-                    selectedMetaIds.delete(metaId);
-                } else {
-                    selectedMetaIds.add(metaId);
-                }
-                updateLinkSelectedBtn();
-                renderExistingMetas(searchTerm); // Re-render to update highlights
-            });
+        setMetaListClickHandler(container, event => {
+            const btn = event.target.closest('.gg-btn-link-meta');
+            if (!btn) return;
+            const metaId = btn.dataset.metaId;
+            if (selectedMetaIds.has(metaId)) selectedMetaIds.delete(metaId);
+            else selectedMetaIds.add(metaId);
+            updateLinkSelectedBtn();
+            btn.classList.toggle('gg-tag-selected', selectedMetaIds.has(metaId));
+            btn.textContent = selectedMetaIds.has(metaId) ? 'Selected' : 'Link';
         });
     }
 
@@ -4555,7 +4729,7 @@
         }
 
         const normalizedTransferTargetId = (transferTargetId || selectedAdminTransferTargetId || '').trim();
-        const transferTarget = normalizedTransferTargetId ? metasData.find(meta => meta.id === normalizedTransferTargetId) : null;
+        const transferTarget = normalizedTransferTargetId ? getMetaById(normalizedTransferTargetId) : null;
         if (normalizedTransferTargetId && !transferTarget) {
             await showToolAlert('Unknown Transfer Target', `No meta found with ID ${normalizedTransferTargetId}.`);
             return;
@@ -4775,7 +4949,7 @@
             return showToolAlert('No Token Saved', 'Save a GitHub Personal Access Token in Settings to edit metas.');
         }
 
-        const meta = metasData.find(m => m.id === metaId);
+        const meta = getMetaById(metaId);
         if (!meta) {
             return showToolAlert('Meta Not Found', 'This meta could not be found in the loaded BetterMetas data.');
         }
@@ -4860,7 +5034,7 @@
 
         // Get exact metas - BYPASS SCOPE FILTER
         const exactMetas = metaIds.map(id => {
-            const found = metasData.find(m => m.id === id);
+            const found = getMetaById(id);
             if (!found) console.warn('[BetterMetas] Could not find exact meta data for ID:', id);
             return found;
         }).filter(Boolean); // Removed .filter(isScopeActive) to always show linked metas
@@ -5089,10 +5263,22 @@
         
         const curRoads = getNormalizedRoadNames(currentLocationData.road);
 
-        if (isNaN(curLat) || isNaN(curLng)) return [];
+        if (curLat === null || curLng === null) return [];
 
         const matchedMetaIds = new Set();
         const matches = [];
+        if (proximityIndexDirty) rebuildProximityIndexes();
+        const proximityCacheKey = JSON.stringify([
+            proximityIndexVersion,
+            curLat,
+            curLng,
+            curCountry,
+            curNomCountry,
+            curRegion || '',
+            curCity || '',
+            curRoads
+        ]);
+        if (proximityCacheKey === lastProximityCacheKey) return lastProximityMatches;
 
         // Helper: Check meta match against location
         const checkMatch = (scope, entryLat, entryLng, entryCountry, entryRegion, entryCity, entryRoads) => {
@@ -5135,55 +5321,31 @@
              return false;
         };
 
-        // Phase 1: Check linked locations from plonkit_locations.json and user_locations.json
-        // locationMap maps Panoid -> Data
-        for (const panoId in locationMap) {
-            const entry = locationMap[panoId];
-            const metaIds = getLocationMetaIds(entry);
-            
-            // Normalize Entry Data
-            const eLat = normalizeCoordinate(entry.lat);
-            const eLng = normalizeCoordinate(entry.lng);
-            const eCountry = normalizeCountry(entry.country, eLat, eLng); 
-            // entry.nominatimCountry might exist
-            const finalECountry = normalizeCountry(entry.nominatimCountry || eCountry, eLat, eLng);
-            
-            const eRegion = entry.region;
-            const eCity = entry.city; // New field, might be undefined in old entries
-            
-            const eRoads = getNormalizedRoadNames(entry.road);
-
-            metaIds.forEach(id => {
+        // Location values are normalized once per data change, not on every HUD refresh.
+        indexedLocationEntries.forEach(entry => {
+            entry.metaIds.forEach(id => {
                  if (matchedMetaIds.has(id)) return; // Already matched
-                 
-                 const meta = metasData.find(m => m.id === id);
+                 const meta = getMetaById(id);
                  if (!meta) return;
 
-                 if (checkMatch(meta.scope, eLat, eLng, finalECountry, eRegion, eCity, eRoads)) {
+                 if (checkMatch(meta.scope, entry.lat, entry.lng, entry.country, entry.region, entry.city, entry.roads)) {
                      matchedMetaIds.add(id);
                      matches.push(meta);
                  }
             });
-        }
+        });
 
-        // Phase 2: Check Static Meta Locations (e.g. Plonkit data or Metas with defined coordinates)
-        metasData.forEach(meta => {
+        indexedStaticMetas.forEach(entry => {
+             const meta = entry.meta;
              if (matchedMetaIds.has(meta.id)) return;
-
-             // Meta Static Data
-             const mLat = normalizeCoordinate(meta.lat);
-             const mLng = normalizeCoordinate(meta.lng);
-             const mCountry = normalizeCountry(meta.country, mLat, mLng);
-             const mRegion = meta.region;
-             const mCity = meta.city;
-             const mRoads = getNormalizedRoadNames(meta.road);
-
-             if (checkMatch(meta.scope, mLat, mLng, mCountry, mRegion, mCity, mRoads)) {
+             if (checkMatch(meta.scope, entry.lat, entry.lng, entry.country, entry.region, entry.city, entry.roads)) {
                  matchedMetaIds.add(meta.id);
                  matches.push(meta);
              }
         });
 
+        lastProximityCacheKey = proximityCacheKey;
+        lastProximityMatches = matches;
         return matches;
     }
 
@@ -5246,21 +5408,24 @@
         }
     }
 
-    function checkLocation(panoid) {
+    function checkLocation(panoid, options = {}) {
         if (!panoid || typeof panoid !== 'string' || panoid.length <= 5) return;
         
         // Lock Mechanism:
         // If on result screen, queue updates instead of applying immediately
         // to prevent UI jitter when reviewing previous rounds.
         const onResultScreen = isRoundResult();
-        if (currentPanoid && currentPanoid !== panoid && onResultScreen) {
-            nextPanoid = panoid; // Queue it
+        const shouldHoldForResult = onResultScreen && !userDismissed && !options.bypassResultLock;
+        if (currentPanoid && currentPanoid !== panoid && shouldHoldForResult) {
+            if (nextPanoid !== panoid) nextPanoidQueuedAt = Date.now();
+            nextPanoid = panoid;
             return;
         }
 
         const changed = (panoid !== currentPanoid);
         currentPanoid = panoid;
-        nextPanoid = null; // Clear queue since we accepted a new one
+        nextPanoid = null;
+        nextPanoidQueuedAt = 0;
         
         if (changed) {
             console.log('[BetterMetas] New Location detected:', panoid);
@@ -5274,13 +5439,15 @@
         refreshDisplay();
     }
     
-    function extractLocationData(attempt = 0) {
+    function extractLocationData(attempt = 0, extractionId = null) {
         const maxAttempts = 10;
+        if (extractionId === null) extractionId = ++locationExtractionSequence;
+        if (extractionId !== locationExtractionSequence) return;
         
         if (!svInstance) {
             console.log(`[BetterMetas] extractLocationData: No svInstance available yet (Attempt ${attempt+1}/${maxAttempts}).`);
             if (attempt < maxAttempts) {
-                setTimeout(() => extractLocationData(attempt + 1), STREETVIEW_RETRY_DELAY_MS);
+                setTimeout(() => extractLocationData(attempt + 1, extractionId), STREETVIEW_RETRY_DELAY_MS);
             }
             return;
         }
@@ -5289,6 +5456,7 @@
 
         // Give it a moment for data to populate in the instance if it's fresh
         setTimeout(() => {
+            if (extractionId !== locationExtractionSequence) return;
             try {
                 // Check if we can get location data
                 let loc = null;
@@ -5361,6 +5529,13 @@
                     // Dual Geocoding Strategy
                     const latVal = parseFloat(lat);
                     const lngVal = parseFloat(lng);
+                    const geocodeKey = `${newLatStr},${newLngStr}`;
+                    if (recentlyGeocodedLocations.has(geocodeKey)) {
+                        console.log('[BetterMetas] Geocoding already running for this location.');
+                        return;
+                    }
+                    recentlyGeocodedLocations.add(geocodeKey);
+                    setTimeout(() => recentlyGeocodedLocations.delete(geocodeKey), 10000);
                     
                     // 1. Google Geocoding (Dominant for country)
                     const geocoder = new win.google.maps.Geocoder();
@@ -5460,7 +5635,7 @@
                 } else {
                     console.log(`[BetterMetas] svInstance.getLocation() returned null/empty (Attempt ${attempt+1}/${maxAttempts}).`);
                     if (attempt < maxAttempts) {
-                        extractLocationData(attempt + 1);
+                        extractLocationData(attempt + 1, extractionId);
                     }
                 }
             } catch (e) {
@@ -5654,6 +5829,21 @@
         return Boolean(error && (error.status === 409 || /^GitHub API 409:/.test(error.message || '')));
     }
 
+    function isRetryableGitHubWriteError(error) {
+        if (!error) return false;
+        if (isGitHubContentConflict(error)) return true;
+        if (error.status === 400) return true;
+        if (error.status >= 500 && error.status <= 599) return true;
+        if (!error.status && /request failed|timed out/i.test(error.message || '')) return true;
+        return error.status === 422 && /sha|already exists|does not match/i.test(error.details || error.message || '');
+    }
+
+    function getGitHubWriteAttemptLimit(error) {
+        return isGitHubContentConflict(error)
+            ? GITHUB_CONTENT_UPDATE_MAX_ATTEMPTS
+            : GITHUB_TRANSIENT_WRITE_MAX_ATTEMPTS;
+    }
+
     function readGitHubWriteLock() {
         try {
             const value = readStoredValue(GITHUB_WRITE_LOCK_STORAGE_KEY);
@@ -5740,12 +5930,13 @@
                     return await putGitHubJsonFile(apiUrl, token, file.sha, updatedContent, message);
                 } catch (error) {
                     lastError = error;
-                    if (!isGitHubContentConflict(error) || attempt === GITHUB_CONTENT_UPDATE_MAX_ATTEMPTS) {
+                    const attemptLimit = getGitHubWriteAttemptLimit(error);
+                    if (!isRetryableGitHubWriteError(error) || attempt >= attemptLimit) {
                         throw error;
                     }
 
                     const delay = GITHUB_CONTENT_UPDATE_RETRY_DELAY_MS * attempt + Math.floor(Math.random() * GITHUB_CONTENT_UPDATE_RETRY_DELAY_MS);
-                    console.warn(`[BetterMetas] GitHub content conflict while saving ${apiUrl}; retrying with latest file (${attempt + 1}/${GITHUB_CONTENT_UPDATE_MAX_ATTEMPTS}) after ${delay}ms.`, error);
+                    console.warn(`[BetterMetas] Temporary GitHub write failure while saving ${apiUrl}; retrying with latest file (${attempt + 1}/${attemptLimit}) after ${delay}ms.`, error);
                     await wait(delay);
                 }
             }
@@ -5872,7 +6063,7 @@
                 userMetas: loadedUserMetas,
                 systemMetas: loadedSystemMetas
             };
-            const applied = applyDataSnapshot(snapshot, { prunePending: true });
+            const applied = applyDataSnapshot(snapshot, { prunePending: true, alreadyNormalized: true });
             saveDataSnapshotCache(snapshot);
 
             const locCount = Object.keys(locationMap).length;
@@ -6055,10 +6246,17 @@
          setInterval(() => {
              updateVisibility();
              
-             // Process queued panoid if lock is released
-             if (nextPanoid && !isRoundResult()) {
+             // Release immediately after an intentional dismissal. As a final
+             // fallback, trust a stable StreetView pano even if GeoGuessr leaves
+             // a stale result element mounted in the DOM.
+             const resultActive = isRoundResult();
+             const visiblePanoid = getStreetViewPanoid();
+             const queuedPanoidConfirmed = visiblePanoid === nextPanoid;
+             const queueExpired = nextPanoidQueuedAt > 0
+                 && Date.now() - nextPanoidQueuedAt >= QUEUED_PANO_FORCE_MS;
+             if (nextPanoid && (!resultActive || userDismissed || (queuedPanoidConfirmed && queueExpired))) {
                  console.log('[BetterMetas] Applying queued panoid:', nextPanoid);
-                 checkLocation(nextPanoid);
+                 checkLocation(nextPanoid, { bypassResultLock: true });
              }
          }, VISIBILITY_POLL_INTERVAL_MS);
 
@@ -6078,15 +6276,15 @@
                  if (activeTag === 'input' || activeTag === 'textarea') return;
 
                  if (isRoundResult()) {
+                     userDismissed = true;
                      const hud = document.getElementById('gg-meta-hud');
                      if (hud) {
                          // Instant hide via class removal (transitions out)
                          hud.classList.remove('gg-visible');
-                         userDismissed = true;
                      }
                  }
              }
-         });
+         }, true);
 
          // Next Button Click Capture (Heuristic)
          document.addEventListener('click', (e) => {
@@ -6105,12 +6303,12 @@
                       !button.closest('#gg-meta-modal') &&
                       !button.closest('#gg-meta-admin-modal') &&
                       !button.closest('#gg-dialog-modal')) {
+                       userDismissed = true;
                        
                        // Close HUD
                        const hud = document.getElementById('gg-meta-hud');
                        if (hud && hud.classList.contains('gg-visible')) {
                            hud.classList.remove('gg-visible');
-                           userDismissed = true;
                        }
 
                        // Close Modals
