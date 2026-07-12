@@ -1,11 +1,11 @@
 // ==UserScript==
 // @name         BetterMetas
 // @namespace    http://tampermonkey.net/
-// @version      0.3
+// @version      0.4
 // @description  Displays crowdsourced metas and hints for Geoguessr locations.
 // @author       Lukas Hzb
-// @updateURL    https://raw.githubusercontent.com/lukas-hzb/better_metas/main_v4/geoguessr-meta.user.js
-// @downloadURL  https://raw.githubusercontent.com/lukas-hzb/better_metas/main_v4/geoguessr-meta.user.js
+// @updateURL    https://github.com/lukas-hzb/better_metas/raw/refs/heads/main_v4/geoguessr-meta.user.js
+// @downloadURL  https://github.com/lukas-hzb/better_metas/raw/refs/heads/main_v4/geoguessr-meta.user.js
 // @match        https://www.geoguessr.com/*
 // @icon         https://www.google.com/s2/favicons?sz=64&domain=geoguessr.com
 // @run-at       document-start
@@ -13,6 +13,7 @@
 // @grant        GM_getValue
 // @grant        GM_setValue
 // @grant        unsafeWindow
+// @connect      github.com
 // @connect      raw.githubusercontent.com
 // @connect      api.github.com
 // ==/UserScript==
@@ -32,7 +33,7 @@
     const SYSTEM_METAS_FILE = 'data/plonkit_metas.json';
     const SYSTEM_LOCATIONS_FILE = 'data/plonkit_locations.json';
     
-    const getRawFileUrl = (file) => `https://raw.githubusercontent.com/${REPO_OWNER}/${REPO_NAME}/${REPO_BRANCH}/${file}?t=${Date.now()}`;
+    const getRawFileUrl = (file) => `https://github.com/${REPO_OWNER}/${REPO_NAME}/raw/refs/heads/${REPO_BRANCH}/${file}?t=${Date.now()}`;
     const getApiFileUrl = (file) => `https://api.github.com/repos/${REPO_OWNER}/${REPO_NAME}/contents/${file}`;
     const API_USER_LOCATIONS_URL = getApiFileUrl(USER_LOCATIONS_FILE);
     const API_USER_METAS_URL = getApiFileUrl(USER_METAS_FILE);
@@ -44,7 +45,7 @@
     const HUD_SIZE_STORAGE_KEY = 'gg_hud_size';
     const PENDING_LOCAL_CHANGES_STORAGE_KEY = 'gg_pending_local_changes';
     const DATA_CACHE_STORAGE_KEY = 'gg_data_cache';
-    const DATA_CACHE_VERSION = `${REPO_OWNER}/${REPO_NAME}/${REPO_BRANCH}:2`;
+    const DATA_CACHE_VERSION = `${REPO_OWNER}/${REPO_NAME}/${REPO_BRANCH}:3`;
     const ACTIVE_SCOPES_STORAGE_KEY = 'gg_active_scopes';
     const GITHUB_TOKEN_STORAGE_KEY = 'gg_gh_token';
     const DEFAULT_HUD_WIDTH = '320px';
