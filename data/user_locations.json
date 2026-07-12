@@ -2267,5 +2267,17 @@
     "region": null,
     "city": "Singapore",
     "road": "Ayer Rajah Avenue"
+  },
+  "CYaxVjUugf0B4j2bf-ukTg": {
+    "metas": [
+      "meta_philippines_2ctB"
+    ],
+    "lat": 6.51022,
+    "lng": 124.56879,
+    "country": "Philippines",
+    "nominatimCountry": "Philippines",
+    "region": "SOCCSKSARGEN",
+    "city": "Bagumbayan",
+    "road": null
   }
 }
