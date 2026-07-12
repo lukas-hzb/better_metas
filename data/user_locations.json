@@ -2195,5 +2195,17 @@
     "region": "Sucumb\u00edos",
     "city": "Cascales",
     "road": "Ecuador 45"
+  },
+  "RwvN72wpQbboKS_-iXvOUQ": {
+    "metas": [
+      "meta_portugal_JOnQ"
+    ],
+    "lat": 40.31515,
+    "lng": -8.28883,
+    "country": "Portugal",
+    "nominatimCountry": "Portugal",
+    "region": "Coimbra District",
+    "city": "Penacova",
+    "road": "Mata"
   }
 }
