@@ -48349,7 +48349,7 @@
         "description": "In the far southwest of the country you can find a flat uncultivated landscape with very limited vegetation, which typically appears quite dry. There are almost no trees nearby, and only very low bushes and grass.",
         "note": "",
         "imageUrl": "https://www.plonkit.net/images/portugal/3southwest.png",
-        "scope": "region",
+        "scope": "10km",
         "tags": [
           "plants"
         ]
