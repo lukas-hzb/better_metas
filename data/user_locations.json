@@ -2014,5 +2014,17 @@
     "region": "Acre",
     "city": "Manoel Urbano",
     "road": "BR-364"
+  },
+  "_IwhF4CnxJW1kZNVAlmq0Q": {
+    "metas": [
+      "meta_south_africa_58eY"
+    ],
+    "lat": -29.47962,
+    "lng": 31.1362,
+    "country": "South Africa",
+    "nominatimCountry": "South Africa",
+    "region": "KwaZulu-Natal",
+    "city": "Ethekwini",
+    "road": "P387"
   }
 }
