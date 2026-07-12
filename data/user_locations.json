@@ -2376,5 +2376,17 @@
     "region": "Provincia de Veraguas",
     "city": "Puerto Vidal",
     "road": "5"
+  },
+  "qKe0-laFfTT2S4SAi0PQCw": {
+    "metas": [
+      "meta_russia_ys4b"
+    ],
+    "lat": 43.61415,
+    "lng": 39.71468,
+    "country": "Russia",
+    "nominatimCountry": "Russia",
+    "region": "Krasnodarskiy kray",
+    "city": "Sochi",
+    "road": "Politekhnicheskaya Ulitsa"
   }
 }
