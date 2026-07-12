@@ -1882,5 +1882,17 @@
     "region": "Matam Region",
     "city": "Matam",
     "road": "N3"
+  },
+  "aYOR_yWhnyu6cmPsYZsj-Q": {
+    "metas": [
+      "meta_mexico_EuEs"
+    ],
+    "lat": 20.55094,
+    "lng": -97.51371,
+    "country": "Mexico",
+    "nominatimCountry": "Mexico",
+    "region": "Veracruz",
+    "city": "Miguel Hidalgo (Kilometro 17)",
+    "road": "A La Bomba"
   }
 }
