@@ -2002,5 +2002,17 @@
     "region": "Saskatchewan",
     "city": "Edgeley",
     "road": "Donamar Road (Twp Rd 202)"
+  },
+  "twVCNoeGZ540e2MhQBiOMg": {
+    "metas": [
+      "meta_brazil_xH0Y"
+    ],
+    "lat": -8.78056,
+    "lng": -69.42619,
+    "country": "Brazil",
+    "nominatimCountry": "Brazil",
+    "region": "Acre",
+    "city": "Manoel Urbano",
+    "road": "BR-364"
   }
 }
