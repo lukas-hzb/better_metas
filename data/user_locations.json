@@ -2300,5 +2300,15 @@
     "country": "Philippines",
     "region": "Davao Region",
     "road": "Tagum - Panabo Circumferential Road"
+  },
+  "Vk0dWnC0SchNfHVF0nlBFA": {
+    "metas": [
+      "meta_norway_RLu2"
+    ],
+    "lat": 60.76637,
+    "lng": 11.82904,
+    "country": "Norway",
+    "region": "Innlandet",
+    "road": "Sørsåsvegen"
   }
 }
