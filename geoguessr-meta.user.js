@@ -2350,11 +2350,17 @@
         return ((tokenInput && tokenInput.value) || localStorage.getItem(GITHUB_TOKEN_STORAGE_KEY) || '').trim();
     }
 
-    function updateDeleteUserDataButtonVisibility() {
-        const deleteButton = document.getElementById('gg-delete-user-data');
-        if (!deleteButton) return;
+    function updateDeleteUserDataSectionVisibility() {
+        const deleteSection = document.getElementById('gg-delete-user-data-section');
+        const deleteSectionDivider = document.getElementById('gg-delete-user-data-divider');
+        const tokenInput = document.getElementById('gg-gh-token');
+        const hasToken = tokenInput
+            ? Boolean(tokenInput.value.trim())
+            : hasSavedGitHubToken();
+        const display = hasToken ? '' : 'none';
 
-        deleteButton.style.display = getSettingsTokenValue() ? 'flex' : 'none';
+        if (deleteSection) deleteSection.style.display = display;
+        if (deleteSectionDivider) deleteSectionDivider.style.display = display;
     }
 
     function hasSavedGitHubToken() {
@@ -3255,13 +3261,13 @@
 
                 <hr class="gg-modal-divider">
 
-                <div class="gg-form-group gg-settings-danger-group">
+                <div class="gg-form-group gg-settings-danger-group" id="gg-delete-user-data-section">
                     <label class="gg-form-label">Saved User Data</label>
                     <button class="gg-btn-danger" id="gg-delete-user-data">Delete Saved User Data</button>
                     <div class="gg-form-hint">Deletes user_metas.json and user_locations.json. Plonkit data stays untouched.</div>
                 </div>
 
-                <hr class="gg-modal-divider">
+                <hr class="gg-modal-divider" id="gg-delete-user-data-divider">
 
                 <button class="gg-btn-primary" id="gg-save-settings">Save Changes</button>
                 
@@ -3277,7 +3283,7 @@
             input.addEventListener('keypress', (e) => e.stopPropagation());
             input.addEventListener('keyup', (e) => e.stopPropagation());
         });
-        settingsModal.querySelector('#gg-gh-token').addEventListener('input', updateDeleteUserDataButtonVisibility);
+        settingsModal.querySelector('#gg-gh-token').addEventListener('input', updateDeleteUserDataSectionVisibility);
 
         // ADMIN MODAL
         const adminModal = document.createElement('div');
@@ -3616,7 +3622,7 @@
         document.getElementById('gg-settings-btn').addEventListener('click', () => {
             const token = localStorage.getItem(GITHUB_TOKEN_STORAGE_KEY) || '';
             document.getElementById('gg-gh-token').value = token;
-            updateDeleteUserDataButtonVisibility();
+            updateDeleteUserDataSectionVisibility();
             
             // Render Scope Filter
             const scopeContainer = document.getElementById('gg-settings-scope-filter');
@@ -3995,10 +4001,18 @@
         return terms.every(term => searchableContent.includes(term));
     }
 
-    function resetIncrementalList(container, html = '') {
+    function resetIncrementalList(container, html = '', { preserveHeight = false } = {}) {
         const previous = incrementalListStates.get(container);
         previous?.observer?.disconnect();
         incrementalListStates.delete(container);
+
+        if (preserveHeight) {
+            const currentHeight = container.getBoundingClientRect().height;
+            if (currentHeight > 0) container.style.minHeight = `${Math.ceil(currentHeight)}px`;
+        } else {
+            container.style.minHeight = '';
+        }
+
         container.innerHTML = html;
     }
 
@@ -4137,7 +4151,11 @@
         const sorted = sortAdminMetaEntries(filtered);
 
         if (sorted.length === 0) {
-            resetIncrementalList(container, '<div class="gg-form-hint gg-list-empty-state">No metas found.</div>');
+            resetIncrementalList(
+                container,
+                '<div class="gg-form-hint gg-list-empty-state">No metas found.</div>',
+                { preserveHeight: terms.length > 0 }
+            );
             return;
         }
 
@@ -4243,7 +4261,11 @@
         const uniqueFiltered = filtered;
 
         if (uniqueFiltered.length === 0) {
-            resetIncrementalList(container, '<div class="gg-form-hint gg-list-empty-state">No metas found.</div>');
+            resetIncrementalList(
+                container,
+                '<div class="gg-form-hint gg-list-empty-state">No metas found.</div>',
+                { preserveHeight: terms.length > 0 }
+            );
             return;
         }
 
@@ -4277,7 +4299,11 @@
         const uniqueFiltered = filtered;
         
         if (uniqueFiltered.length === 0) {
-            resetIncrementalList(container, '<div class="gg-form-hint gg-list-empty-state">No metas found.</div>');
+            resetIncrementalList(
+                container,
+                '<div class="gg-form-hint gg-list-empty-state">No metas found.</div>',
+                { preserveHeight: terms.length > 0 }
+            );
             return;
         }
 
