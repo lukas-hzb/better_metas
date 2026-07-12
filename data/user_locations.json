@@ -2062,5 +2062,17 @@
     "region": "Nayarit",
     "city": "Valle Zaragoza",
     "road": "El Valle Zaragoza"
+  },
+  "gVO3ngaotISIczmo7V9tLA": {
+    "metas": [
+      "meta_italy_zeHg"
+    ],
+    "lat": 36.85416,
+    "lng": 15.00287,
+    "country": "Italy",
+    "nominatimCountry": "Italy",
+    "region": "Sicilia",
+    "city": "Libero consorzio comunale di Siracusa",
+    "road": "Strada Statale 115 Sud Occidentale Sicula"
   }
 }
