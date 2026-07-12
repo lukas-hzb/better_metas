@@ -1858,5 +1858,17 @@
     "region": "Braga",
     "city": "Fonte Coberta",
     "road": "CM1088"
+  },
+  "B09ABCwuz2jjW_tpg1v_iQ": {
+    "metas": [
+      "meta_spain_pPsk"
+    ],
+    "lat": 43.66039,
+    "lng": -7.68651,
+    "country": "Spain",
+    "nominatimCountry": "Spain",
+    "region": "Galicia",
+    "city": "R\u00edo Barba",
+    "road": "Pista de R\u00edo Barba a Ponte do Porto"
   }
 }
