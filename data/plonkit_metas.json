@@ -11546,7 +11546,7 @@
         "description": "In the east, you will commonly see sheet metal roofs with a triangular \"window\" just below the ridge of the roof. The state of Sylhet will exclusively have this style, which can also be seen in Chittagong, Mymensingh, eastern Rangpur and northern Dhaka.",
         "note": "",
         "imageUrl": "https://www.plonkit.net/images/bangladesh/eastern_roof.png",
-        "scope": "region",
+        "scope": "10km",
         "tags": [
           "architecture"
         ]
