@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         BetterMetas
 // @namespace    http://tampermonkey.net/
-// @version      0.6
+// @version      0.7
 // @description  Displays crowdsourced metas and hints for Geoguessr locations.
 // @author       Lukas Hzb
 // @updateURL    https://github.com/lukas-hzb/better_metas/raw/refs/heads/main_v4/geoguessr-meta.user.js
@@ -23,6 +23,7 @@
 
 
     const SHOW_LOCATION_HUD = false;
+    const DEBUG_LOGGING = false;
     const REPO_OWNER = 'lukas-hzb';
     const REPO_NAME = 'better_metas';
     const REPO_BRANCH = 'main_v4';
@@ -40,6 +41,10 @@
     const API_SYSTEM_LOCATIONS_URL = getApiFileUrl(SYSTEM_LOCATIONS_FILE);
     const API_SYSTEM_METAS_URL = getApiFileUrl(SYSTEM_METAS_FILE);
     const getApiUrlForBranch = (apiUrl) => `${apiUrl}?ref=${encodeURIComponent(REPO_BRANCH)}`;
+
+    function debugLog(...args) {
+        if (DEBUG_LOGGING) console.log(...args);
+    }
     
     const win = (typeof unsafeWindow !== 'undefined') ? unsafeWindow : window;
     const HUD_SIZE_STORAGE_KEY = 'gg_hud_size';
@@ -78,6 +83,7 @@
     const META_SAVE_BUTTON_LABEL = 'Save Meta';
     const SEARCH_DEBOUNCE_MS = 120;
     const META_LIST_PAGE_SIZE = 120;
+    const HUD_IMAGE_PRELOAD_MARGIN_PX = 800;
 
     /** 
      * @typedef {Object} Meta
@@ -96,6 +102,7 @@
     let systemLocationMap = {};
     let proximityIndexDirty = true;
     let proximityIndexVersion = 0;
+    let metaRenderVersion = 0;
     let lastProximityCacheKey = null;
     let lastProximityMatches = [];
     let indexedLocationEntries = [];
@@ -112,6 +119,8 @@
     let dataLoadSequence = 0;
     let communitySyncPollSequence = 0;
     const pendingCommunityLinks = new Map();
+    let hudImageObserver = null;
+    let lastHudRenderKey = null;
     let uiInitialized = false;
 
     function normalizeMetaIds(value) {
@@ -346,6 +355,7 @@
         metasData.forEach(meta => {
             metaById.set(meta.id, meta);
         });
+        metaRenderVersion += 1;
         proximityIndexDirty = true;
     }
 
@@ -508,6 +518,7 @@
     let nextPanoid = null;
     let nextPanoidQueuedAt = 0;
     let userDismissed = false;
+    let visibilityResultActive = false;
 
     // Active StreetView Instance
     let svInstance = null;
@@ -516,8 +527,12 @@
     let watchedGoogleObject = null;
     let watchedMapsObject = null;
     let locationExtractionSequence = 0;
+    let streetViewListenerInstance = null;
+    let streetViewListenerHandles = [];
+    let sharedGeocoder = null;
+    let activeNominatimController = null;
+    let activeNominatimKey = null;
     const recentlyGeocodedLocations = new Set();
-    const hookedStreetViewInstances = new WeakSet();
     
     /** Current Location State */
     let currentLocationData = {
@@ -602,9 +617,53 @@
         }
     }
 
-    function renderMetaImage(imageUrl) {
+    function renderMetaImage(imageUrl, deferred = false) {
         const safeUrl = getSafeImageUrl(imageUrl);
-        return safeUrl ? `<img src="${escapeHtml(safeUrl)}" class="gg-meta-image" loading="lazy" decoding="async" alt="">` : '';
+        if (!safeUrl) return '';
+        const sourceAttribute = deferred
+            ? `data-gg-src="${escapeHtml(safeUrl)}"`
+            : `src="${escapeHtml(safeUrl)}"`;
+        return `<img ${sourceAttribute} class="gg-meta-image" loading="lazy" decoding="async" alt="">`;
+    }
+
+    function resetHudImageLoading(container) {
+        hudImageObserver?.disconnect();
+        hudImageObserver = null;
+        container?.querySelectorAll('.gg-meta-image[src]').forEach(image => image.removeAttribute('src'));
+    }
+
+    function startHudImageLoading(container) {
+        const images = Array.from(container?.querySelectorAll('.gg-meta-image[data-gg-src]') || []);
+        if (images.length === 0) return;
+        let pendingImageCount = images.length;
+
+        const loadImage = image => {
+            const src = image.dataset.ggSrc;
+            if (!src) return;
+            image.src = src;
+            delete image.dataset.ggSrc;
+            hudImageObserver?.unobserve(image);
+            pendingImageCount -= 1;
+            if (pendingImageCount === 0) {
+                hudImageObserver?.disconnect();
+                hudImageObserver = null;
+            }
+        };
+
+        if (typeof IntersectionObserver !== 'function') {
+            images.forEach(loadImage);
+            return;
+        }
+
+        hudImageObserver = new IntersectionObserver(entries => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) loadImage(entry.target);
+            });
+        }, {
+            root: container,
+            rootMargin: `${HUD_IMAGE_PRELOAD_MARGIN_PX}px 0px`
+        });
+        images.forEach(image => hudImageObserver.observe(image));
     }
 
     function renderStaticTags(tags) {
@@ -1152,6 +1211,10 @@
             border-radius: 8px;
             margin-bottom: 8px;
             display: block;
+        }
+        .gg-meta-image[data-gg-src] {
+            width: 100%;
+            min-height: 1px;
         }
         .gg-meta-row:last-child {
             border-bottom: none;
@@ -5008,14 +5071,28 @@
 
     function updateHUD(metas, predicted = []) {
         const container = document.getElementById('gg-meta-container');
+        if (!container) return;
+        const exactMetas = metas || [];
+        const predictedMetas = predicted || [];
+        const canEditMetas = hasSavedGitHubToken();
+        const userLinkedMetaIds = new Set(getLocationMetaIds(userLocationMap[currentPanoid]));
+        const renderKey = JSON.stringify([
+            currentPanoid,
+            metaRenderVersion,
+            canEditMetas,
+            exactMetas.map(meta => meta.id),
+            predictedMetas.map(meta => meta.id),
+            exactMetas.filter(meta => userLinkedMetaIds.has(meta.id)).map(meta => meta.id)
+        ]);
+        if (renderKey === lastHudRenderKey) return;
+        resetHudImageLoading(container);
 
-        if ((!metas || metas.length === 0) && (!predicted || predicted.length === 0)) {
+        if (exactMetas.length === 0 && predictedMetas.length === 0) {
             container.innerHTML = '<div class="gg-muted-empty-state">No active hints for this location.</div>';
+            lastHudRenderKey = renderKey;
             return;
         }
 
-        const canEditMetas = hasSavedGitHubToken();
-        const userLinkedMetaIds = new Set(getLocationMetaIds(userLocationMap[currentPanoid]));
         const renderMeta = (m, isPredicted = false) => {
              const isUserLinked = userLinkedMetaIds.has(m.id);
              const titleAction = isPredicted ? 'link' : (isUserLinked ? 'unlink' : '');
@@ -5043,23 +5120,25 @@
                     <span ${titleAttr}>${escapeHtml(titleText)}</span>
                     ${badge}
                 </div>
-                ${renderMetaImage(m.imageUrl)}
+                ${renderMetaImage(m.imageUrl, true)}
                 <div class="gg-meta-description">${escapeHtml(m.description)}</div>
                 <div class="gg-meta-tags">${renderStaticTags(m.tags)}</div>
             </div>
             `;
         };
 
-        const exactHtml = (metas || []).map(m => renderMeta(m, false)).join('');
-        const predictedHtml = (predicted || []).map(m => renderMeta(m, true)).join('');
+        const exactHtml = exactMetas.map(m => renderMeta(m, false)).join('');
+        const predictedHtml = predictedMetas.map(m => renderMeta(m, true)).join('');
 
         container.innerHTML = exactHtml + predictedHtml;
+        startHudImageLoading(container);
 
         container.querySelectorAll('.gg-clickable-meta-title').forEach(titleEl => {
             titleEl.addEventListener('click', () => {
                 win.handleMetaTitleClick(titleEl.dataset.metaId, titleEl.dataset.metaTitle || '', titleEl.dataset.action || '');
             });
         });
+        lastHudRenderKey = renderKey;
     }
 
 
@@ -5137,11 +5216,11 @@
 
         // Ensure metasData is loaded
         if (!metasData || metasData.length === 0) {
-            console.log('[BetterMetas] metasData not loaded yet, skipping display refresh');
+            debugLog('[BetterMetas] metasData not loaded yet, skipping display refresh');
             return;
         }
 
-        console.log(`[BetterMetas] refreshDisplay for ID: "${currentPanoid}"`);
+        debugLog(`[BetterMetas] refreshDisplay for ID: "${currentPanoid}"`);
 
         // Check for an exact match across system and user locations.
         const entry = getCombinedLocationEntry(currentPanoid);
@@ -5164,7 +5243,7 @@
             .filter(pm => !metaIds.includes(pm.id))
             .filter(isScopeActive);
         
-        console.log(`[BetterMetas] Found ${exactMetas.length} exact and ${predictedMetas.length} predicted metas (Filtered).`);
+        debugLog(`[BetterMetas] Found ${exactMetas.length} exact and ${predictedMetas.length} predicted metas (Filtered).`);
 
         if (exactMetas.length > 0 || predictedMetas.length > 0) {
             updateHUD(exactMetas, predictedMetas);
@@ -5179,7 +5258,7 @@
     }
 
     function showDebug(msg) {
-        console.log('[GG Meta]', msg);
+        debugLog('[GG Meta]', msg);
     }
 
     function isValidPanoid(panoid) {
@@ -5202,10 +5281,11 @@
     function readPanoidFromStreetView(instance, reason = 'streetview sync') {
         try {
             if (!instance || typeof instance.getPano !== 'function') return null;
+            if (streetViewListenerInstance && instance !== streetViewListenerInstance) return null;
             const panoid = instance.getPano();
             if (!isValidPanoid(panoid)) return null;
             svInstance = instance;
-            console.log(`[BetterMetas] StreetView panoid from ${reason}:`, panoid);
+            debugLog(`[BetterMetas] StreetView panoid from ${reason}:`, panoid);
             checkLocation(panoid);
             return panoid;
         } catch (err) {
@@ -5217,22 +5297,30 @@
     function registerStreetViewInstance(instance, reason = 'StreetView instance') {
         if (!instance) return;
 
+        if (streetViewListenerInstance !== instance) {
+            streetViewListenerHandles.forEach(handle => {
+                try {
+                    win.google?.maps?.event?.removeListener?.(handle);
+                } catch (err) {
+                    console.warn('[BetterMetas] Could not release an old StreetView listener:', err);
+                }
+            });
+            streetViewListenerHandles = [];
+            streetViewListenerInstance = instance;
+        }
         svInstance = instance;
 
-        if (!hookedStreetViewInstances.has(instance)) {
-            hookedStreetViewInstances.add(instance);
+        if (streetViewListenerHandles.length === 0 && win.google?.maps?.event) {
+            streetViewListenerHandles.push(win.google.maps.event.addListener(instance, 'pano_changed', () => {
+                readPanoidFromStreetView(instance, 'pano_changed');
+            }));
 
-            if (win.google && win.google.maps && win.google.maps.event) {
-                win.google.maps.event.addListener(instance, 'pano_changed', () => {
-                    readPanoidFromStreetView(instance, 'pano_changed');
-                });
-
-                win.google.maps.event.addListener(instance, 'status_changed', () => {
-                    svInstance = instance;
-                    extractLocationData();
-                    setTimeout(() => readPanoidFromStreetView(instance, 'status_changed'), 0);
-                });
-            }
+            streetViewListenerHandles.push(win.google.maps.event.addListener(instance, 'status_changed', () => {
+                if (instance !== streetViewListenerInstance) return;
+                svInstance = instance;
+                extractLocationData();
+                setTimeout(() => readPanoidFromStreetView(instance, 'status_changed'), 0);
+            }));
         }
 
         readPanoidFromStreetView(instance, reason);
@@ -5248,11 +5336,11 @@
         if (!isValidPanoid(activePanoid)) return null;
 
         if (visiblePanoid && queuedPanoid && visiblePanoid !== queuedPanoid) {
-            console.log(`[BetterMetas] Ignoring queued panoid for ${reason}; visible panoid wins: ${visiblePanoid} (queued ${queuedPanoid})`);
+            debugLog(`[BetterMetas] Ignoring queued panoid for ${reason}; visible panoid wins: ${visiblePanoid} (queued ${queuedPanoid})`);
         }
 
         if (activePanoid !== currentPanoid) {
-            console.log(`[BetterMetas] Syncing active panoid for ${reason}: ${activePanoid} (was ${currentPanoid || 'none'})`);
+            debugLog(`[BetterMetas] Syncing active panoid for ${reason}: ${activePanoid} (was ${currentPanoid || 'none'})`);
             currentPanoid = activePanoid;
             nextPanoid = null;
             updateStatus(`ID: ${currentPanoid.substring(0,12)}...`);
@@ -5490,12 +5578,13 @@
         return visible || (Date.now() - lastResultSeenTime < RESULT_SCREEN_GRACE_MS);
     }
 
-    function updateVisibility() {
+    function updateVisibility(resultActive = isRoundResult()) {
         const hud = document.getElementById('gg-meta-hud');
         if (!hud) return;
 
-        const resultActive = isRoundResult();
-        if (resultActive) {
+        const resultBecameActive = resultActive && !visibilityResultActive;
+        visibilityResultActive = resultActive;
+        if (resultBecameActive || (resultActive && !currentPanoid)) {
             syncPanoidForUserAction('result visibility');
         }
 
@@ -5548,7 +5637,7 @@
         nextPanoidQueuedAt = 0;
         
         if (changed) {
-            console.log('[BetterMetas] New Location detected:', panoid);
+            debugLog('[BetterMetas] New Location detected:', panoid);
             updateStatus(`ID: ${panoid.substring(0,12)}...`);
             
             // Trigger Location Data Extraction Immediately
@@ -5561,18 +5650,20 @@
     
     function extractLocationData(attempt = 0, extractionId = null) {
         const maxAttempts = 10;
-        if (extractionId === null) extractionId = ++locationExtractionSequence;
+        if (extractionId === null) {
+            extractionId = ++locationExtractionSequence;
+        }
         if (extractionId !== locationExtractionSequence) return;
         
         if (!svInstance) {
-            console.log(`[BetterMetas] extractLocationData: No svInstance available yet (Attempt ${attempt+1}/${maxAttempts}).`);
+            debugLog(`[BetterMetas] extractLocationData: No svInstance available yet (Attempt ${attempt+1}/${maxAttempts}).`);
             if (attempt < maxAttempts) {
                 setTimeout(() => extractLocationData(attempt + 1, extractionId), STREETVIEW_RETRY_DELAY_MS);
             }
             return;
         }
 
-        if (attempt === 0) console.log('[BetterMetas] extractLocationData: Triggered.');
+        if (attempt === 0) debugLog('[BetterMetas] extractLocationData: Triggered.');
 
         // Give it a moment for data to populate in the instance if it's fresh
         setTimeout(() => {
@@ -5590,7 +5681,7 @@
                     const lat = latLng ? (typeof latLng.lat === 'function' ? latLng.lat() : latLng.lat) : 0;
                     const lng = latLng ? (typeof latLng.lng === 'function' ? latLng.lng() : latLng.lng) : 0;
                     
-                    console.log(`[BetterMetas] Location Found: ${desc} (${lat}, ${lng})`);
+                    debugLog(`[BetterMetas] Location Found: ${desc} (${lat}, ${lng})`);
 
                     // Simple heuristic for "Country" from address (last part after comma)
                     let country = "Unknown";
@@ -5616,7 +5707,7 @@
                         // Location hasn't changed.
                         // If we already have a Road, don't wipe it out!
                         if (currentLocationData.road) {
-                            console.log('[BetterMetas] Road already exists for this location, skipping reset/re-geocode.');
+                            debugLog('[BetterMetas] Road already exists for this location, skipping reset/re-geocode.');
                             // Ensure HUD is refreshed just in case
                             if (currentPanoid) checkLocation(currentPanoid);
                             return; 
@@ -5651,15 +5742,15 @@
                     const lngVal = parseFloat(lng);
                     const geocodeKey = `${newLatStr},${newLngStr}`;
                     if (recentlyGeocodedLocations.has(geocodeKey)) {
-                        console.log('[BetterMetas] Geocoding already running for this location.');
+                        debugLog('[BetterMetas] Geocoding already running for this location.');
                         return;
                     }
                     recentlyGeocodedLocations.add(geocodeKey);
                     setTimeout(() => recentlyGeocodedLocations.delete(geocodeKey), 10000);
                     
                     // 1. Google Geocoding (Dominant for country)
-                    const geocoder = new win.google.maps.Geocoder();
-                    geocoder.geocode({ location: { lat: latVal, lng: lngVal } }, (results, status) => {
+                    sharedGeocoder ||= new win.google.maps.Geocoder();
+                    sharedGeocoder.geocode({ location: { lat: latVal, lng: lngVal } }, (results, status) => {
                         if (status === "OK" && results[0]) {
                             const res = results[0];
                             const addrComp = res.address_components;
@@ -5696,11 +5787,17 @@
                         }
                     });
 
-                            // 2. Nominatim Geocoding (Detail/Fallback)
+                    // 2. Nominatim Geocoding (Detail/Fallback)
                     const nominatimUrl = `https://nominatim.openstreetmap.org/reverse?format=json&lat=${latVal}&lon=${lngVal}&accept-language=en`;
-                    
+                    if (activeNominatimController && activeNominatimKey !== geocodeKey) {
+                        activeNominatimController.abort();
+                    }
+                    const nominatimController = typeof AbortController === 'function' ? new AbortController() : null;
+                    activeNominatimController = nominatimController;
+                    activeNominatimKey = geocodeKey;
                     fetch(nominatimUrl, {
-                        headers: { 'User-Agent': 'GeoguessrBetterMetas/1.0' }
+                        headers: { 'User-Agent': 'GeoguessrBetterMetas/1.0' },
+                        signal: nominatimController?.signal
                     })
                     .then(response => response.json())
                     .then(data => {
@@ -5750,10 +5847,18 @@
                         }
                     })
                     .catch(error => {
-                        console.error('[BetterMetas] Nominatim geocode failed:', error);
+                        if (error?.name !== 'AbortError') {
+                            console.error('[BetterMetas] Nominatim geocode failed:', error);
+                        }
+                    })
+                    .finally(() => {
+                        if (activeNominatimController === nominatimController) {
+                            activeNominatimController = null;
+                            activeNominatimKey = null;
+                        }
                     });
                 } else {
-                    console.log(`[BetterMetas] svInstance.getLocation() returned null/empty (Attempt ${attempt+1}/${maxAttempts}).`);
+                    debugLog(`[BetterMetas] svInstance.getLocation() returned null/empty (Attempt ${attempt+1}/${maxAttempts}).`);
                     if (attempt < maxAttempts) {
                         extractLocationData(attempt + 1, extractionId);
                     }
@@ -5766,7 +5871,7 @@
 
     function updateLocationUI() {
         const box = document.getElementById('gg-location-info');
-        console.log('[BetterMetas] updateLocationUI called. Box:', box, 'Data:', currentLocationData);
+        debugLog('[BetterMetas] updateLocationUI called. Box:', box, 'Data:', currentLocationData);
         if (!box) return;
 
         // Respect configuration
@@ -5779,7 +5884,7 @@
         const roadLabel = Array.isArray(road) ? road.join(', ') : road;
         
         if (!lat || !lng) {
-            console.log('[BetterMetas] updateLocationUI: Missing lat/lng, hiding box.');
+            debugLog('[BetterMetas] updateLocationUI: Missing lat/lng, hiding box.');
             box.style.display = 'none';
             return;
         }
@@ -6375,13 +6480,14 @@
          installGoogleHookWatcher();
 
          // UI Poller
-         setInterval(() => {
-             updateVisibility();
+         const runVisibilityPoll = () => {
+             if (document.hidden) return;
+             const resultActive = isRoundResult();
+             updateVisibility(resultActive);
              
              // Release immediately after an intentional dismissal. As a final
              // fallback, trust a stable StreetView pano even if GeoGuessr leaves
              // a stale result element mounted in the DOM.
-             const resultActive = isRoundResult();
              const visiblePanoid = getStreetViewPanoid();
              const queuedPanoidConfirmed = visiblePanoid === nextPanoid;
              const queueExpired = nextPanoidQueuedAt > 0
@@ -6390,7 +6496,11 @@
                  console.log('[BetterMetas] Applying queued panoid:', nextPanoid);
                  checkLocation(nextPanoid, { bypassResultLock: true });
              }
-         }, VISIBILITY_POLL_INTERVAL_MS);
+         };
+         setInterval(runVisibilityPoll, VISIBILITY_POLL_INTERVAL_MS);
+         document.addEventListener('visibilitychange', () => {
+             if (!document.hidden) runVisibilityPoll();
+         });
 
          // Hook Poller - wait for Google Maps
          const timer = setInterval(() => {
