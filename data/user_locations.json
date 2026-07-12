@@ -2559,5 +2559,17 @@
     "region": "Pernambuco",
     "city": "Moreno",
     "road": "Estrada Javunda Cumar\u00fa"
+  },
+  "lOZBqRc2R0EeeXXSem-Kuw": {
+    "metas": [
+      "meta_brazil_X9sq"
+    ],
+    "lat": -3.55435,
+    "lng": -39.47145,
+    "country": "Brazil",
+    "nominatimCountry": "Brazil",
+    "region": "Cear\u00e1",
+    "city": "Itapipoca",
+    "road": "Rodovia Brunilo Jac\u00f3 de Castro e Silva"
   }
 }
