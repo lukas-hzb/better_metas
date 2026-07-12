@@ -1930,5 +1930,17 @@
     "region": "Western Region",
     "city": "Esiama",
     "road": "N1"
+  },
+  "FNhzRs6YegvQyOylA3wBRQ": {
+    "metas": [
+      "meta_france_Xe70"
+    ],
+    "lat": 44.75321,
+    "lng": -1.02197,
+    "country": "France",
+    "nominatimCountry": "France",
+    "region": "Nouvelle-Aquitaine",
+    "city": "Lanton",
+    "road": "Route de Bordeaux"
   }
 }
