@@ -2449,5 +2449,17 @@
     "region": "Uva Province",
     "city": "Haputale",
     "road": null
+  },
+  "HRe-ifRhscQNyXOm3SJX_A": {
+    "metas": [
+      "meta_czechia_n1YQ"
+    ],
+    "lat": 48.73572,
+    "lng": 16.77159,
+    "country": "Czechia",
+    "nominatimCountry": "Czechia",
+    "region": "Jihomoravsk\u00fd kraj",
+    "city": "B\u0159eclav",
+    "road": "Lipov\u00e1"
   }
 }
