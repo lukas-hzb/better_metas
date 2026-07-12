@@ -1942,5 +1942,17 @@
     "region": "Nouvelle-Aquitaine",
     "city": "Lanton",
     "road": "Route de Bordeaux"
+  },
+  "1bTud3jUByzNeCseIIhUYA": {
+    "metas": [
+      "meta_ghana_7ooz"
+    ],
+    "lat": 6.05713,
+    "lng": -1.76516,
+    "country": "Ghana",
+    "nominatimCountry": "Ghana",
+    "region": "Ashanti Region",
+    "city": "Adamso",
+    "road": "Dunkwa - Obuasi Road"
   }
 }
