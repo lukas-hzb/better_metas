@@ -2122,5 +2122,17 @@
     "region": "Amurskaya oblast'",
     "city": "Svobodny",
     "road": "Avtodoroga Svobodnyy-Shimanovsk"
+  },
+  "VNu7_SSwpHKm_yWtqK-vBQ": {
+    "metas": [
+      "meta_spain_pS3a"
+    ],
+    "lat": 37.21933,
+    "lng": -7.21552,
+    "country": "Spain",
+    "nominatimCountry": "Spain",
+    "region": "Andaluc\u00eda",
+    "city": "Huelva",
+    "road": "Solar Sector Cam Catalan Oeste"
   }
 }
