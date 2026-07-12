@@ -31458,5 +31458,15 @@
     "country": "Mexico",
     "region": "Quintana Roo",
     "road": "Pedro Antonio Santos - Chunhuhub"
+  },
+  "r5FAED1RmWmXe0Jhv-d5lA": {
+    "metas": [
+      "meta_philippines_2ctB"
+    ],
+    "lat": 6.71594,
+    "lng": 124.66124,
+    "country": "Philippines",
+    "region": "SOCCSKSARGEN",
+    "road": "Buenaflor"
   }
 }
