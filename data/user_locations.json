@@ -2026,5 +2026,17 @@
     "region": "KwaZulu-Natal",
     "city": "Ethekwini",
     "road": "P387"
+  },
+  "9FVQMu-6cmxB4yPOlIMpXg": {
+    "metas": [
+      "meta_russia_FB0Q"
+    ],
+    "lat": 60.60156,
+    "lng": 150.66644,
+    "country": "Russia",
+    "nominatimCountry": "Russia",
+    "region": "Magadanskaya oblast'",
+    "city": "Tenkinsky District",
+    "road": "\u041f\u0430\u043b\u0430\u0442\u043a\u0430"
   }
 }
