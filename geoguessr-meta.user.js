@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         BetterMetas
 // @namespace    http://tampermonkey.net/
-// @version      0.5
+// @version      0.6
 // @description  Displays crowdsourced metas and hints for Geoguessr locations.
 // @author       Lukas Hzb
 // @updateURL    https://github.com/lukas-hzb/better_metas/raw/refs/heads/main_v4/geoguessr-meta.user.js
@@ -45,7 +45,7 @@
     const HUD_SIZE_STORAGE_KEY = 'gg_hud_size';
     const PENDING_LOCAL_CHANGES_STORAGE_KEY = 'gg_pending_local_changes';
     const DATA_CACHE_STORAGE_KEY = 'gg_data_cache';
-    const DATA_CACHE_VERSION = `${REPO_OWNER}/${REPO_NAME}/${REPO_BRANCH}:4`;
+    const DATA_CACHE_VERSION = `${REPO_OWNER}/${REPO_NAME}/${REPO_BRANCH}:5`;
     const ACTIVE_SCOPES_STORAGE_KEY = 'gg_active_scopes';
     const GITHUB_TOKEN_STORAGE_KEY = 'gg_gh_token';
     const DEFAULT_HUD_WIDTH = '320px';
@@ -53,6 +53,8 @@
     const HUD_MIN_WIDTH = 260;
     const HUD_MIN_HEIGHT = 220;
     const DATA_REFRESH_AFTER_SAVE_MS = 2500;
+    const COMMUNITY_SYNC_POLL_INTERVAL_MS = 15000;
+    const COMMUNITY_SYNC_POLL_DURATION_MS = 2 * 60 * 1000;
     const SAVE_COMPLETE_RESET_MS = 1000;
     const DATA_FETCH_TIMEOUT_MS = 8000;
     const GITHUB_API_TIMEOUT_MS = 45000;
@@ -89,8 +91,7 @@
      * @property {number} [lng]
      */
 
-    /** @type {Object.<string, string[]|{metas:string[]}>} Combined mapping of Panoid to Meta IDs */
-    let locationMap = {};
+    /** System and user mappings stay separate to avoid retaining a full duplicate merged database. */
     let userLocationMap = {};
     let systemLocationMap = {};
     let proximityIndexDirty = true;
@@ -103,12 +104,14 @@
     /** @type {Meta[]} Loaded meta definitions */
     let metasData = [];
     let metaById = new Map();
-    let metaSearchTextById = new Map();
+    let metaSearchTextById = null;
     const incrementalListStates = new WeakMap();
     const metaListInteractionStates = new WeakMap();
     let userMetaIds = new Set();
     let systemMetaIds = new Set();
     let dataLoadSequence = 0;
+    let communitySyncPollSequence = 0;
+    const pendingCommunityLinks = new Map();
     let uiInitialized = false;
 
     function normalizeMetaIds(value) {
@@ -180,12 +183,32 @@
         return normalizeLocationEntry({ ...systemData, ...userData, metas: mergedMetaIds });
     }
 
-    function mergeLocationMaps(systemMap, userMap) {
-        const merged = { ...(systemMap || {}) };
-        Object.keys(userMap || {}).forEach(panoid => {
-            merged[panoid] = mergeLocationEntries(merged[panoid], userMap[panoid]);
+    function getCombinedLocationEntry(panoid) {
+        const systemEntry = systemLocationMap[panoid];
+        const userEntry = userLocationMap[panoid];
+        if (systemEntry && userEntry) return mergeLocationEntries(systemEntry, userEntry);
+        return userEntry || systemEntry || null;
+    }
+
+    function forEachCombinedLocationEntry(callback) {
+        Object.entries(systemLocationMap).forEach(([panoid, systemEntry]) => {
+            callback(panoid, userLocationMap[panoid]
+                ? mergeLocationEntries(systemEntry, userLocationMap[panoid])
+                : systemEntry);
         });
-        return merged;
+        Object.entries(userLocationMap).forEach(([panoid, userEntry]) => {
+            if (!Object.prototype.hasOwnProperty.call(systemLocationMap, panoid)) {
+                callback(panoid, userEntry);
+            }
+        });
+    }
+
+    function getCombinedLocationCount() {
+        let count = Object.keys(systemLocationMap).length;
+        Object.keys(userLocationMap).forEach(panoid => {
+            if (!Object.prototype.hasOwnProperty.call(systemLocationMap, panoid)) count += 1;
+        });
+        return count;
     }
 
     function ensureLocationEntry(locations, panoid) {
@@ -308,7 +331,6 @@
 
         userLocationMap = tempUserLocationMap;
         systemLocationMap = normalized.systemLocationMap;
-        locationMap = mergeLocationMaps(systemLocationMap, userLocationMap);
         proximityIndexDirty = true;
         userMetaIds = new Set(tempUserMetas.map(meta => meta.id).filter(Boolean));
         systemMetaIds = new Set(normalized.systemMetas.map(meta => meta.id).filter(Boolean));
@@ -320,9 +342,18 @@
 
     function rebuildMetaIndexes() {
         metaById = new Map();
-        metaSearchTextById = new Map();
+        metaSearchTextById = null;
         metasData.forEach(meta => {
             metaById.set(meta.id, meta);
+        });
+        proximityIndexDirty = true;
+    }
+
+    function ensureMetaSearchIndex() {
+        if (metaSearchTextById) return metaSearchTextById;
+
+        metaSearchTextById = new Map();
+        metasData.forEach(meta => {
             metaSearchTextById.set(meta.id, [
                 meta.id,
                 meta.country,
@@ -334,15 +365,16 @@
                 ...(meta.tags || [])
             ].filter(Boolean).join(' ').toLowerCase());
         });
-        proximityIndexDirty = true;
+        return metaSearchTextById;
     }
 
     function rebuildProximityIndexes() {
-        indexedLocationEntries = Object.values(locationMap).map(entry => {
+        indexedLocationEntries = [];
+        forEachCombinedLocationEntry((panoid, entry) => {
             const lat = normalizeCoordinate(entry.lat);
             const lng = normalizeCoordinate(entry.lng);
             const country = normalizeCountry(entry.nominatimCountry || entry.country, lat, lng);
-            return {
+            indexedLocationEntries.push({
                 metaIds: getLocationMetaIds(entry),
                 lat,
                 lng,
@@ -350,7 +382,7 @@
                 region: entry.region,
                 city: entry.city,
                 roads: getNormalizedRoadNames(entry.road)
-            };
+            });
         });
         indexedStaticMetas = metasData.map(meta => {
             const lat = normalizeCoordinate(meta.lat);
@@ -446,7 +478,7 @@
         if (!cached) return false;
 
         applyDataSnapshot(cached, { alreadyNormalized: true });
-        console.log(`[BetterMetas] Loaded cached DB: ${Object.keys(locationMap).length} locs, ${metasData.length} metas.`);
+        console.log(`[BetterMetas] Loaded cached DB: ${getCombinedLocationCount()} locs, ${metasData.length} metas.`);
         if (currentPanoid) {
             updateStatus(`ID: ${currentPanoid.substring(0,12)}...`);
             refreshDisplay();
@@ -465,6 +497,8 @@
     let backgroundRefreshTimer = null;
     
     const ALL_SCOPES = ['countrywide', 'region', 'city', 'road', '1000km', '100km', '10km', '1km', 'unique'];
+    const LINKED_META_SCOPE_ORDER = ['unique', '1km', '10km', 'road', 'city', '100km', 'region', '1000km', 'countrywide'];
+    const LINKED_META_SCOPE_RANK = new Map(LINKED_META_SCOPE_ORDER.map((scope, index) => [scope, index]));
     const TAG_PRESETS = ['plants', 'landscape', 'bollards', 'poles', 'signs', 'plates', 'cars', 'soil', 'structures', 'road', 'camera', 'language', 'architecture'];
     let activeScopes = loadActiveScopes();
     let resizeModePreviousSize = null;
@@ -509,6 +543,17 @@
         if (!normalized) return fallback;
         if (normalized === 'longitude') return 'region';
         return ALL_SCOPES.includes(normalized) ? normalized : fallback;
+    }
+
+    function sortLinkedMetasByPrecision(metas) {
+        return metas
+            .map((meta, index) => ({ meta, index }))
+            .sort((a, b) => {
+                const rankA = LINKED_META_SCOPE_RANK.get(normalizeScope(a.meta.scope)) ?? Number.MAX_SAFE_INTEGER;
+                const rankB = LINKED_META_SCOPE_RANK.get(normalizeScope(b.meta.scope)) ?? Number.MAX_SAFE_INTEGER;
+                return rankA - rankB || a.index - b.index;
+            })
+            .map(({ meta }) => meta);
     }
 
     function normalizeTags(value) {
@@ -559,7 +604,7 @@
 
     function renderMetaImage(imageUrl) {
         const safeUrl = getSafeImageUrl(imageUrl);
-        return safeUrl ? `<img src="${escapeHtml(safeUrl)}" class="gg-meta-image">` : '';
+        return safeUrl ? `<img src="${escapeHtml(safeUrl)}" class="gg-meta-image" loading="lazy" decoding="async" alt="">` : '';
     }
 
     function renderStaticTags(tags) {
@@ -1776,6 +1821,14 @@
             margin-top: 2px;
         }
 
+        .gg-meta-list-tags .gg-tag-static {
+            margin-right: 0;
+        }
+
+        .gg-meta-list-tags .gg-scope-static {
+            margin-right: 4px;
+        }
+
         .gg-scope-static {
             background: rgba(96, 165, 250, 0.24);
             border-color: rgba(147, 197, 253, 0.62);
@@ -1836,10 +1889,6 @@
             min-width: 0;
             max-width: none;
             overflow: hidden;
-        }
-
-        .gg-admin-meta-item .gg-tag-static {
-            margin-right: 0;
         }
 
         .gg-admin-controls {
@@ -2593,15 +2642,17 @@
     }
 
     function getAdminMetaLinkedLocations(metaId) {
-        return Object.entries(locationMap || {})
-            .map(([panoid, entry]) => ({ panoid, entry: normalizeLocationEntry(entry) }))
-            .filter(({ entry }) => entry && getLocationMetaIds(entry).includes(metaId))
-            .map(({ panoid, entry }) => ({
+        const linkedLocations = [];
+        forEachCombinedLocationEntry((panoid, rawEntry) => {
+            const entry = normalizeLocationEntry(rawEntry);
+            if (!entry || !getLocationMetaIds(entry).includes(metaId)) return;
+            linkedLocations.push({
                 panoid,
                 ...entry,
                 displayCountry: entry.country || entry.nominatimCountry || ''
-            }))
-            .sort((a, b) => compareAdminText(formatAdminLocationLabel(a), formatAdminLocationLabel(b)));
+            });
+        });
+        return linkedLocations.sort((a, b) => compareAdminText(formatAdminLocationLabel(a), formatAdminLocationLabel(b)));
     }
 
     function formatAdminLocationLabel(location) {
@@ -2690,7 +2741,6 @@
         systemMetaIds.delete(metaId);
         selectedAdminMetaId = null;
         selectedAdminTransferTargetId = null;
-        locationMap = mergeLocationMaps(systemLocationMap, userLocationMap);
         proximityIndexDirty = true;
         if (currentPanoid) refreshDisplay();
     }
@@ -2709,7 +2759,6 @@
         return {
             userLocationMap,
             systemLocationMap,
-            locationMap,
             metasData,
             userMetaIds: new Set(userMetaIds),
             systemMetaIds: new Set(systemMetaIds),
@@ -2722,7 +2771,6 @@
 
         userLocationMap = snapshot.userLocationMap;
         systemLocationMap = snapshot.systemLocationMap;
-        locationMap = snapshot.locationMap;
         proximityIndexDirty = true;
         metasData = snapshot.metasData;
         rebuildMetaIndexes();
@@ -2851,7 +2899,6 @@
         updateStatus(`ID: ${panoid.substring(0,12)}...`);
         userLocationMap = copyLocationMapForPanoid(userLocationMap, panoid);
         addMetaIdsToLocationMap(userLocationMap, panoid, metaIds);
-        locationMap = mergeLocationMaps(systemLocationMap, userLocationMap);
         proximityIndexDirty = true;
         rememberLocalLocationLinks(panoid, metaIds);
         console.log('[BetterMetas] Applied local location links:', {
@@ -2868,7 +2915,6 @@
         updateStatus(`ID: ${panoid.substring(0,12)}...`);
         userLocationMap = copyLocationMapForPanoid(userLocationMap, panoid);
         removeMetaIdsFromLocationMap(userLocationMap, panoid, metaIds);
-        locationMap = mergeLocationMaps(systemLocationMap, userLocationMap);
         proximityIndexDirty = true;
         forgetLocalLocationLinks(panoid, metaIds);
         console.log('[BetterMetas] Applied local location unlinks:', {
@@ -2892,7 +2938,6 @@
         userMetaIds.add(meta.id);
         userLocationMap = copyLocationMapForPanoid(userLocationMap, panoid);
         addMetaIdsToLocationMap(userLocationMap, panoid, [meta.id]);
-        locationMap = mergeLocationMaps(systemLocationMap, userLocationMap);
         proximityIndexDirty = true;
         rememberLocalMeta(meta, panoid);
         console.log('[BetterMetas] Applied local saved meta:', {
@@ -2965,6 +3010,52 @@
         }, delay);
     }
 
+    function startCommunitySubmissionPolling(panoid, metaIds) {
+        const expectedMetaIds = normalizeMetaIds(metaIds);
+        if (!isValidPanoid(panoid) || expectedMetaIds.length === 0) return;
+
+        const pendingMetaIds = pendingCommunityLinks.get(panoid) || new Set();
+        expectedMetaIds.forEach(metaId => pendingMetaIds.add(metaId));
+        pendingCommunityLinks.set(panoid, pendingMetaIds);
+
+        const pollSequence = ++communitySyncPollSequence;
+        const maxAttempts = Math.ceil(COMMUNITY_SYNC_POLL_DURATION_MS / COMMUNITY_SYNC_POLL_INTERVAL_MS);
+
+        void (async () => {
+            for (let attempt = 0; attempt < maxAttempts; attempt++) {
+                await wait(COMMUNITY_SYNC_POLL_INTERVAL_MS);
+                if (pollSequence !== communitySyncPollSequence) return;
+
+                try {
+                    const remoteLocations = normalizeLocationMap(
+                        await fetchGitHubContentJson(API_USER_LOCATIONS_URL, '')
+                    );
+                    let foundNewLinks = false;
+
+                    pendingCommunityLinks.forEach((expectedIds, pendingPanoid) => {
+                        const remoteMetaIds = new Set(getLocationMetaIds(remoteLocations[pendingPanoid]));
+                        const confirmed = Array.from(expectedIds).every(metaId => remoteMetaIds.has(metaId));
+                        if (!confirmed) return;
+
+                        pendingCommunityLinks.delete(pendingPanoid);
+                        foundNewLinks = true;
+                    });
+
+                    if (foundNewLinks) {
+                        clearStoredValue(DATA_CACHE_STORAGE_KEY);
+                        await fetchLocationData();
+                    }
+
+                    if (pendingCommunityLinks.size === 0) return;
+                } catch (err) {
+                    console.warn('[BetterMetas] Community submission sync check failed:', err);
+                }
+            }
+
+            if (pollSequence === communitySyncPollSequence) pendingCommunityLinks.clear();
+        })();
+    }
+
     function setElementDisplay(id, display) {
         const el = document.getElementById(id);
         if (el) el.style.display = display;
@@ -2981,28 +3072,31 @@
     }
 
     function showMetaModal() {
+        hideSettingsModal();
+        hideAdminModal();
         setElementDisplay('gg-meta-modal', 'block');
-        setElementDisplay('gg-settings-modal', 'none');
-        setElementDisplay('gg-meta-admin-modal', 'none');
         showBackdrop();
     }
 
     function showSettingsModal() {
+        hideMetaModal();
+        hideAdminModal();
         setElementDisplay('gg-settings-modal', 'block');
-        setElementDisplay('gg-meta-modal', 'none');
-        setElementDisplay('gg-meta-admin-modal', 'none');
         showBackdrop();
     }
 
     function showAdminModal() {
+        hideSettingsModal();
+        hideMetaModal();
         setElementDisplay('gg-meta-admin-modal', 'block');
-        setElementDisplay('gg-settings-modal', 'none');
-        setElementDisplay('gg-meta-modal', 'none');
         showBackdrop();
     }
 
     function hideMetaModal() {
         setElementDisplay('gg-meta-modal', 'none');
+        const list = document.getElementById('gg-existing-metas');
+        if (list) resetIncrementalList(list);
+        metaSearchTextById = null;
     }
 
     function hideSettingsModal() {
@@ -3011,6 +3105,11 @@
 
     function hideAdminModal() {
         setElementDisplay('gg-meta-admin-modal', 'none');
+        ['gg-admin-meta-list', 'gg-admin-transfer-metas'].forEach(id => {
+            const list = document.getElementById(id);
+            if (list) resetIncrementalList(list);
+        });
+        metaSearchTextById = null;
     }
 
     function hideAllModals({ hideBackdropOverlay = true } = {}) {
@@ -3028,6 +3127,18 @@
             return;
         }
         previewPopup.classList.remove('gg-visible');
+        const cleanupId = `${Date.now()}-${Math.random()}`;
+        previewPopup.dataset.ggPreviewCleanupId = cleanupId;
+        setTimeout(() => {
+            if (
+                previewPopup.dataset.ggPreviewCleanupId !== cleanupId ||
+                previewPopup.classList.contains('gg-visible') ||
+                previewPopup.dataset.ggPreviewMode === 'image-url'
+            ) return;
+            previewPopup.innerHTML = '';
+            delete previewPopup.dataset.ggPreviewMode;
+            delete previewPopup.dataset.ggPreviewCleanupId;
+        }, 220);
     }
 
     const UI_CONTEXT_CLASSES = [
@@ -3995,7 +4106,7 @@
 
     function matchesMetaSearch(meta, terms, extraValues = []) {
         if (terms.length === 0) return true;
-        const indexedContent = metaSearchTextById.get(meta.id) || '';
+        const indexedContent = ensureMetaSearchIndex().get(meta.id) || '';
         const searchableContent = extraValues.length
             ? `${indexedContent} ${extraValues.filter(Boolean).join(' ').toLowerCase()}`
             : indexedContent;
@@ -4276,7 +4387,7 @@
         if (!container) return;
 
         const panoid = currentPanoid || MISSING_PANOID_PLACEHOLDER;
-        const linkedMetaIds = new Set(getLocationMetaIds(locationMap[panoid]));
+        const linkedMetaIds = new Set(getLocationMetaIds(getCombinedLocationEntry(panoid)));
 
         const terms = getMetaSearchTerms(searchTerm);
 
@@ -4347,6 +4458,7 @@
             const body = encodeURIComponent(`## Link Multiple Metas\n\n\`\`\`json\n${jsonStr}\n\`\`\`\n\n_(Automated submission via BetterMetas Script)_`);
             const issueUrl = `https://github.com/${repo}/issues/new?title=${issueTitle}&body=${body}`;
             window.open(issueUrl, '_blank');
+            startCommunitySubmissionPolling(panoid, metaIds);
             
             selectedMetaIds.clear();
             updateLinkSelectedBtn();
@@ -4552,6 +4664,7 @@
 
             if (submitIssue) {
                 window.open(issueUrl, '_blank');
+                startCommunitySubmissionPolling(panoid, [newMeta.id]);
             } else {
                  // Fallback to copy-paste
                 output.textContent = "Token missing. Copy this:\n" + jsonStr;
@@ -4902,8 +5015,8 @@
         }
 
         const canEditMetas = hasSavedGitHubToken();
+        const userLinkedMetaIds = new Set(getLocationMetaIds(userLocationMap[currentPanoid]));
         const renderMeta = (m, isPredicted = false) => {
-             const userLinkedMetaIds = new Set(getLocationMetaIds(userLocationMap[currentPanoid]));
              const isUserLinked = userLinkedMetaIds.has(m.id);
              const titleAction = isPredicted ? 'link' : (isUserLinked ? 'unlink' : '');
              const titleText = m.title || m.id;
@@ -5030,8 +5143,8 @@
 
         console.log(`[BetterMetas] refreshDisplay for ID: "${currentPanoid}"`);
 
-        // Check for exact match in locationMap (might be empty if no pins yet)
-        const entry = locationMap[currentPanoid];
+        // Check for an exact match across system and user locations.
+        const entry = getCombinedLocationEntry(currentPanoid);
         const metaIds = getLocationMetaIds(entry);
 
         // Helper to check scope
@@ -5040,11 +5153,11 @@
         };
 
         // Get exact metas - BYPASS SCOPE FILTER
-        const exactMetas = metaIds.map(id => {
+        const exactMetas = sortLinkedMetasByPrecision(metaIds.map(id => {
             const found = getMetaById(id);
             if (!found) console.warn('[BetterMetas] Could not find exact meta data for ID:', id);
             return found;
-        }).filter(Boolean); // Removed .filter(isScopeActive) to always show linked metas
+        }).filter(Boolean)); // Removed .filter(isScopeActive) to always show linked metas
 
         // Get predicted/nearby metas
         const predictedMetas = evaluateProximityMetas()
@@ -6016,6 +6129,18 @@
     }
 
     async function loadDataSource(token, options) {
+        if (options.preferRaw) {
+            const data = await fetchRawJsonWithRetry(
+                () => getRawFileUrl(options.file),
+                options.logName,
+                options.normalize,
+                options.defaultValue,
+                { allowMissing: options.allowMissing }
+            );
+            console.log(`[BetterMetas] Loaded ${options.count(data)} ${options.description} from raw.`);
+            return data;
+        }
+
         try {
             const data = options.normalize(await fetchGitHubContentJson(options.apiUrl, token));
             console.log(`[BetterMetas] Loaded ${options.count(data)} ${options.description} from GitHub API.`);
@@ -6040,8 +6165,8 @@
     const DATA_SOURCES = {
         userLocations: { apiUrl: API_USER_LOCATIONS_URL, file: USER_LOCATIONS_FILE, apiLogName: 'user_locations', logName: 'user_locations.json', normalize: normalizeLocationMap, defaultValue: {}, allowMissing: true, count: locationCount, description: 'user location mappings' },
         userMetas: { apiUrl: API_USER_METAS_URL, file: USER_METAS_FILE, apiLogName: 'user_metas', logName: 'user_metas.json', normalize: normalizeMetaList, defaultValue: [], allowMissing: true, count: metaCount, description: 'user metas' },
-        systemLocations: { apiUrl: API_SYSTEM_LOCATIONS_URL, file: SYSTEM_LOCATIONS_FILE, apiLogName: 'plonkit_locations', logName: 'plonkit_locations.json', normalize: normalizeLocationMap, defaultValue: {}, allowMissing: false, count: locationCount, description: 'system location mappings' },
-        systemMetas: { apiUrl: API_SYSTEM_METAS_URL, file: SYSTEM_METAS_FILE, apiLogName: 'plonkit_metas', logName: 'plonkit_metas.json', normalize: normalizeSystemMetas, defaultValue: [], allowMissing: false, count: metaCount, description: 'system metas' },
+        systemLocations: { apiUrl: API_SYSTEM_LOCATIONS_URL, file: SYSTEM_LOCATIONS_FILE, apiLogName: 'plonkit_locations', logName: 'plonkit_locations.json', normalize: normalizeLocationMap, defaultValue: {}, allowMissing: false, count: locationCount, description: 'system location mappings', preferRaw: true },
+        systemMetas: { apiUrl: API_SYSTEM_METAS_URL, file: SYSTEM_METAS_FILE, apiLogName: 'plonkit_metas', logName: 'plonkit_metas.json', normalize: normalizeSystemMetas, defaultValue: [], allowMissing: false, count: metaCount, description: 'system metas', preferRaw: true },
     };
 
     // --- Data Fetching ---
@@ -6073,7 +6198,7 @@
             const applied = applyDataSnapshot(snapshot, { prunePending: true, alreadyNormalized: true });
             saveDataSnapshotCache(snapshot);
 
-            const locCount = Object.keys(locationMap).length;
+            const locCount = getCombinedLocationCount();
             const userLocCount = Object.keys(userLocationMap).length;
             const systemLocCount = Object.keys(systemLocationMap).length;
             const pendingLocCount = Object.keys(applied.pending.locations).length;
