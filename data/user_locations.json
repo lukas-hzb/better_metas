@@ -1834,5 +1834,17 @@
     "region": "Region of Crete",
     "city": "Nikos Kazantzakis Municipal Unit",
     "road": "Eparchiaki Odos Laraniou - Melidochoriou"
+  },
+  "wcPmTRpFhwMT2-VdmPzfcg": {
+    "metas": [
+      "meta_brazil_xjGP"
+    ],
+    "lat": -24.36045,
+    "lng": -52.86923,
+    "country": "Brazil",
+    "nominatimCountry": "Brazil",
+    "region": "State of Paran\u00e1",
+    "city": "Boa Esperan\u00e7a",
+    "road": "Juranda"
   }
 }
