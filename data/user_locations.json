@@ -2522,5 +2522,17 @@
     "region": "Sakhalinskaya oblast'",
     "city": "Firsovo",
     "road": "64N-1"
+  },
+  "qEU6cCVhl-SopI5Z3pYVag": {
+    "metas": [
+      "meta_ecuador_iFnv"
+    ],
+    "lat": -0.53462,
+    "lng": -76.89267,
+    "country": "Ecuador",
+    "nominatimCountry": "Ecuador",
+    "region": "Orellana",
+    "city": "Coca",
+    "road": "El Carmen"
   }
 }
