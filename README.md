@@ -1,15 +1,15 @@
 # BetterMetas
 
-BetterMetas is a powerful Userscript for Geoguessr that helps you recognize and learn metas and hints directly in the game. It combines a huge database (based on Plonk It) with smart location predictions to eliminate the need of classyfying every single location.
+BetterMetas is a GeoGuessr userscript that displays relevant metas and location hints directly in the game. It combines a Plonk It-derived knowledge base with geographic matching so players can study likely clues without switching to a separate website.
 
 ## Features
 
-- **Live HUD**: Automatically displays relevant hints, tags, and images for your current location.
-- **Smart Predictions**: The script analyzes your location (country, region, city, road) and suggests metas that might apply here – not just exact matches, but also based on geography and "scopes" (e.g., 10km radius, regional, countrywide).
-- **Plonk It Integration**: Includes thousands of entries from the detailed Plonk It guides.
-- **Location Info**: Shows you precise address data, coordinates, and region names (powered by Google & Nominatim).
-- **Crowdsourcing**: Add your own metas or link existing metas to new locations to improve the database.
-- **Filters**: Customize which types of hints you want to see (e.g., only "Unique" or also "Countrywide").
+- **Live HUD** — Displays relevant hints, tags, and images for the current location.
+- **Geographic Matching** — Suggests metas using country, region, city, road, distance, and configured scopes instead of relying only on exact panorama matches.
+- **Plonk It Integration** — Includes structured entries derived from the detailed Plonk It guides.
+- **Location Information** — Shows available coordinates, address details, and region names using GeoGuessr data and Nominatim enrichment.
+- **Community Contributions** — Creates a pre-filled GitHub issue for new or linked metas when no maintainer token is configured.
+- **Filters** — Controls which hint scopes appear, from unique clues to countrywide patterns.
 
 ### Screenshots
 
@@ -25,28 +25,40 @@ BetterMetas is a powerful Userscript for Geoguessr that helps you recognize and 
 
 ### Browser Setup
 
-Since this is a specific Userscript, you need a Userscript manager for your browser.
+BetterMetas has no separate website or hosted web application. The userscript in this repository is the product and its only official installation artifact.
 
-1. Install the **Tampermonkey** browser extension (available for Chrome, Firefox, Edge, Safari).
-2. **[Click here to install the script](https://raw.githubusercontent.com/lukas-hzb/better_metas/main_v4/geoguessr-meta.user.js)**.
-3. Tampermonkey will ask if you want to add the script. Confirm by clicking "Install".
-4. Open Geoguessr and start a game – the HUD should appear automatically.
+1. Install a compatible userscript manager such as [Tampermonkey](https://www.tampermonkey.net/).
+2. Open the official [`geoguessr-meta.user.js`](https://raw.githubusercontent.com/lukas-hzb/better_metas/main_v4/geoguessr-meta.user.js) installation URL.
+3. Review the requested permissions and confirm the installation in the userscript manager.
+4. Open [GeoGuessr](https://www.geoguessr.com/) and start a supported game; the BetterMetas HUD should appear automatically.
 
-### Setup for Developers
+The userscript manager checks the `@updateURL` and `@downloadURL` metadata on the `main_v4` branch for updates. Forks or copied files are not official update channels.
 
-The data pipeline is Node.js based and does not require Python. Install npm metadata once:
+## Usage
+
+1. Start a GeoGuessr game and wait for the HUD to identify the current panorama.
+2. Review predicted metas, expand details, and filter scopes from the settings panel.
+3. Add or link a meta from a result screen. Without a maintainer token, BetterMetas opens a pre-filled GitHub issue for review.
+4. Use a GitHub token only for repository-maintainer workflows that write directly to the project data files.
+
+## Development Setup
+
+The data pipeline requires Node.js 18 or later because the title generator uses the built-in Fetch API. It does not require Python. Install the locked npm metadata with:
 
 ```bash
-npm install
+git clone --branch main_v4 https://github.com/lukas-hzb/better_metas.git
+cd better_metas
+npm ci
 ```
 
-## Development
+## Data Maintenance
 
 The following scripts overwrite existing metas, so run the dry-run variants first and review the diff before committing.
 
-#### Update Plonk It metas from the live guide pages:
+### Update Plonk It metas
 
 ```bash
+npm run scrape:dry-run
 npm run scrape
 ```
 
@@ -55,9 +67,10 @@ This keeps existing data and IDs where possible, adds new Plonk It metas, remove
 - Plonk It metas: `meta_<country_slug>_<plonkitId>`
 - local retained metas: `meta_<country_slug>_local_<suffix>`
 
-#### Extract Google Maps-linked Plonk It locations:
+### Extract linked locations
 
 ```bash
+npm run locations:plonkit:dry-run
 npm run locations:plonkit
 ```
 
@@ -66,11 +79,13 @@ This reads Google Maps links from the Plonk It guide data, resolves coordinates,
 Optionally recompute tags and scopes with the JS enrichment scripts:
 
 ```bash
+npm run enrich:tags:dry-run
+npm run enrich:scopes:dry-run
 npm run enrich:tags
 npm run enrich:scopes
 ```
 
-#### Generate titles for metas that do not have one yet:
+### Generate missing titles
 
 ```bash
 npm run enrich:titles
@@ -82,21 +97,45 @@ By default this uses local Ollama (`gemma4:e2b`) and only fills missing titles. 
 node scripts/generate_titles_ai.js --model=qwen3.5:2b
 ```
 
-To regenerate all titles, add `--force`, but treat that as a review workflow, NOT a blind update. Existing curated titles are often better than model rewrites. For regular updates, prefer the default non-force mode. Use with caution!
+To regenerate all titles, add `--force`, but treat that as a review workflow rather than a blind update. Existing curated titles are often better than model rewrites. For regular updates, prefer the default non-force mode.
 
-#### Run the regular update pipeline to do all of the above:
+### Run the regular update pipeline
 
 ```bash
 npm run update:plonkit
 ```
 
+This command runs the scraper, linked-location extractor, and missing-title generator. Tag and scope enrichment remain separate review steps.
+
+### Validation
+
+Check the userscript syntax locally without executing it:
+
+```bash
+node --check geoguessr-meta.user.js
+```
+
+For a non-writing live scraper smoke test, run:
+
+```bash
+npm run scrape:test
+```
+
+## Data, Permissions, and Network Access
+
+- BetterMetas runs only on `https://www.geoguessr.com/*` and reads the current game state to identify locations.
+- It downloads userscript and metadata updates from the official GitHub repository and may query Nominatim for reverse geocoding.
+- Preferences, cached data, and an optional maintainer token are stored in the browser profile. The token is not required for normal use or community issue submissions.
+- A configured maintainer token can write directly to repository data through the GitHub API. Use a narrowly scoped token and never share or commit it.
+- Community submissions without a token are reviewed through GitHub Issues before they become part of the data set.
+
 ## Tech Stack
 
 | Layer              | Technology             | Version |
 | :----------------- | :--------------------- | :------ |
-| **Frontend**       | Userscript (JS)        | -       |
-| **Data Scraper**   | Node.js                | 1.0.0   |
-| **APIs**           | Google Maps, Nominatim | -       |
+| **Userscript**     | JavaScript / Tampermonkey metadata | 0.7 |
+| **Data Tooling**   | Node.js                | 18+     |
+| **Services**       | GitHub API, Nominatim  | -       |
 | **Knowledge Base** | Plonk It               | -       |
 
 ## Credits
@@ -109,14 +148,11 @@ BetterMetas is built using the following projects and resources:
 
 ## License
 
-This project is proprietary software protected by international copyright law.
+This project is proprietary source-available software protected by copyright law. Private, personal, educational, and informational use is permitted only under the conditions in [LICENSE](LICENSE); redistribution and commercial use require prior written permission.
 
 Persona Non Grata:
 Daniel Harzbecker is expressly and unconditionally excluded from any license or permission to use this software. Any access, use, or reproduction by this individual does not constitute a license and shall be deemed a willful infringement of intellectual property rights.
 
-Third-Party Rights:
-The Licensor waives ownership claims over third-party contributions and community modifications, respecting the intellectual property of external contributors.
-
-For full legal terms, see [LICENSE](LICENSE).
+Third-party services and source material remain subject to their respective rights and applicable license terms.
 
 Copyright (c) 2026 Lukas Harzbecker. All Rights Reserved.

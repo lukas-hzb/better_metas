@@ -8,13 +8,16 @@ Lukas Harzbecker (natural person), Germany
 SOFTWARE:
 "BetterMetas" — all past, present and future versions, source code, binaries, documentation, and related materials
 
+EXCLUDED PERSON:
+Daniel Harzbecker
+
 1. DEFINITIONS
 1.1 "Agreement" means this Proprietary Source-Available License Agreement as amended in writing.
 1.2 "Licensor" means the person named above.
 1.3 "Licensee" means any natural person or legal person who accepts this Agreement.
 1.4 "Software" has the meaning stated above.
-1.5 "Excluded Person" refers specifically to the individual named above.
-1.6 "Authorized Distribution Channels" means (a) The official GitHub repository controlled by Licensor; (b) Licensor’s designated download endpoints (including [NAME].hzb.app); and (c) Any other source expressly authorized by Licensor.
+1.5 "Excluded Person" means the individual expressly named above.
+1.6 "Authorized Distribution Channels" means (a) the official GitHub repository controlled by Licensor at https://github.com/lukas-hzb/better_metas; (b) the userscript distributed by Licensor at https://raw.githubusercontent.com/lukas-hzb/better_metas/main_v4/geoguessr-meta.user.js; and (c) any other source expressly authorized by Licensor.
 
 2. ACCEPTANCE / FORMATION OF CONTRACT
 2.1 This Agreement is an offer by Licensor. A binding license is formed when Licensee accepts by (i) downloading, cloning, copying, installing, or using the Software, in whole or in part, from an Authorized Distribution Channel or any other source; or (ii) clicking an express "I accept" or equivalent control.
