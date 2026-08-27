@@ -1,150 +1,79 @@
-# BetterMetas
+<h1 align="center">BetterMetas</h1>
 
-BetterMetas is a GeoGuessr userscript that displays relevant metas and location hints directly in the game. It combines a Plonk It-derived knowledge base with geographic matching so players can study likely clues without switching to a separate website.
+<p align="center">
+  BetterMetas is a GeoGuessr userscript that displays relevant metas and hints directly in-game, using a large Plonk It–based database and smart location predictions to eliminate the need for manual location classification.
+</p>
+
+Study location clues on GeoGuessr's round-result screens, with descriptions, images, and geographic context in one overlay. BetterMetas is distributed as a userscript; there is no separate website or hosted application.
 
 ## Features
 
-- **Live HUD** — Displays relevant hints, tags, and images for the current location.
-- **Geographic Matching** — Suggests metas using country, region, city, road, distance, and configured scopes instead of relying only on exact panorama matches.
-- **Plonk It Integration** — Includes structured entries derived from the detailed Plonk It guides.
-- **Location Information** — Shows available coordinates, address details, and region names using GeoGuessr data and Nominatim enrichment.
-- **Community Contributions** — Creates a pre-filled GitHub issue for new or linked metas when no maintainer token is configured.
-- **Filters** — Controls which hint scopes appear, from unique clues to countrywide patterns.
+- **Result-screen HUD** — Displays relevant hints, tags, and images while reviewing a completed round.
+- **Geographic matching** — Suggests metas using country, region, city, road, distance, and configured scopes instead of relying only on exact panorama matches.
+- **Plonk It integration** — Includes structured entries derived from the detailed Plonk It guides.
+- **Location context** — Uses available panorama coordinates and address information to match clues to the location.
+- **Community contributions** — Opens a pre-filled GitHub issue for new metas or links to existing metas, without requiring a GitHub token.
+- **Scope filters** — Controls which hints appear, from unique clues to countrywide patterns.
 
 ### Screenshots
 
-| Main HUD Preview                                                | Predicted Metas                                                          |
-| :-------------------------------------------------------------: | :----------------------------------------------------------------------: |
-| <img src="images/hud_preview.png" alt="Main HUD" width="400" /> | <img src="images/hud_preview_2.png" alt="Predicted Metas" width="400" /> |
+| Result-screen HUD | Predicted Metas |
+| :---------------: | :-------------: |
+| <img src="images/hud_preview.png" alt="BetterMetas showing a snow-coverage clue on a GeoGuessr round-result screen" width="500" /> | <img src="images/hud_preview_2.png" alt="BetterMetas suggesting landscape and streetlight clues for a location in Brazil" width="500" /> |
 
-| Add Meta Dialog                                                     | Settings Menu                                                     |
-| :-----------------------------------------------------------------: | :---------------------------------------------------------------: |
-| <img src="images/add_meta_dialog.png" alt="Add Meta" width="400" /> | <img src="images/settings_menu.png" alt="Settings" width="400" /> |
+| Add and Link Metas | Settings |
+| :---------------: | :------: |
+| <img src="images/add_meta_dialog.png" alt="BetterMetas dialog for searching, previewing, and linking metas to a location" width="500" /> | <img src="images/settings_menu.png" alt="BetterMetas settings with scope filters and optional maintainer controls" width="500" /> |
 
 ## Installation
 
-### Browser Setup
-
-BetterMetas has no separate website or hosted web application. The userscript in this repository is the product and its only official installation artifact.
-
 1. Install a compatible userscript manager such as [Tampermonkey](https://www.tampermonkey.net/).
-2. Open the official [`geoguessr-meta.user.js`](https://raw.githubusercontent.com/lukas-hzb/better_metas/main_v4/geoguessr-meta.user.js) installation URL.
-3. Review the requested permissions and confirm the installation in the userscript manager.
-4. Open [GeoGuessr](https://www.geoguessr.com/) and start a supported game; the BetterMetas HUD should appear automatically.
+2. If your browser requires it, enable the manager's [permission to execute userscripts](https://www.tampermonkey.net/faq.php?locale=en&q=Q209).
+3. Open the official [`geoguessr-meta.user.js`](https://raw.githubusercontent.com/lukas-hzb/better_metas/main_v4/geoguessr-meta.user.js) installation URL.
+4. Review the requested permissions, confirm installation, and reload [GeoGuessr](https://www.geoguessr.com/).
 
-The userscript manager checks the `@updateURL` and `@downloadURL` metadata on the `main_v4` branch for updates. Forks or copied files are not official update channels.
+Normal use requires no Node.js installation, terminal commands, or GitHub token. Leave the optional token field in Settings empty.
+
+The userscript's update metadata points to the official `main_v4` branch. Use your userscript manager's update check, or enable its automatic updates. Forks and copied files are not official update channels.
 
 ## Usage
 
-1. Start a GeoGuessr game and wait for the HUD to identify the current panorama.
+1. Complete a GeoGuessr round and open its result screen; the HUD appears when BetterMetas recognizes that screen.
 2. Review predicted metas, expand details, and filter scopes from the settings panel.
-3. Add or link a meta from a result screen. Without a maintainer token, BetterMetas opens a pre-filled GitHub issue for review.
-4. Use a GitHub token only for repository-maintainer workflows that write directly to the project data files.
+3. Use **Add** to search existing metas or describe a new clue. Without a maintainer token, a contribution opens a pre-filled GitHub issue. Check the proposed content before submitting it; see [CONTRIBUTING.md](CONTRIBUTING.md) for the current process.
 
-## Development Setup
-
-The data pipeline requires Node.js 18 or later because the title generator uses the built-in Fetch API. It does not require Python. Install the locked npm metadata with:
-
-```bash
-git clone --branch main_v4 https://github.com/lukas-hzb/better_metas.git
-cd better_metas
-npm ci
-```
-
-## Data Maintenance
-
-The following scripts overwrite existing metas, so run the dry-run variants first and review the diff before committing.
-
-### Update Plonk It metas
-
-```bash
-npm run scrape:dry-run
-npm run scrape
-```
-
-This keeps existing data and IDs where possible, adds new Plonk It metas, removes obsolete `imageLink` fields, and keeps location links intact through canonical meta IDs:
-
-- Plonk It metas: `meta_<country_slug>_<plonkitId>`
-- local retained metas: `meta_<country_slug>_local_<suffix>`
-
-### Extract linked locations
-
-```bash
-npm run locations:plonkit:dry-run
-npm run locations:plonkit
-```
-
-This reads Google Maps links from the Plonk It guide data, resolves coordinates, reverse-geocodes them with Nominatim, and writes the links to `data/plonkit_locations.json`. The extractor is rate-limited, so a full run can take a while.
-
-Optionally recompute tags and scopes with the JS enrichment scripts:
-
-```bash
-npm run enrich:tags:dry-run
-npm run enrich:scopes:dry-run
-npm run enrich:tags
-npm run enrich:scopes
-```
-
-### Generate missing titles
-
-```bash
-npm run enrich:titles
-```
-
-By default this uses local Ollama (`gemma4:e2b`) and only fills missing titles. To use another local model:
-
-```bash
-node scripts/generate_titles_ai.js --model=qwen3.5:2b
-```
-
-To regenerate all titles, add `--force`, but treat that as a review workflow rather than a blind update. Existing curated titles are often better than model rewrites. For regular updates, prefer the default non-force mode.
-
-### Run the regular update pipeline
-
-```bash
-npm run update:plonkit
-```
-
-This command runs the scraper, linked-location extractor, and missing-title generator. Tag and scope enrichment remain separate review steps.
-
-### Validation
-
-Check the userscript syntax locally without executing it:
-
-```bash
-node --check geoguessr-meta.user.js
-```
-
-For a non-writing live scraper smoke test, run:
-
-```bash
-npm run scrape:test
-```
+BetterMetas is intended for learning from completed rounds. Follow [GeoGuessr's Community Rules](https://www.geoguessr.com/community-rules); result-screen visibility is not a guarantee of permission to use it in every game mode or competition.
 
 ## Data, Permissions, and Network Access
 
 - BetterMetas runs only on `https://www.geoguessr.com/*` and reads the current game state to identify locations.
-- It downloads userscript and metadata updates from the official GitHub repository and may query Nominatim for reverse geocoding.
-- Preferences, cached data, and an optional maintainer token are stored in the browser profile. The token is not required for normal use or community issue submissions.
-- A configured maintainer token can write directly to repository data through the GitHub API. Use a narrowly scoped token and never share or commit it.
-- Community submissions without a token are reviewed through GitHub Issues before they become part of the data set.
+- Script updates and meta data come from GitHub. Location coordinates may be sent to Google Maps and Nominatim for reverse geocoding; clue images load from the hosts recorded in the data.
+- Preferences and cached data are stored in the browser profile. Submitted GitHub issues make their panorama IDs, location details, and meta content public.
+- Optional maintainer tokens enable direct repository writes. The current implementation stores them in page-accessible browser storage, not isolated userscript-manager storage. See the [maintainer notes](docs/DATA_MAINTENANCE.md#maintainer-tokens-and-direct-writes) before using this feature.
 
 ## Tech Stack
 
-| Layer              | Technology             | Version |
-| :----------------- | :--------------------- | :------ |
-| **Userscript**     | JavaScript / Tampermonkey metadata | 0.7 |
-| **Data Tooling**   | Node.js                | 18+     |
-| **Services**       | GitHub API, Nominatim  | -       |
-| **Knowledge Base** | Plonk It               | -       |
+| Layer | Technology |
+| :---- | :--------- |
+| **Userscript** | JavaScript and userscript-manager APIs |
+| **Data tooling** | Node.js; only needed for development and data maintenance |
+| **Data storage** | JSON files in the repository and browser-side caches |
+| **Services** | GitHub API, Google Maps, and Nominatim |
+| **Knowledge base** | Plonk It guides and community contributions |
 
 ## Credits
 
 BetterMetas is built using the following projects and resources:
 
-- **[Plonk It](https://www.plonkit.net)**: For the incredibly detailed Geoguessr guides that serve as the basis for much of the data.
+- **[Plonk It](https://www.plonkit.net)**: For the incredibly detailed GeoGuessr guides that serve as the basis for much of the data.
 - **[Nominatim / OpenStreetMap](https://nominatim.org/)**: For providing high-precision geodata and reverse geocoding.
 - **[Google Maps Platform](https://mapsplatform.google.com/)**: For additional location data.
+
+## Contributing
+
+Bug reports, focused feature proposals, and sourced meta corrections are welcome. Code contributions and public forks require prior written authorization because BetterMetas is proprietary source-available software. See [CONTRIBUTING.md](CONTRIBUTING.md) for known limitations, the contribution process, and contribution terms. Report vulnerabilities according to [SECURITY.md](SECURITY.md).
+
+Development and test commands live in [docs/DEVELOPMENT.md](docs/DEVELOPMENT.md); scraper, enrichment, and maintainer commands live in [docs/DATA_MAINTENANCE.md](docs/DATA_MAINTENANCE.md).
 
 ## License
 
