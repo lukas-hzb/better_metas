@@ -1,10 +1,10 @@
 <h1 align="center">BetterMetas</h1>
 
 <p align="center">
-  BetterMetas is a GeoGuessr userscript that displays relevant metas and hints directly in-game, using a large Plonk It–based database and smart location predictions to eliminate the need for manual location classification.
+  A GeoGuessr userscript for studying location clues directly on round-result screens.
 </p>
 
-Study location clues on GeoGuessr's round-result screens, with descriptions, images, and geographic context in one overlay. BetterMetas is distributed as a userscript; there is no separate website or hosted application.
+BetterMetas combines a large Plonk It–based database with smart location predictions to eliminate the need for manual location classification. Explore suggested clues through descriptions and images, then add new findings or link existing metas to the current panorama.
 
 ## Features
 
@@ -26,6 +26,8 @@ Study location clues on GeoGuessr's round-result screens, with descriptions, ima
 | <img src="images/add_meta_dialog.png" alt="BetterMetas dialog for searching, previewing, and linking metas to a location" width="500" /> | <img src="images/settings_menu.png" alt="BetterMetas settings with scope filters and optional maintainer controls" width="500" /> |
 
 ## Installation
+
+There is no separate website or hosted application; install the userscript directly using the steps below.
 
 1. Install a compatible userscript manager such as [Tampermonkey](https://www.tampermonkey.net/).
 2. If your browser requires it, enable the manager's [permission to execute userscripts](https://www.tampermonkey.net/faq.php?locale=en&q=Q209).
