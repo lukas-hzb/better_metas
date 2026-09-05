@@ -2689,5 +2689,15 @@
     "country": "Czechia",
     "region": "Central Bohemian Region",
     "road": "D1"
+  },
+  "f7XJgTki67nfDw-WPpSOWw": {
+    "metas": [
+      "meta_vietnam_nJ04"
+    ],
+    "lat": 15.95761,
+    "lng": 107.98863,
+    "country": "Vietnam",
+    "region": null,
+    "road": "Quốc lộ 14G"
   }
 }
