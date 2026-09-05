@@ -69,7 +69,7 @@
     "nominatimCountry": "Peru",
     "region": "La Libertad",
     "city": "Ascope",
-    "road": "LI-619 / Paij\u00e1n"
+    "road": "LI-619 / Paiján"
   },
   "iK1sv4OtRh90_XAUjQgwLA": {
     "metas": [
@@ -105,7 +105,7 @@
     "nominatimCountry": "Peru",
     "region": "Lambayeque",
     "city": "Ciudad de Dios",
-    "road": "San Jos\u00e9 - Carretera Chiclayo"
+    "road": "San José - Carretera Chiclayo"
   },
   "SajzOxi5-Pa6gjZ3X1oNQA": {
     "metas": [
@@ -129,7 +129,7 @@
     "nominatimCountry": "Brazil",
     "region": "Amazonas",
     "city": "Beruri",
-    "road": "Estrada Manaus\u2013Porto Velho"
+    "road": "Estrada Manaus–Porto Velho"
   },
   "nfZLreXfUrLGUjo20Sgu6A": {
     "metas": [
@@ -152,8 +152,8 @@
     "country": "Spain",
     "nominatimCountry": "Spain",
     "region": "Comunidad Valenciana",
-    "city": "Castell\u00f3",
-    "road": "Pla\u00e7a Poligono 11"
+    "city": "Castelló",
+    "road": "Plaça Poligono 11"
   },
   "QV386BFPBA7JMSKCthx7Qg": {
     "metas": [
@@ -201,7 +201,7 @@
     "nominatimCountry": "Mexico",
     "region": "Baja California",
     "city": "San Juan",
-    "road": "Bah\u00eda de los \u00c1ngeles - Punta Prieta"
+    "road": "Bahía de los Ángeles - Punta Prieta"
   },
   "ZfEV0Qb9vdxjpv-VTNcNAQ": {
     "metas": [
@@ -248,8 +248,8 @@
     "country": "Brazil",
     "nominatimCountry": "Brazil",
     "region": "Santa Catarina",
-    "city": "Otac\u00edlio Costa",
-    "road": "S\u00edtio Gramados"
+    "city": "Otacílio Costa",
+    "road": "Sítio Gramados"
   },
   "SZ6meXdNYl9k5cazYstfTA": {
     "metas": [
@@ -297,7 +297,7 @@
     "country": "Spain",
     "nominatimCountry": "Spain",
     "region": "Navarre",
-    "city": "Lazagurr\u00eda",
+    "city": "Lazagurría",
     "road": "Bargota"
   },
   "TMPJGVJaxaD6fkKmStA0Qw": {
@@ -346,7 +346,7 @@
     "nominatimCountry": "Mexico",
     "region": "Veracruz",
     "city": "Tres Valles",
-    "road": "Sayula de Alem\u00e1n - Tierra Blanca"
+    "road": "Sayula de Alemán - Tierra Blanca"
   },
   "GQDYwxgQBczJmpnK1nsT_g": {
     "metas": [
@@ -368,8 +368,8 @@
     "lng": -53.52194,
     "country": "Brazil",
     "nominatimCountry": "Brazil",
-    "region": "Paran\u00e1",
-    "city": "Amp\u00e9re",
+    "region": "Paraná",
+    "city": "Ampére",
     "road": null
   },
   "8svjqCeEu0lKpK5Ery8PrA": {
@@ -381,8 +381,8 @@
     "lng": -98.84172,
     "country": "Mexico",
     "nominatimCountry": "Mexico",
-    "region": "Estado de M\u00e9xico",
-    "city": "San Bartolom\u00e9 Actopan",
+    "region": "Estado de México",
+    "city": "San Bartolomé Actopan",
     "road": null
   },
   "hH1lGyAIqNl0m749FL2EcA": {
@@ -393,7 +393,7 @@
     "lng": -69.68116,
     "country": "Chile",
     "nominatimCountry": "Chile",
-    "region": "Tarapac\u00e1",
+    "region": "Tarapacá",
     "city": "Tamarugal",
     "road": "Panamericana Norte"
   },
@@ -441,7 +441,7 @@
     "lng": -71.33388,
     "country": "Chile",
     "nominatimCountry": "Chile",
-    "region": "B\u00edo B\u00edo",
+    "region": "Bío Bío",
     "city": "Guallali",
     "road": "Comunidad Vegas de Ralco"
   },
@@ -489,9 +489,9 @@
     "lng": -40.45936,
     "country": "Brazil",
     "nominatimCountry": "Brazil",
-    "region": "Cear\u00e1",
-    "city": "Senador S\u00e1",
-    "road": "Estrada Par\u00e1 C\u00f3rrego Verde"
+    "region": "Ceará",
+    "city": "Senador Sá",
+    "road": "Estrada Pará Córrego Verde"
   },
   "8cI5YsxSR67ZSeMrRhwFrw": {
     "metas": [
@@ -526,7 +526,7 @@
     "country": "Brazil",
     "nominatimCountry": "Brazil",
     "region": "Rio Grande do Norte",
-    "city": "Mossor\u00f3",
+    "city": "Mossoró",
     "road": "Rua Herondina Cavalcante Dantas"
   },
   "Rv33dYMiUAInDjN-q2nE7Q": {
@@ -537,7 +537,7 @@
     "lng": -48.28664,
     "country": "Brazil",
     "nominatimCountry": "Brazil",
-    "region": "Par\u00e1",
+    "region": "Pará",
     "city": "Marituba",
     "road": "Rua dos Navegantes"
   },
@@ -551,7 +551,7 @@
     "nominatimCountry": "Russia",
     "region": "Murmansk Oblast",
     "city": "Murmashi",
-    "road": "\u00ab\u041a\u043e\u043b\u0430\u00bb \u041f\u043e\u0434\u044a\u0435\u0437\u0434 \u043a \u0430\u044d\u0440\u043e\u043f\u043e\u0440\u0442\u0443 \u041c\u0443\u0440\u043c\u0430\u043d\u0441\u043a"
+    "road": "«Кола» Подъезд к аэропорту Мурманск"
   },
   "OoE8u8HElohKfQAIJTUhzw": {
     "metas": [
@@ -561,8 +561,8 @@
     "lng": -8.15705,
     "country": "Portugal",
     "nominatimCountry": "Portugal",
-    "region": "Distrito de \u00c9vora",
-    "city": "Alc\u00e1\u00e7ovas",
+    "region": "Distrito de Évora",
+    "city": "Alcáçovas",
     "road": "N2"
   },
   "5fiZIhVapFGZ-1mvhVZLXA": {
@@ -598,8 +598,8 @@
     "country": "Mexico",
     "nominatimCountry": "Mexico",
     "region": "Tlaxcala",
-    "city": "San Jos\u00e9 Cuamantzingo",
-    "road": "Calle Benito Ju\u00e1rez"
+    "city": "San José Cuamantzingo",
+    "road": "Calle Benito Juárez"
   },
   "jw3ZNWk9ToOV6IKXHtEVBA": {
     "metas": [
@@ -621,7 +621,7 @@
     "lng": 6.05912,
     "country": "France",
     "nominatimCountry": "France",
-    "region": "Provence-Alpes-C\u00f4te d'Azur",
+    "region": "Provence-Alpes-Côte d'Azur",
     "city": "Esparron-de-Verdon",
     "road": "Chemin de Beau Regard"
   },
@@ -658,7 +658,7 @@
     "country": "Argentina",
     "nominatimCountry": "Argentina",
     "region": "Santa Fe",
-    "city": "San Crist\u00f3bal",
+    "city": "San Cristóbal",
     "road": "Ruta Provincial 13"
   },
   "yTQk_lG53Ct9L5ngwAJB1w": {
@@ -681,8 +681,8 @@
     "lng": -49.87543,
     "country": "Brazil",
     "nominatimCountry": "Brazil",
-    "region": "Goi\u00e1s",
-    "city": "Palmeiras de Goi\u00e1s",
+    "region": "Goiás",
+    "city": "Palmeiras de Goiás",
     "road": "Avenida Santos Dumont"
   },
   "v0m0yumglHi3wR0Lhqlr-Q": {
@@ -695,7 +695,7 @@
     "nominatimCountry": "Norway",
     "region": "Innlandet",
     "city": "Tingelstad",
-    "road": "M\u00f8rkgonga"
+    "road": "Mørkgonga"
   },
   "73I5J2qhvK-V4IJWB3K2bg": {
     "metas": [
@@ -813,7 +813,7 @@
     "lng": -81.85843,
     "country": "Panama",
     "nominatimCountry": "Panama",
-    "region": "Provincia de Chiriqu\u00ed",
+    "region": "Provincia de Chiriquí",
     "city": "Remedios",
     "road": "Carretera Panamericana"
   },
@@ -825,9 +825,9 @@
     "lng": -41.36391,
     "country": "Brazil",
     "nominatimCountry": "Brazil",
-    "region": "Esp\u00edrito Santo",
+    "region": "Espírito Santo",
     "city": "Muniz Freire",
-    "road": "Rodovia Governador Eur\u00edco Rezende"
+    "road": "Rodovia Governador Euríco Rezende"
   },
   "NcU4vYkHMDaofUUdW0T3NQ": {
     "metas": [
@@ -849,7 +849,7 @@
     "lng": -7.51956,
     "country": "Portugal",
     "nominatimCountry": "Portugal",
-    "region": "\u00c9vora District",
+    "region": "Évora District",
     "city": "Redondo",
     "road": "EM 512"
   },
@@ -885,7 +885,7 @@
     "lng": -64.83708,
     "country": "Argentina",
     "nominatimCountry": "Argentina",
-    "region": "Tucum\u00e1n",
+    "region": "Tucumán",
     "city": "Tala Pozo",
     "road": "RP317"
   },
@@ -909,9 +909,9 @@
     "lng": -7.47553,
     "country": "Portugal",
     "nominatimCountry": "Portugal",
-    "region": "Distrito de \u00c9vora",
+    "region": "Distrito de Évora",
     "city": "Campo",
-    "road": "Caminho do Ronc\u00e3o Del Rei"
+    "road": "Caminho do Roncão Del Rei"
   },
   "WsPR5S5p7WCzeR2EzyhTJg": {
     "metas": [
@@ -921,7 +921,7 @@
     "lng": -5.9297,
     "country": "Spain",
     "nominatimCountry": "Spain",
-    "region": "Andaluc\u00eda",
+    "region": "Andalucía",
     "city": "Burguillos",
     "road": "Diseminado"
   },
@@ -933,8 +933,8 @@
     "lng": 10.91677,
     "country": "Norway",
     "nominatimCountry": "Norway",
-    "region": "Tr\u00f8ndelag",
-    "city": "Stj\u00f8rdal Municipality",
+    "region": "Trøndelag",
+    "city": "Stjørdal Municipality",
     "road": "Langsteinvegen"
   },
   "clhZHaKo2rYdE_uD_Eq5ng": {
@@ -993,7 +993,7 @@
     "lng": -98.69921,
     "country": "Mexico",
     "nominatimCountry": "Mexico",
-    "region": "Estado de M\u00e9xico",
+    "region": "Estado de México",
     "city": "San Marcos",
     "road": null
   },
@@ -1042,8 +1042,8 @@
     "country": "Spain",
     "nominatimCountry": "Spain",
     "region": "Extremadura",
-    "city": "San Vicente de Alc\u00e1ntara",
-    "road": "Carretera de San Vicente de Alc\u00e1ntara a La Codosera"
+    "city": "San Vicente de Alcántara",
+    "road": "Carretera de San Vicente de Alcántara a La Codosera"
   },
   "sX7BGUVbK4mZF4VDq16_4w": {
     "metas": [
@@ -1054,8 +1054,8 @@
     "country": "Russia",
     "nominatimCountry": "Russia",
     "region": "Kaliningrad",
-    "city": "\u041a\u0440\u0443\u0448\u0438\u043d\u0438\u043d\u043e",
-    "road": "27\u041a-162"
+    "city": "Крушинино",
+    "road": "27К-162"
   },
   "ujKwRSotH6IGgEC0cn1PyA": {
     "metas": [
@@ -1115,7 +1115,7 @@
     "nominatimCountry": "Mexico",
     "region": "Veracruz",
     "city": "Santa Rosa",
-    "road": "Santa Rosa (General Pinz\u00f3n)"
+    "road": "Santa Rosa (General Pinzón)"
   },
   "VfVFMyRQ3j_30MPXpRDdQw": {
     "metas": [
@@ -1185,8 +1185,8 @@
     "lng": -82.62821,
     "country": "Panama",
     "nominatimCountry": "Panama",
-    "region": "Provincia de Chiriqu\u00ed",
-    "city": "Volc\u00e1n",
+    "region": "Provincia de Chiriquí",
+    "city": "Volcán",
     "road": "Manzana 040512"
   },
   "X3JTQd05HwwWuLNjZUwiyQ": {
@@ -1222,7 +1222,7 @@
     "country": "Portugal",
     "nominatimCountry": "Portugal",
     "region": "Viseu",
-    "city": "S\u00e3o Pedro do Sul",
+    "city": "São Pedro do Sul",
     "road": "Boavista"
   },
   "QbDSoLL84GUzJ_ksB_Evbg": {
@@ -1293,8 +1293,8 @@
     "lng": -51.19694,
     "country": "Brazil",
     "nominatimCountry": "Brazil",
-    "region": "Paran\u00e1",
-    "city": "C\u00e2ndido de Abreu",
+    "region": "Paraná",
+    "city": "Cândido de Abreu",
     "road": null
   },
   "wZ6EShv2WfBdIuG1MMXU7w": {
@@ -1306,8 +1306,8 @@
     "country": "Russia",
     "nominatimCountry": "Russia",
     "region": "Perm Krai",
-    "city": "\u041a\u0443\u0437\u043d\u0435\u0447\u0438\u0445\u0430",
-    "road": "57\u041a-0015"
+    "city": "Кузнечиха",
+    "road": "57К-0015"
   },
   "C776rqu5YWfw7tOvwdw2ng": {
     "metas": [
@@ -1318,7 +1318,7 @@
     "country": "Argentina",
     "nominatimCountry": "Argentina",
     "region": "Santa Fe",
-    "city": "Municipio de San Crist\u00f3bal",
+    "city": "Municipio de San Cristóbal",
     "road": "Ruta Provincial 13"
   },
   "IwIrIpqWWcyE2KFgCmZnbA": {
@@ -1342,7 +1342,7 @@
     "country": "Senegal",
     "nominatimCountry": "Senegal",
     "region": "Saint-Louis Region",
-    "city": "Communaut\u00e9 rurale de Ronkh",
+    "city": "Communauté rurale de Ronkh",
     "road": "TAH 1"
   },
   "FY-PsAQcc4OrYE65-lMy3w": {
@@ -1354,7 +1354,7 @@
     "country": "Mexico",
     "nominatimCountry": "Mexico",
     "region": "Baja California",
-    "city": "Agua Le\u00f3n",
+    "city": "Agua León",
     "road": "Carretera Transpeninsular"
   },
   "R06Q8eqSaPaBFLgInCTmLA": {
@@ -1389,8 +1389,8 @@
     "lng": -82.63932,
     "country": "Panama",
     "nominatimCountry": "Panama",
-    "region": "Chiriqu\u00ed",
-    "city": "Volc\u00e1n",
+    "region": "Chiriquí",
+    "city": "Volcán",
     "road": "Avenida 6a Norte"
   },
   "vd4OM0S51zYNTtEst7IFIw": {
@@ -1473,7 +1473,7 @@
     "lng": -101.17229,
     "country": "Mexico",
     "nominatimCountry": "Mexico",
-    "region": "San Luis Potos\u00ed",
+    "region": "San Luis Potosí",
     "city": "Zaragoza",
     "road": "San Tiburcio - Cedral"
   },
@@ -1509,9 +1509,9 @@
     "lng": -38.65605,
     "country": "Brazil",
     "nominatimCountry": "Brazil",
-    "region": "Cear\u00e1",
+    "region": "Ceará",
     "city": "Jaguaribe",
-    "road": "Rodovia Presidente Epit\u00e1cio Pessoa"
+    "road": "Rodovia Presidente Epitácio Pessoa"
   },
   "9Il6aDYIJz3rYSAJWdRTpw": {
     "metas": [
@@ -1558,7 +1558,7 @@
     "country": "Argentina",
     "nominatimCountry": "Argentina",
     "region": "Catamarca",
-    "city": "Capay\u00e1n",
+    "city": "Capayán",
     "road": "Ruta Nacional 60"
   },
   "J9zFYhpsAir3L9lrArIwWA": {
@@ -1581,7 +1581,7 @@
     "lng": 6.41436,
     "country": "Luxembourg",
     "nominatimCountry": "Luxembourg",
-    "region": "Gr\u00e9iwemaacher",
+    "region": "Gréiwemaacher",
     "city": "Fluessweiler",
     "road": "CR146"
   },
@@ -1593,8 +1593,8 @@
     "lng": -71.038,
     "country": "Argentina",
     "nominatimCountry": "Argentina",
-    "region": "Neuqu\u00e9n",
-    "city": "\u00d1orqu\u00edn",
+    "region": "Neuquén",
+    "city": "Ñorquín",
     "road": "Ruta Provincial 26"
   },
   "JFpLLnmEK_N7_w0tj8us2w": {
@@ -1605,7 +1605,7 @@
     "lng": -89.61787,
     "country": "Guatemala",
     "nominatimCountry": "Guatemala",
-    "region": "Pet\u00e9n",
+    "region": "Petén",
     "city": "Tikal",
     "road": "RD-PET-3"
   },
@@ -1630,8 +1630,8 @@
     "country": "Brazil",
     "nominatimCountry": "Brazil",
     "region": "State of Minas Gerais",
-    "city": "Nat\u00e9rcia",
-    "road": "Nat\u00e9rcia"
+    "city": "Natércia",
+    "road": "Natércia"
   },
   "kupZNqFeU0KRH4Ap_0IUsg": {
     "metas": [
@@ -1643,7 +1643,7 @@
     "nominatimCountry": "Brazil",
     "region": "Amazonas",
     "city": "Careiro",
-    "road": "Rodovia \u00c1lvaro Maia"
+    "road": "Rodovia Álvaro Maia"
   },
   "QmYvxih90Vl0B8PHdOnklA": {
     "metas": [
@@ -1677,7 +1677,7 @@
     "lng": -50.88765,
     "country": "Brazil",
     "nominatimCountry": "Brazil",
-    "region": "Amap\u00e1",
+    "region": "Amapá",
     "city": "Itaubal",
     "road": "Rodovia do Curiau"
   },
@@ -1689,7 +1689,7 @@
     "lng": -101.34082,
     "country": "Mexico",
     "nominatimCountry": "Mexico",
-    "region": "San Luis Potos\u00ed",
+    "region": "San Luis Potosí",
     "city": "Cerro Blanco",
     "road": "Cerro Blanco"
   },
@@ -1702,7 +1702,7 @@
     "country": "Unknown Location",
     "nominatimCountry": "Chile",
     "region": "Biobio Region",
-    "city": "Alto Biob\u00edo",
+    "city": "Alto Biobío",
     "road": "Comunidad Vegas de Ralco"
   },
   "A4bjee3nSSewuuvUEafJ5w": {
@@ -1774,7 +1774,7 @@
     "country": "Finland",
     "nominatimCountry": "Finland",
     "region": "Lappi",
-    "city": "Kittil\u00e4",
+    "city": "Kittilä",
     "road": "Inarintie"
   },
   "rmBLHD8zkS6igrNXPxnY1A": {
@@ -1822,7 +1822,7 @@
     "country": "Cambodia",
     "nominatimCountry": "Cambodia",
     "region": "Sihanoukville",
-    "city": "\ubd07\ubc45\ub9c8\uc744",
+    "city": "봇뱅마을",
     "road": "Phnom Penh - Sihanoukville Expressway"
   },
   "VGZzk4h5ru1hmdqimBtQ3g": {
@@ -1845,8 +1845,8 @@
     "lng": -52.86923,
     "country": "Brazil",
     "nominatimCountry": "Brazil",
-    "region": "State of Paran\u00e1",
-    "city": "Boa Esperan\u00e7a",
+    "region": "State of Paraná",
+    "city": "Boa Esperança",
     "road": "Juranda"
   },
   "lvjh30OcoKbpBxADcBY1xw": {
@@ -1870,8 +1870,8 @@
     "country": "Spain",
     "nominatimCountry": "Spain",
     "region": "Galicia",
-    "city": "R\u00edo Barba",
-    "road": "Pista de R\u00edo Barba a Ponte do Porto"
+    "city": "Río Barba",
+    "road": "Pista de Río Barba a Ponte do Porto"
   },
   "_6eTXjw85s3FZIvHOTjhvA": {
     "metas": [
@@ -1918,7 +1918,7 @@
     "country": "Mexico",
     "nominatimCountry": "Mexico",
     "region": "Jalisco",
-    "city": "Uni\u00f3n de San Antonio",
+    "city": "Unión de San Antonio",
     "road": "Jalisco 302"
   },
   "V79jcf0Vg9Du5eBlMlWVQw": {
@@ -2039,7 +2039,7 @@
     "nominatimCountry": "Russia",
     "region": "Magadanskaya oblast'",
     "city": "Tenkinsky District",
-    "road": "\u041f\u0430\u043b\u0430\u0442\u043a\u0430"
+    "road": "Палатка"
   },
   "0muwM93J9gy5VsmkgyUdHg": {
     "metas": [
@@ -2049,8 +2049,8 @@
     "lng": 20.18481,
     "country": "Montenegro",
     "nominatimCountry": "Montenegro",
-    "region": "Op\u0161tina Ro\u017eaje",
-    "city": "Ro\u017eaje",
+    "region": "Opština Rožaje",
+    "city": "Rožaje",
     "road": "R-5"
   },
   "Vd6mlTDJrBMo_7lRJyGBdg": {
@@ -2133,7 +2133,7 @@
     "lng": -7.21552,
     "country": "Spain",
     "nominatimCountry": "Spain",
-    "region": "Andaluc\u00eda",
+    "region": "Andalucía",
     "city": "Huelva",
     "road": "Solar Sector Cam Catalan Oeste"
   },
@@ -2193,7 +2193,7 @@
     "lng": -77.22699,
     "country": "Ecuador",
     "nominatimCountry": "Ecuador",
-    "region": "Sucumb\u00edos",
+    "region": "Sucumbíos",
     "city": "Cascales",
     "road": "Ecuador 45"
   },
@@ -2313,7 +2313,7 @@
     "lng": 11.82904,
     "country": "Norway",
     "region": "Innlandet",
-    "road": "S\u00f8rs\u00e5svegen",
+    "road": "Sørsåsvegen",
     "nominatimCountry": null,
     "city": null
   },
@@ -2324,8 +2324,8 @@
     "lat": 42.86341,
     "lng": 20.06761,
     "country": "Montenegro",
-    "region": "Op\u0161tina Ro\u017eaje",
-    "road": "Berane - Ro\u017eaje",
+    "region": "Opština Rožaje",
+    "road": "Berane - Rožaje",
     "nominatimCountry": null,
     "city": null
   },
@@ -2349,7 +2349,7 @@
     "lng": -79.50233,
     "country": "Ecuador",
     "region": "Guayas",
-    "road": "V\u00eda Sim\u00f3n Bol\u00edvar - Mariscal Sucre",
+    "road": "Vía Simón Bolívar - Mariscal Sucre",
     "nominatimCountry": null,
     "city": null
   },
@@ -2422,9 +2422,9 @@
     "lng": -79.56592,
     "country": "Panama",
     "nominatimCountry": "Panama",
-    "region": "Provincia de Panam\u00e1 Oeste",
-    "city": "Arraij\u00e1n",
-    "road": "V\u00eda A Veracruz"
+    "region": "Provincia de Panamá Oeste",
+    "city": "Arraiján",
+    "road": "Vía A Veracruz"
   },
   "sv9nhvv6uHwapP01v4pgYg": {
     "metas": [
@@ -2434,7 +2434,7 @@
     "lng": -89.64018,
     "country": "Guatemala",
     "nominatimCountry": "Guatemala",
-    "region": "Pet\u00e9n",
+    "region": "Petén",
     "city": "Flores",
     "road": "RD-PET-3"
   },
@@ -2458,9 +2458,9 @@
     "lng": 16.77159,
     "country": "Czechia",
     "nominatimCountry": "Czechia",
-    "region": "Jihomoravsk\u00fd kraj",
-    "city": "B\u0159eclav",
-    "road": "Lipov\u00e1"
+    "region": "Jihomoravský kraj",
+    "city": "Břeclav",
+    "road": "Lipová"
   },
   "BfiuPfLQCyo29R10ewxYOw": {
     "metas": [
@@ -2471,8 +2471,8 @@
     "lng": -72.49824,
     "country": "Chile",
     "nominatimCountry": "Chile",
-    "region": "Ays\u00e9n",
-    "city": "Ays\u00e9n",
+    "region": "Aysén",
+    "city": "Aysén",
     "road": "Ruta 240"
   },
   "4eLJqy0vLenAHKG0eHNJcQ": {
@@ -2509,7 +2509,7 @@
     "nominatimCountry": "Mexico",
     "region": "Coahuila de Zaragoza",
     "city": "El Hundido",
-    "road": "San Pedro De las Colonias - Cuatro Ci\u00e9negas"
+    "road": "San Pedro De las Colonias - Cuatro Ciénegas"
   },
   "DnTFyj9BaKnf3d_JWkYaaw": {
     "metas": [
@@ -2558,7 +2558,7 @@
     "nominatimCountry": "Brazil",
     "region": "Pernambuco",
     "city": "Moreno",
-    "road": "Estrada Javunda Cumar\u00fa"
+    "road": "Estrada Javunda Cumarú"
   },
   "lOZBqRc2R0EeeXXSem-Kuw": {
     "metas": [
@@ -2568,9 +2568,9 @@
     "lng": -39.47145,
     "country": "Brazil",
     "nominatimCountry": "Brazil",
-    "region": "Cear\u00e1",
+    "region": "Ceará",
     "city": "Itapipoca",
-    "road": "Rodovia Brunilo Jac\u00f3 de Castro e Silva"
+    "road": "Rodovia Brunilo Jacó de Castro e Silva"
   },
   "lKwbQrUVT11y7WRA5t2rBw": {
     "metas": [
@@ -2580,9 +2580,9 @@
     "lng": -9.07885,
     "country": "Portugal",
     "nominatimCountry": "Portugal",
-    "region": "Set\u00fabal",
+    "region": "Setúbal",
     "city": "Arrentela",
-    "road": "Rua Josefa de \u00d3bidos"
+    "road": "Rua Josefa de Óbidos"
   },
   "hAQGqWC4TwRVLTENv1QMXw": {
     "metas": [
@@ -2616,8 +2616,8 @@
     "lng": 17.08657,
     "country": "Slovakia",
     "nominatimCountry": "Slovakia",
-    "region": "Trnavsk\u00fd kraj",
-    "city": "Kop\u010dany",
+    "region": "Trnavský kraj",
+    "city": "Kopčany",
     "road": "2"
   },
   "H-GF2rJEmKZ8vrjKD7FuKQ": {
@@ -2630,7 +2630,7 @@
     "nominatimCountry": "Norway",
     "region": "Vestland",
     "city": "Bremanger",
-    "road": "Sm\u00f8rhamnsvegen"
+    "road": "Smørhamnsvegen"
   },
   "fP3I4hOq-UkPCFPejEBE5w": {
     "metas": [
@@ -2666,7 +2666,7 @@
     "nominatimCountry": "Luxembourg",
     "region": "Remich",
     "city": "Schengen",
-    "road": "Mont\u00e9e des Vignes"
+    "road": "Montée des Vignes"
   },
   "sZPIDdWTcuFpRzEj_bFfCw": {
     "metas": [
@@ -2678,6 +2678,16 @@
     "nominatimCountry": "Argentina",
     "region": "Jujuy",
     "city": "San Salvador de Jujuy",
-    "road": "Ej\u00e9rcito del Norte"
+    "road": "Ejército del Norte"
+  },
+  "SZ1ny6YWOXZRhUwCUACYFQ": {
+    "metas": [
+      "meta_czechia_YKsZ"
+    ],
+    "lat": 49.68845,
+    "lng": 15.10098,
+    "country": "Czechia",
+    "region": "Central Bohemian Region",
+    "road": "D1"
   }
 }
