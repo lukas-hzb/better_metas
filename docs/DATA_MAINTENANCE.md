@@ -6,7 +6,7 @@ These commands are for authorized contributors and maintainers, not ordinary use
 
 Start with a clean working tree or separately saved work. Writing runs overwrite JSON files and some save intermediate checkpoints. Preview a limited run first, inspect its output, and review the resulting diff before committing.
 
-**Dry-run means no file writes, not necessarily no network access or cost.** Scraper and location-extractor previews still contact external services. Title previews still call the selected model provider. Only the tag and scope previews are entirely local.
+**Dry-run leaves repository data unchanged, but can still use the network or incur cost.** Explicitly requested audit reports and URL caches are still written. Scraper and location-extractor previews still contact external services. Title previews still call the selected model provider. Only the tag and scope previews are entirely local.
 
 ## Data Files and Stable IDs
 
@@ -36,7 +36,9 @@ To write the full merge after reviewing the preview:
 npm run scrape
 ```
 
-The importer merges guide entries with existing data, retains local-only entries where possible, uses canonical IDs, and removes obsolete `imageLink` fields. Check IDs and location references after a refresh rather than assuming every upstream change can be matched correctly.
+The importer matches upstream IDs first and preserves existing BetterMetas IDs, titles, tags (including intentionally empty lists), scopes, and custom fields. A changed upstream ID can match an unambiguous identical description; a shared image path alone is not sufficient. Entries absent from current guides are retained rather than deleted, so existing location references remain valid. New entries use canonical IDs. Obsolete `imageLink` fields are removed.
+
+The summary separates changed and unchanged metas. Add `--report=/absolute/path/meta-audit.json` for a JSON list of changed fields and retained entries. Review retained entries separately; absence from the current guide is not proof that a clue is wrong.
 
 For a non-writing live smoke test that fetches a recent country and prints JSON:
 
@@ -61,6 +63,14 @@ npm run locations:plonkit
 ```
 
 The extractor reads Plonk It guides, resolves Google Maps links, and uses Nominatim for reverse geocoding before updating `data/plonkit_locations.json`. It reuses existing location information where possible and spaces Nominatim requests by at least 1.2 seconds within a run. `--limit=N` limits countries, not individual locations.
+
+Existing panorama links, coordinates, and address data are retained. Neither importer writes `user_metas.json` or `user_locations.json`. Add `--report=/absolute/path/location-audit.json` to record each guide tip's link outcome, including absent links, non-Maps links, unresolved short links, and links without a parseable panorama. `--url-cache=/absolute/path/maps-urls.json` saves successful URL resolutions for reuse. `--skip-geocoding` imports panorama IDs and coordinates without requesting new address data; existing addresses remain intact.
+
+The extractor imports each tip's primary image link. Maps links embedded in the text are included in the report as `unreviewedTextLinks`, since they can describe comparisons or counterexamples from other countries. Review their meaning before adding them as location links. Existing locations are retained even when an upstream image link changes.
+
+Both importers accept `--guide-cache=/absolute/path/guides` to replay the same source snapshot. This directory must contain `index.json` (the guide index array) and `<slug>.json` (each guide's extracted `__PRELOADED_DATA__.data` payload). Missing cache files fail the import. Audit reports and the URL cache are written when explicitly requested even during `--dry-run`; the repository data files are not.
+
+Before a full refresh, save copies of all four data files. Afterward, compare the community files byte-for-byte, verify that every pre-existing meta ID and panorama-to-meta link remains present, inspect changed content and unresolved links, and run `node scripts/update_stats.js`. Regression checks for these merge rules are available through `node --test scripts/refresh.test.js`.
 
 Review Nominatim's [usage policy](https://operations.osmfoundation.org/policies/nominatim/) before bulk use. Avoid parallel or distributed runs and retain cached results. Scheduled jobs and runs lasting longer than a day are limited to four requests per minute; the current extractor's delay does not enforce that stricter limit. Do not schedule this pipeline unchanged or assume its default delay establishes compliance.
 

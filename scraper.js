@@ -1,5 +1,6 @@
 const path = require('path');
-const { getLowerCaseArg, parseIntArg } = require('./scripts/cli_utils');
+const { isDeepStrictEqual } = require('node:util');
+const { getArg, getLowerCaseArg, parseIntArg } = require('./scripts/cli_utils');
 const { readJson, stringifyJsonAscii, writeJsonAscii } = require('./scripts/json_utils');
 const {
     BASE_URL,
@@ -42,6 +43,8 @@ Options:
   --dry-run         Scrape and compare against local data, do not write.
   --country=value   Restrict scraping to a Plonkit slug or country title.
   --limit=N         Restrict the number of countries scraped.
+  --guide-cache=dir Read index.json and <slug>.json from a saved source snapshot.
+  --report=file     Write changed fields and retained entries as JSON.
 `);
 }
 
@@ -52,6 +55,8 @@ function parseArgs(argv) {
         help: argv.includes('--help') || argv.includes('-h'),
         country: getLowerCaseArg(argv, '--country='),
         limit: parseIntArg(argv, '--limit='),
+        guideCache: getArg(argv, '--guide-cache='),
+        report: getArg(argv, '--report='),
     };
     return args;
 }
@@ -63,6 +68,7 @@ function toAbsoluteUrl(url) {
 
 function stripMarkdown(text) {
     return String(text || '')
+        .replace(/^\s*!!\s*/, '')
         .replace(/\[([^\]]+)\]\([^)]+\)/g, '$1')
         .replace(/[*_`~]/g, '')
         .replace(/\s+/g, ' ')
@@ -100,24 +106,6 @@ function normalizeForMatch(value) {
         .trim();
 }
 
-function stableLocalMetaId(slug, meta) {
-    const canonicalPrefix = stableMetaId(slug, 'local');
-    if (String(meta.id || '').startsWith(`${canonicalPrefix}_`)) return meta.id;
-
-    const randomSuffix = String(meta.id || '').match(/^meta_\d+_([a-z0-9]+)$/i)?.[1];
-    const suffix = randomSuffix || simpleHash(`${meta.id || ''}|${meta.title || ''}|${meta.description || ''}`);
-    return stableMetaId(slug, `local_${suffix}`);
-}
-
-function simpleHash(value) {
-    let hash = 2166136261;
-    for (const char of String(value)) {
-        hash ^= char.charCodeAt(0);
-        hash = Math.imul(hash, 16777619);
-    }
-    return (hash >>> 0).toString(36);
-}
-
 function fallbackScopeForSection(section) {
     const stepNumber = Number.parseInt(String(section).replace('Step ', ''), 10);
     if (stepNumber === 2) return 'region';
@@ -151,11 +139,12 @@ function orderMetaFields(meta) {
     ]) {
         if (Object.prototype.hasOwnProperty.call(meta, key)) ordered[key] = meta[key];
     }
-    return ordered;
+    return { ...ordered, ...Object.fromEntries(Object.entries(meta).filter(([key]) => !(key in ordered))) };
 }
 
 function orderCountryFields(country) {
     return {
+        ...country,
         country: country.country,
         slug: country.slug,
         code: country.code,
@@ -260,36 +249,30 @@ function buildMetaLookup(existingMetas) {
     const lookup = {
         byPlonkitId: new Map(),
         byStableId: new Map(),
-        byImage: new Map(),
-        byDescription: new Map(),
     };
 
     for (const meta of existingMetas) {
         if (meta.plonkitId && !lookup.byPlonkitId.has(meta.plonkitId)) lookup.byPlonkitId.set(meta.plonkitId, meta);
         if (!lookup.byStableId.has(meta.id)) lookup.byStableId.set(meta.id, meta);
-        if (meta.imageUrl) {
-            const imagePath = new URL(meta.imageUrl).pathname;
-            if (!lookup.byImage.has(imagePath)) lookup.byImage.set(imagePath, meta);
-        }
-        const description = normalizeForMatch(meta.description);
-        if (!lookup.byDescription.has(description)) lookup.byDescription.set(description, meta);
+
     }
 
     return lookup;
 }
 
-function findExistingMeta(lookup, scrapedMeta) {
+function findExistingMeta(lookup, scrapedMeta, existingMetas, usedExisting) {
     const byPlonkitId = scrapedMeta.plonkitId && lookup.byPlonkitId.get(scrapedMeta.plonkitId);
     if (byPlonkitId) return byPlonkitId;
 
     const byStableId = lookup.byStableId.get(scrapedMeta.id);
     if (byStableId) return byStableId;
 
-    const imagePath = scrapedMeta.imageUrl ? new URL(scrapedMeta.imageUrl).pathname : '';
-    const byImage = imagePath && lookup.byImage.get(imagePath);
-    if (byImage) return byImage;
-
-    return lookup.byDescription.get(normalizeForMatch(scrapedMeta.description)) || null;
+    // Image paths can be reused when guide items move. Only accept an unambiguous
+    // textual match when the upstream ID changed; never reuse an already matched row.
+    const description = normalizeForMatch(scrapedMeta.description);
+    const matches = existingMetas.filter(meta => !usedExisting.has(meta)
+        && description && normalizeForMatch(meta.description) === description);
+    return matches.length === 1 ? matches[0] : null;
 }
 
 function mergeMeta(existingMeta, scrapedMeta) {
@@ -297,20 +280,21 @@ function mergeMeta(existingMeta, scrapedMeta) {
 
     const merged = {
         ...existingMeta,
-        id: scrapedMeta.plonkitId ? scrapedMeta.id : existingMeta.id,
+        id: existingMeta.id,
         country: scrapedMeta.country,
         section: scrapedMeta.section,
         description: scrapedMeta.description,
         note: scrapedMeta.note,
         imageUrl: scrapedMeta.imageUrl || existingMeta.imageUrl || null,
-        plonkitId: existingMeta.plonkitId || scrapedMeta.plonkitId,
+        plonkitId: scrapedMeta.plonkitId || existingMeta.plonkitId,
         addedAt: existingMeta.addedAt || scrapedMeta.addedAt || TODAY_ISO_DATE,
     };
     delete merged.imageLink;
+    if (!Object.prototype.hasOwnProperty.call(existingMeta, 'addedAt')) delete merged.addedAt;
 
     if (!merged.title && scrapedMeta.title) merged.title = scrapedMeta.title;
     if (!merged.scope) merged.scope = scrapedMeta.scope;
-    if (!Array.isArray(merged.tags) || merged.tags.length === 0) merged.tags = scrapedMeta.tags;
+    if (!Array.isArray(merged.tags)) merged.tags = scrapedMeta.tags;
 
     return orderMetaFields(merged);
 }
@@ -320,13 +304,22 @@ function mergeCountry(existingCountry, scrapedCountry, stats) {
     const existingMetaLookup = buildMetaLookup(existingMetas);
     const usedExisting = new Set();
     const mergedMetas = [];
+    const upstreamIds = new Set(scrapedCountry.metas.map(meta => meta.plonkitId).filter(Boolean));
+    const fallbackCandidates = existingMetas.filter(meta => !upstreamIds.has(meta.plonkitId));
 
     for (const scrapedMeta of scrapedCountry.metas) {
-        const existingMeta = findExistingMeta(existingMetaLookup, scrapedMeta);
+        const candidate = findExistingMeta(existingMetaLookup, scrapedMeta, fallbackCandidates, usedExisting);
+        const existingMeta = candidate && !usedExisting.has(candidate) ? candidate : null;
         if (existingMeta) {
             usedExisting.add(existingMeta);
-            mergedMetas.push(mergeMeta(existingMeta, scrapedMeta));
-            stats.updated += 1;
+            const merged = mergeMeta(existingMeta, scrapedMeta);
+            mergedMetas.push(merged);
+            if (isDeepStrictEqual(existingMeta, merged)) stats.unchanged += 1;
+            else {
+                stats.updated += 1;
+                stats.changes.push({ id: merged.id, country: scrapedCountry.country,
+                    fields: Object.keys(merged).filter(key => !isDeepStrictEqual(existingMeta[key], merged[key])) });
+            }
         } else {
             mergedMetas.push(scrapedMeta);
             stats.added += 1;
@@ -336,10 +329,11 @@ function mergeCountry(existingCountry, scrapedCountry, stats) {
     for (const existingMeta of existingMetas) {
         if (!usedExisting.has(existingMeta)) {
             const localOnlyMeta = { ...existingMeta };
-            if (!localOnlyMeta.plonkitId) localOnlyMeta.id = stableLocalMetaId(scrapedCountry.slug, localOnlyMeta);
             delete localOnlyMeta.imageLink;
             mergedMetas.push(orderMetaFields(localOnlyMeta));
             stats.keptLocalOnly += 1;
+            stats.retained.push({ id: localOnlyMeta.id, country: scrapedCountry.country,
+                reason: localOnlyMeta.plonkitId ? 'not_in_current_guide' : 'local_only' });
         }
     }
 
@@ -361,7 +355,10 @@ function mergeScrapedData(existingData, scrapedData) {
         countriesUpdated: 0,
         added: 0,
         updated: 0,
+        unchanged: 0,
         keptLocalOnly: 0,
+        changes: [],
+        retained: [],
     };
 
     const output = [...existingData];
@@ -383,6 +380,11 @@ function mergeScrapedData(existingData, scrapedData) {
         addCountryToLookup(countryLookup, mergedCountry);
     }
 
+    const ids = new Set();
+    for (const meta of output.flatMap(country => country.metas || [])) {
+        if (!meta.id || ids.has(meta.id)) throw new Error(`Missing or duplicate meta ID: ${meta.id}`);
+        ids.add(meta.id);
+    }
     return { data: output, stats };
 }
 
@@ -393,7 +395,7 @@ async function main() {
         return;
     }
 
-    const guideEntries = await scrapeGuideIndex({
+    const guideEntries = args.guideCache ? readJson(path.join(args.guideCache, 'index.json')) : await scrapeGuideIndex({
         'User-Agent': 'BetterMetasScraper/1.0 (+https://github.com/)',
         'Accept': 'text/html,application/xhtml+xml',
     });
@@ -421,7 +423,10 @@ async function main() {
     const scrapedData = [];
     for (const [index, entry] of targets.entries()) {
         console.log(`[${index + 1}/${targets.length}] Scraping ${entry.title} (${entry.slug})...`);
-        scrapedData.push(await scrapeCountry(entry.slug));
+        scrapedData.push(args.guideCache
+            ? flattenGuideItems(readJson(path.join(args.guideCache, `${entry.slug}.json`)))
+            : await scrapeCountry(entry.slug));
+        if (!args.guideCache) await new Promise(resolve => setTimeout(resolve, 1500));
     }
 
     if (args.test) {
@@ -436,7 +441,9 @@ async function main() {
     console.log(`Countries added: ${stats.countriesAdded}`);
     console.log(`Metas added: ${stats.added}`);
     console.log(`Metas refreshed from Plonkit: ${stats.updated}`);
-    console.log(`Local-only metas kept: ${stats.keptLocalOnly}`);
+    console.log(`Metas unchanged: ${stats.unchanged}`);
+    console.log(`Existing metas retained outside current guides: ${stats.keptLocalOnly}`);
+    if (args.report) writeJsonAscii(args.report, stats);
 
     if (args.dryRun) {
         console.log('Dry run: no files written.');
@@ -456,5 +463,6 @@ if (require.main === module) {
 
 module.exports = {
     convertTags,
+    flattenGuideItems,
     mergeScrapedData,
 };

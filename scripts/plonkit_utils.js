@@ -14,7 +14,7 @@ const VALID_GUIDE_CATEGORIES = new Set([
 
 function fetchText(url, headers = {}) {
     return new Promise((resolve, reject) => {
-        https.get(url, { headers }, (res) => {
+        const request = https.get(url, { headers }, (res) => {
             if (res.statusCode >= 300 && res.statusCode < 400 && res.headers.location) {
                 const nextUrl = new URL(res.headers.location, url).toString();
                 res.resume();
@@ -33,6 +33,7 @@ function fetchText(url, headers = {}) {
             res.on('data', (chunk) => { body += chunk; });
             res.on('end', () => resolve(body));
         }).on('error', reject);
+        request.setTimeout(30000, () => request.destroy(new Error(`GET ${url} timed out`)));
     });
 }
 
