@@ -1,0 +1,45 @@
+name: Update README Stats
+
+on:
+  push:
+    branches: [main_v4]
+    paths:
+      - 'data/plonkit_metas.json'
+      - 'data/user_metas.json'
+      - 'data/plonkit_locations.json'
+      - 'data/user_locations.json'
+      - 'scripts/update_stats.js'
+      - '.github/workflows/update-stats.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: readme-stats
+  cancel-in-progress: false
+
+jobs:
+  update-stats:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main_v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - name: Update counts and push if changed
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          for attempt in 1 2 3; do
+            git fetch origin main_v4
+            git reset --hard origin/main_v4
+            node scripts/update_stats.js
+            git add data/stats.json
+            if git diff --cached --quiet; then exit 0; fi
+            git commit -m "docs: update README database counts"
+            if git push origin HEAD:main_v4; then exit 0; fi
+          done
+          exit 1

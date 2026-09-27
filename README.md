@@ -4,6 +4,11 @@
   A GeoGuessr userscript for studying location clues directly on round-result screens.
 </p>
 
+<p align="center">
+  <a href="data"><img src="https://img.shields.io/badge/dynamic/json?url=https%3A%2F%2Fraw.githubusercontent.com%2Flukas-hzb%2Fbetter_metas%2Fmain_v4%2Fdata%2Fstats.json&amp;query=%24.metas&amp;label=Metas&amp;color=blue" alt="Current number of unique metas" /></a>
+  <a href="data"><img src="https://img.shields.io/badge/dynamic/json?url=https%3A%2F%2Fraw.githubusercontent.com%2Flukas-hzb%2Fbetter_metas%2Fmain_v4%2Fdata%2Fstats.json&amp;query=%24.locations&amp;label=Locations&amp;color=brightgreen" alt="Current number of unique locations" /></a>
+</p>
+
 BetterMetas combines a large Plonk It–based database with smart location predictions to eliminate the need for manual location classification. Explore suggested clues through descriptions and images, then add new findings or link existing metas to the current panorama.
 
 ## Features

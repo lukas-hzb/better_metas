@@ -150,10 +150,11 @@ jobs:
 
       - name: Commit and Push
         run: |
+          node scripts/update_stats.js
           git config user.name "GitHub Actions"
           git config user.email "actions@github.com"
-          git add data/user_locations.json data/user_metas.json
-          git commit -m "Auto-add meta from Issue #${{ github.event.issue.number }}" || echo "No changes to commit"
+          git add data/user_locations.json data/user_metas.json data/stats.json
+          git commit -m "feat(data): add meta from issue #${{ github.event.issue.number }}" || echo "No changes to commit"
           git pull --rebase origin main_v4
           git push origin HEAD:main_v4
 

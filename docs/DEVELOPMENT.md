@@ -31,6 +31,14 @@ better_metas/
 
 The userscript handles location detection, result-screen visibility, geographic matching, browser caching, the HUD, and GitHub-backed contributions in one file. It loads the four JSON data files from `main_v4`; changing a local JSON file alone does not change what an installed script downloads.
 
+## README Database Counts
+
+The README badges read `data/stats.json` through Shields.io. Counts include unique meta IDs and unique panorama IDs across the Plonk It and community files, so entries shared by both sources are counted once. Local browser-only contributions are not included.
+
+The `Update README Stats` workflow regenerates this file after data changes reach `main_v4`. The issue submission workflow also regenerates it in its own commit, because pushes made with GitHub Actions' token do not trigger another push workflow. Actions needs permission to push to `main_v4`; branch protection must allow these automated updates. Shields.io and GitHub image caches can delay visible badge updates.
+
+To regenerate the counts locally, run `node scripts/update_stats.js`. Do not edit `data/stats.json` by hand.
+
 ## Edit and Check the Userscript
 
 Use a separate browser profile for development. Install a local copy through the userscript manager's editor and disable any other BetterMetas copy in that profile. Prevent automatic updates from overwriting local edits. Leave the GitHub token field empty.
