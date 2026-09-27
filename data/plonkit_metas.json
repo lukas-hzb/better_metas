@@ -2465,7 +2465,7 @@
       "Asia"
     ],
     "url": "https://www.plonkit.net/cyprus",
-    "updatedAt": "2026-04-10T00:00:00.000Z",
+    "updatedAt": "2026-07-09T00:00:00.000Z",
     "metas": [
       {
         "id": "meta_cyprus_SpqU",
@@ -2584,7 +2584,7 @@
         "country": "Cyprus",
         "section": "Step 1",
         "title": "Unique Town Entry Signs",
-        "description": "Town entry signs consist of either a yellow rectangle with a red border, or just the smaller white rectangle that contains the town name in both Greek and English. The signs will also contains a speed limit sign above them. These designs are unique to Cyprus.",
+        "description": "Town entry signs consist of either a yellow rectangle with a red border, or just the smaller white rectangle that contains the town name in both Greek and English. The signs will also contain a speed limit sign above them. These designs are unique to Cyprus.",
         "note": "",
         "imageUrl": "https://www.plonkit.net/images/cyprus/Cyprus%20TownEntry.png",
         "scope": "unique",
@@ -8022,7 +8022,7 @@
       "Africa"
     ],
     "url": "https://www.plonkit.net/rwanda",
-    "updatedAt": "2026-06-22T00:00:00.000Z",
+    "updatedAt": "2026-07-17T00:00:00.000Z",
     "metas": [
       {
         "id": "meta_rwanda_6v8t",
@@ -8086,7 +8086,7 @@
         "country": "Rwanda",
         "section": "Step 1",
         "title": "Architecture",
-        "description": "Rwandan architecture features a lot of brick and concrete. Most houses in Rwanda are single family houses, which can have rather steep roofs. Houses also often have fences for protection. The most notable feature of Rwandan architecture are the \u2018ventilation bricks,\u2019 which are present in many houses.",
+        "description": "Rwandan architecture features a lot of brick and concrete. Most houses in Rwanda are single family houses, which can have rather steep roofs. Houses also often have fences for protection. The most notable feature of Rwandan architecture is the \u2018ventilation bricks,\u2019 which are present in many houses.",
         "note": "",
         "imageUrl": "https://www.plonkit.net/images/rwanda/Rwanda_Architecture.png",
         "scope": "countrywide",
@@ -8560,7 +8560,7 @@
       "Africa"
     ],
     "url": "https://www.plonkit.net/senegal",
-    "updatedAt": "2023-07-27T00:00:00.000Z",
+    "updatedAt": "2026-09-12T00:00:00.000Z",
     "metas": [
       {
         "id": "meta_senegal_OYbz",
@@ -8896,7 +8896,7 @@
         "country": "Senegal",
         "section": "Step 3",
         "title": "N2 Desert Road",
-        "description": "The N2 between Richard Toll and Matam is a wide road going through a flat desert landscape with very sparse trees. It can be recognized by the bright blue skies with no clouds. The road itself goes east-west and northeast-southwest.",
+        "description": "The N2 between Richard Toll and Matam is a wide road going through a flat desert landscape with very sparse trees. It can be recognized by the bright blue skies with no clouds. The road itself goes west-east and northwest-southeast.",
         "note": "The higher the sun is, the more east you are.",
         "imageUrl": "https://www.plonkit.net/images/senegal/sunny_north.png",
         "scope": "road",
@@ -8926,7 +8926,7 @@
         "section": "Step 3",
         "title": "Bushfire Haze",
         "description": "The road northeast of Kedougou to the Malian border can be recognized by the hazy bushfire coverage. Smoke trails can sometimes be seen in the distance. The road is paved south of Saraya.",
-        "note": "The car is always blurred.",
+        "note": "",
         "imageUrl": "https://www.plonkit.net/images/senegal/fire.png",
         "scope": "road",
         "tags": [
@@ -8979,6 +8979,34 @@
           "soil",
           "road",
           "camera"
+        ]
+      },
+      {
+        "id": "meta_senegal_UFZN",
+        "plonkitId": "UFZN",
+        "country": "Senegal",
+        "section": "Step 3",
+        "title": "Dakar City",
+        "description": "Dakar is the largest and capital city of Senegal. It can be recognized by the denseness of the city and taller, more modern buildings.",
+        "note": "",
+        "imageUrl": "https://www.plonkit.net/images/senegal/dakar.png",
+        "scope": "10km",
+        "tags": [
+          "architecture"
+        ]
+      },
+      {
+        "id": "meta_senegal_z3L1",
+        "plonkitId": "z3L1",
+        "country": "Senegal",
+        "section": "Step 3",
+        "title": "Touba Mosque",
+        "description": "The infamous Great Mosque of Touba can be recognized by the five tall minarets, which can be seen from afar.",
+        "note": "",
+        "imageUrl": "https://www.plonkit.net/images/senegal/get_in.png",
+        "scope": "10km",
+        "tags": [
+          "architecture"
         ]
       },
       {
@@ -9070,34 +9098,6 @@
           "soil",
           "road"
         ]
-      },
-      {
-        "id": "meta_senegal_UFZN",
-        "plonkitId": "UFZN",
-        "country": "Senegal",
-        "section": "Step 3",
-        "title": "Dakar City",
-        "description": "Dakar is the largest and capital city of Senegal. It can be recognized by the denseness of the city and taller, more modern buildings.",
-        "note": "",
-        "imageUrl": "https://www.plonkit.net/images/senegal/dakar.png",
-        "scope": "10km",
-        "tags": [
-          "architecture"
-        ]
-      },
-      {
-        "id": "meta_senegal_z3L1",
-        "plonkitId": "z3L1",
-        "country": "Senegal",
-        "section": "Step 3",
-        "title": "Touba Mosque",
-        "description": "The infamous Great Mosque of Touba can be recognized by the five tall minarets, which can be seen from afar.",
-        "note": "",
-        "imageUrl": "https://www.plonkit.net/images/senegal/get_in.png",
-        "scope": "10km",
-        "tags": [
-          "architecture"
-        ]
       }
     ]
   },
@@ -9129,7 +9129,7 @@
         "country": "South Africa",
         "section": "Step 1",
         "title": "Most Roads South",
-        "description": "On most roads, South Africa utilizes single yellow outer lines and white centre lines.\n!!Australia practically never uses yellow outer lines.",
+        "description": "On most roads, South Africa utilizes single yellow outer lines and white centre lines.\nAustralia practically never uses yellow outer lines.",
         "note": "The other southern African countries of Botswana, Eswatini, Lesotho and Namibia also use single yellow outer lines.",
         "imageUrl": "https://www.plonkit.net/images/south-africa/Road_lines.png",
         "scope": "countrywide",
@@ -9212,7 +9212,7 @@
         "country": "South Africa",
         "section": "Step 1",
         "title": "South Africa Utilizes",
-        "description": "South Africa utilizes triangular warning signs with a red border and a white background.\n!!Australia and New Zealand use yellow diamond-shaped warning signs.",
+        "description": "South Africa utilizes triangular warning signs with a red border and a white background.\nAustralia and New Zealand use yellow diamond-shaped warning signs.",
         "note": "The four other southern African countries use similar warning signs.",
         "imageUrl": "https://www.plonkit.net/images/south-africa/Road_signs2.png",
         "scope": "countrywide",
@@ -10118,7 +10118,7 @@
       "Africa"
     ],
     "url": "https://www.plonkit.net/tunisia",
-    "updatedAt": "2025-12-04T00:00:00.000Z",
+    "updatedAt": "2026-08-09T00:00:00.000Z",
     "metas": [
       {
         "id": "meta_tunisia_1chu",
@@ -10271,8 +10271,8 @@
         "country": "Tunisia",
         "section": "Step 1",
         "title": "Km Markers",
-        "description": "These white concrete markers with a rounded red or yellow top can be found throughout Tunisia. The top can be red, yellow, or green.",
-        "note": "They are very useful for pinpointing your exact location. On either side, they show the distance in kilometres to the nearest town. The side facing the road shows the road number.",
+        "description": "These white concrete markers with a rounded top can be found throughout Tunisia. The top can be red, yellow or green.",
+        "note": "They are very useful for pinpointing your exact location. On either side, they show the distance in kilometres to the nearest town. The side facing the road shows the road number, in this case 1.",
         "imageUrl": "https://www.plonkit.net/images/tunisia/marker2.jpg",
         "scope": "countrywide",
         "tags": [
@@ -10548,7 +10548,7 @@
       "Africa"
     ],
     "url": "https://www.plonkit.net/uganda",
-    "updatedAt": "2024-08-06T00:00:00.000Z",
+    "updatedAt": "2026-09-12T00:00:00.000Z",
     "metas": [
       {
         "id": "meta_uganda_kNBu",
@@ -11352,7 +11352,7 @@
       "Asia"
     ],
     "url": "https://www.plonkit.net/bangladesh",
-    "updatedAt": "2026-03-02T00:00:00.000Z",
+    "updatedAt": "2026-07-16T00:00:00.000Z",
     "metas": [
       {
         "id": "meta_bangladesh_s4hQ",
@@ -11374,7 +11374,7 @@
         "country": "Bangladesh",
         "section": "Step 1",
         "title": "Bengali Script (Horizontal Line/Triangles)",
-        "description": "The Bengali script features a continuous horizontal line at the top of each word. It has a similar look to Devanagari (Hindi), however it can usually be recognised by the many letters featuring triangular shapes.",
+        "description": "The Bengali script features a continuous horizontal line at the top of each word. It has a similar look to Devanagari (Hindi and Nepali), however it can usually be recognised by the many letters featuring triangular shapes.",
         "note": "Bengali is an official language in Bangladesh and parts of eastern India.",
         "imageUrl": "https://www.plonkit.net/images/bangladesh/bd_language.png",
         "scope": "countrywide",
@@ -13315,7 +13315,7 @@
       "Asia"
     ],
     "url": "https://www.plonkit.net/hong-kong",
-    "updatedAt": "2026-05-25T00:00:00.000Z",
+    "updatedAt": "2026-07-17T00:00:00.000Z",
     "metas": [
       {
         "id": "meta_hong_kong_RHZ1",
@@ -14010,7 +14010,7 @@
       "Asia"
     ],
     "url": "https://www.plonkit.net/india",
-    "updatedAt": "2026-04-11T00:00:00.000Z",
+    "updatedAt": "2026-07-28T00:00:00.000Z",
     "metas": [
       {
         "id": "meta_india_DXqu",
@@ -15459,7 +15459,7 @@
       "Asia"
     ],
     "url": "https://www.plonkit.net/indonesia",
-    "updatedAt": "2026-06-23T00:00:00.000Z",
+    "updatedAt": "2026-08-15T00:00:00.000Z",
     "metas": [
       {
         "id": "meta_indonesia_M7aC",
@@ -18961,7 +18961,7 @@
       "Asia"
     ],
     "url": "https://www.plonkit.net/kazakhstan",
-    "updatedAt": "2026-03-28T00:00:00.000Z",
+    "updatedAt": "2026-08-15T00:00:00.000Z",
     "metas": [
       {
         "id": "meta_kazakhstan_8SED",
@@ -19640,21 +19640,6 @@
         "tags": []
       },
       {
-        "id": "meta_kazakhstan_djXz",
-        "plonkitId": "djXz",
-        "country": "Kazakhstan",
-        "section": "Step 2",
-        "title": "Dusty Roof Meta",
-        "description": "Between Kokshetau and Atbasar, the car has a thin coating of dirt and dust, which is most visible near the back of the roof.",
-        "note": "",
-        "imageUrl": "https://www.plonkit.net/images/kazakhstan/49.png",
-        "scope": "region",
-        "tags": [
-          "architecture",
-          "soil"
-        ]
-      },
-      {
         "id": "meta_kazakhstan_2bcA",
         "plonkitId": "2bcA",
         "country": "Kazakhstan",
@@ -19760,6 +19745,21 @@
         "scope": "10km",
         "tags": [
           "road"
+        ]
+      },
+      {
+        "id": "meta_kazakhstan_djXz",
+        "plonkitId": "djXz",
+        "country": "Kazakhstan",
+        "section": "Step 2",
+        "title": "Dusty Roof Meta",
+        "description": "Between Kokshetau and Atbasar, the car has a thin coating of dirt and dust, which is most visible near the back of the roof.",
+        "note": "",
+        "imageUrl": "https://www.plonkit.net/images/kazakhstan/49.png",
+        "scope": "region",
+        "tags": [
+          "architecture",
+          "soil"
         ]
       },
       {
@@ -22159,7 +22159,7 @@
       "Asia"
     ],
     "url": "https://www.plonkit.net/malaysia",
-    "updatedAt": "2026-05-25T00:00:00.000Z",
+    "updatedAt": "2026-08-27T00:00:00.000Z",
     "metas": [
       {
         "id": "meta_malaysia_r0EY",
@@ -22168,7 +22168,7 @@
         "section": "Step 1",
         "title": "Black License Plates",
         "description": "Malaysian licence plates are black and generally have two white sections. These are visible even when blurred.",
-        "note": "Indonesian licence plates are also black, but they will have three white sections.",
+        "note": "Indonesian licence plates can also be black, but they will have three white sections.",
         "imageUrl": "https://www.plonkit.net/images/malaysia/Malaysia_License_Plate.png",
         "scope": "countrywide",
         "tags": [
@@ -22442,7 +22442,7 @@
         "title": "Sarawak Poles",
         "description": "Electricity poles on the Borneo side typically have a 2-1 insulator configuration, and a long diagonal wooden support. They are exclusive to the Sarawak region of the island.",
         "note": "Indonesian poles can look similar, but they are usually not made of wood, and use smaller or no diagonal supports.",
-        "imageUrl": "https://www.plonkit.net/images/malaysia/Diagonal_Support_Poles.png",
+        "imageUrl": "https://www.plonkit.net/images/malaysia/Diagonal_Support_Poles_v2.png",
         "scope": "region",
         "tags": [
           "poles"
@@ -27436,7 +27436,7 @@
       "Asia"
     ],
     "url": "https://www.plonkit.net/taiwan",
-    "updatedAt": "2026-04-30T00:00:00.000Z",
+    "updatedAt": "2026-09-12T00:00:00.000Z",
     "metas": [
       {
         "id": "meta_taiwan_psr4",
@@ -27444,7 +27444,7 @@
         "country": "Taiwan",
         "section": "Step 1",
         "title": "Taiwan Uses Traditional",
-        "description": "Taiwan uses Traditional Chinese. It is one of the most complex scripts visible on street view, with intricate characters that consist of many strokes.\n!!Japanese uses some Chinese characters (kanji), meaning the script can look somewhat similar. However, Japanese will also have a considerable amount of more simplified looking characters (katakana and hiragana).",
+        "description": "Taiwan uses Traditional Chinese. It is one of the most complex scripts visible on street view, with intricate characters that consist of many strokes.\nJapanese uses some Chinese characters (kanji), meaning the script can look somewhat similar. However, Japanese will also have a considerable amount of more simplified looking characters (katakana and hiragana).",
         "note": "Hong Kong also uses traditional Chinese characters on signage.",
         "imageUrl": "https://www.plonkit.net/images/taiwan/Traditional_Chinese.png",
         "scope": "countrywide",
@@ -27832,8 +27832,8 @@
         "plonkitId": "syWO",
         "country": "Taiwan",
         "section": "Step 2",
-        "title": "Norfolk Island Pines",
-        "description": "Norfolk island pines (Araucaria heterophylla) are extremely common in the county of Penghu, especially in tightly-packed rows next to roads.",
+        "title": "Cook Pines",
+        "description": "Cook pines (Araucaria columnaris) are extremely common in the county of Penghu, especially in tightly-packed rows next to roads.",
         "note": "While these trees can be found on the main island as well, they are usually never found in such close proximity.",
         "imageUrl": "https://www.plonkit.net/images/taiwan/norfolk.png",
         "scope": "region",
@@ -28264,7 +28264,7 @@
       "Asia"
     ],
     "url": "https://www.plonkit.net/thailand",
-    "updatedAt": "2026-05-12T00:00:00.000Z",
+    "updatedAt": "2026-08-15T00:00:00.000Z",
     "metas": [
       {
         "id": "meta_thailand_rzJ6",
@@ -28442,8 +28442,8 @@
         "country": "Thailand",
         "section": "Step 1",
         "title": "Two Road Markers",
-        "description": "These two road markers are generally found in Thailand. They will either have a white or a black Garuda on them.\nOn the map, national roads are white-and-black, while provincial roads are blue-and-yellow.",
-        "note": "White Garudas are found on country roads and appear white on the map, while black ones are found on province roads and appear dark blue on the map.",
+        "description": "These two road markers are generally found in Thailand. They will either have a white or a black Garuda on them.",
+        "note": "White Garudas are found on national roads and appear white on the map, while black ones are found on provincial roads and appear dark blue on the map.",
         "imageUrl": "https://www.plonkit.net/images/thailand/Untitled_design8.png",
         "scope": "countrywide",
         "tags": []
@@ -29427,7 +29427,7 @@
       "Asia"
     ],
     "url": "https://www.plonkit.net/turkey",
-    "updatedAt": "2026-06-19T00:00:00.000Z",
+    "updatedAt": "2026-09-15T00:00:00.000Z",
     "metas": [
       {
         "id": "meta_turkey_ryy2",
@@ -30207,22 +30207,6 @@
         ]
       },
       {
-        "id": "meta_turkey_2jLg",
-        "plonkitId": "2jLg",
-        "country": "Turkey",
-        "section": "Step 3",
-        "title": "Flat Agricultural Land",
-        "description": "Road E99 south of \u015eanl\u0131urfa is a divided highway which can be recognised by the slightly hazy Generation 4 sunrise coverage combined with the flat agricultural landscape and general south-north road angle.",
-        "note": "",
-        "imageUrl": "https://www.plonkit.net/images/turkey/tr_e99.png",
-        "scope": "region",
-        "tags": [
-          "plants",
-          "road",
-          "camera"
-        ]
-      },
-      {
         "id": "meta_turkey_h0ZV",
         "plonkitId": "h0ZV",
         "country": "Turkey",
@@ -30326,6 +30310,22 @@
         "tags": [
           "plants",
           "signs"
+        ]
+      },
+      {
+        "id": "meta_turkey_2jLg",
+        "plonkitId": "2jLg",
+        "country": "Turkey",
+        "section": "Step 3",
+        "title": "Flat Agricultural Land",
+        "description": "Road E99 south of \u015eanl\u0131urfa is a divided highway which can be recognised by the slightly hazy Generation 4 sunrise coverage combined with the flat agricultural landscape and general south-north road angle.",
+        "note": "",
+        "imageUrl": "https://www.plonkit.net/images/turkey/tr_e99.png",
+        "scope": "region",
+        "tags": [
+          "plants",
+          "road",
+          "camera"
         ]
       },
       {
@@ -31567,7 +31567,7 @@
       "Europe"
     ],
     "url": "https://www.plonkit.net/austria",
-    "updatedAt": "2026-06-06T00:00:00.000Z",
+    "updatedAt": "2026-07-10T00:00:00.000Z",
     "metas": [
       {
         "id": "meta_austria_NQvW",
@@ -33063,7 +33063,7 @@
       "Europe"
     ],
     "url": "https://www.plonkit.net/bulgaria",
-    "updatedAt": "2026-06-28T00:00:00.000Z",
+    "updatedAt": "2026-07-18T00:00:00.000Z",
     "metas": [
       {
         "id": "meta_bulgaria_Cs2I",
@@ -33547,7 +33547,7 @@
       "Europe"
     ],
     "url": "https://www.plonkit.net/croatia",
-    "updatedAt": "2026-03-27T00:00:00.000Z",
+    "updatedAt": "2026-08-05T00:00:00.000Z",
     "metas": [
       {
         "id": "meta_croatia_OmRw",
@@ -33571,7 +33571,7 @@
         "section": "Step 1",
         "title": "Angled Bollards",
         "description": "Croatian bollards are white with a black rectangle and red or white reflector. From the top, it is shaped like a triangle.",
-        "note": "Hungarian and Lithuanian bollards look similar, but have more rounded edges compared to Croatia\u2019s sharper edges. Lithuanian bollards will also have an orange reflector. North Macedonia sometimes uses similar bollards, however the country is only covered in Generation 3.",
+        "note": "Hungarian and Lithuanian bollards look similar, but have more rounded edges compared to Croatia\u2019s sharper edges. Lithuanian bollards will also have an orange reflector. North Macedonia sometimes uses similar bollards.",
         "imageUrl": "https://www.plonkit.net/images/croatia/Croatia_bollard.png",
         "scope": "countrywide",
         "tags": [
@@ -34025,7 +34025,7 @@
       "Europe"
     ],
     "url": "https://www.plonkit.net/czechia",
-    "updatedAt": "2025-12-27T00:00:00.000Z",
+    "updatedAt": "2026-07-21T00:00:00.000Z",
     "metas": [
       {
         "id": "meta_czechia_YKsZ",
@@ -35399,7 +35399,7 @@
         "country": "Estonia",
         "section": "Step 1",
         "title": "Road Bollards",
-        "description": "Estonian bollards have a round, baton-like shape.\nThey have a rectangular reflector on the front and two circular reflectors on the back. The reflectors can be white or orange.\n!!This infographic shows the main similarities and differences between the bollards of the Baltic and Nordic countries.",
+        "description": "Estonian bollards have a round, baton-like shape.\nThey have a rectangular reflector on the front and two circular reflectors on the back. The reflectors can be white or orange.\nThis infographic shows the main similarities and differences between the bollards of the Baltic and Nordic countries.",
         "note": "Latvian and Lithuanian bollards look different.",
         "imageUrl": "https://www.plonkit.net/images/estonia/Estonian_bollards.png",
         "scope": "countrywide",
@@ -35469,7 +35469,7 @@
         "country": "Estonia",
         "section": "Step 1",
         "title": "Road Markings",
-        "description": "Outer road lines sometimes consist of short dashes.\n!!In addition, Sweden primarily uses short dashes as outer road lines.",
+        "description": "Outer road lines sometimes consist of short dashes.\nIn addition, Sweden primarily uses short dashes as outer road lines.",
         "note": "Lithuania also sometimes has short dashes.",
         "imageUrl": "https://www.plonkit.net/images/estonia/Road_lines.png",
         "scope": "countrywide",
@@ -35481,7 +35481,7 @@
         "country": "Estonia",
         "section": "Step 1",
         "title": "Red-White Chevrons",
-        "description": "Estonia uses red chevrons with white arrows.\n!!However, Latvian and Lithuanian chevrons have the opposite colour scheme: they are white with red arrows.",
+        "description": "Estonia uses red chevrons with white arrows.\nHowever, Latvian and Lithuanian chevrons have the opposite colour scheme: they are white with red arrows.",
         "note": "Russia and Ukraine use the same chevrons.",
         "imageUrl": "https://www.plonkit.net/images/estonia/Chevron.png",
         "scope": "countrywide",
@@ -35535,7 +35535,7 @@
         "country": "Estonia",
         "section": "Step 1",
         "title": "Estonian Pedestrian Signs",
-        "description": "Estonian pedestrian signs have 3 stripes. The shape of the pedestrian has a relatively high level of detail, detailing shoes and an attached head.\n!!Latvian pedestrian signs have 5 stripes.",
+        "description": "Estonian pedestrian signs have 3 stripes. The shape of the pedestrian has a relatively high level of detail, detailing shoes and an attached head.\nLatvian pedestrian signs have 5 stripes.",
         "note": "Lithuanian signs also have 3 stripes, but the pedestrian looks less detailed.",
         "imageUrl": "https://www.plonkit.net/images/estonia/Pedestrian_sign_Estonia.png",
         "scope": "countrywide",
@@ -35646,7 +35646,7 @@
         "country": "Estonia",
         "section": "Step 1",
         "title": "Gen 3 Coverage",
-        "description": "Generation 3 coverage in Estonia often has a slight green tint to part of the panorama, which is referred to as \u201cgreen blur\u201d by the community.\nFor many players, this green blur can be hard to identify at first. The location shown in this tip\u2019s image is a fairly extreme example. To familiarise you with how it might look in-game, here are some more examples where it is fairly visible: 1, 2, 3, 4.\n!!It can however also be found in Sweden, often on the island of Gotland.",
+        "description": "Generation 3 coverage in Estonia often has a slight green tint to part of the panorama, which is referred to as \u201cgreen blur\u201d by the community.\nFor many players, this green blur can be hard to identify at first. The location shown in this tip\u2019s image is a fairly extreme example. To familiarise you with how it might look in-game, here are some more examples where it is fairly visible: 1, 2, 3, 4.\nIt can however also be found in Sweden, often on the island of Gotland.",
         "note": "This discoloration usually does not occur in Latvia and Lithuania.",
         "imageUrl": "https://www.plonkit.net/images/estonia/Green_blur.png",
         "scope": "countrywide",
@@ -36095,7 +36095,7 @@
       "Europe"
     ],
     "url": "https://www.plonkit.net/finland",
-    "updatedAt": "2026-03-19T00:00:00.000Z",
+    "updatedAt": "2026-08-08T00:00:00.000Z",
     "metas": [
       {
         "id": "meta_finland_lUjp",
@@ -36882,7 +36882,7 @@
       "Europe"
     ],
     "url": "https://www.plonkit.net/france",
-    "updatedAt": "2025-12-28T00:00:00.000Z",
+    "updatedAt": "2026-08-25T00:00:00.000Z",
     "metas": [
       {
         "id": "meta_france_4kQ6",
@@ -37336,7 +37336,7 @@
         "country": "France",
         "section": "Step 2",
         "title": "Administrative Divisions",
-        "description": "This guide will mainly operate with two types of administrative divisions: regions, totalling at 13 in European France, and 96 departments, which appear on google maps as the primary administrative divisions. Other rarer divisions you may come across include pre 2016 regions, historical provinces, and regions based on cardinal directions.\nDepartments are often named after physical geographical features and their logos may show up on various infrastructure, shown in the next tip.\nYou can practise them with this quiz.",
+        "description": "This guide will mainly operate with two types of administrative divisions: regions, totalling at 13 in European France, and 96 departments, which appear on Google Maps as the primary administrative divisions. Other rarer divisions you may come across include pre-2016 regions and historical provinces.\nDepartments are often named after physical geographical features and their logos may show up on various infrastructure, shown in the next tip.\nYou can practise them with this quiz.",
         "note": "",
         "imageUrl": "https://www.plonkit.net/images/france/2_divisions.png",
         "scope": "region",
@@ -38205,7 +38205,7 @@
       "Europe"
     ],
     "url": "https://www.plonkit.net/germany",
-    "updatedAt": "2026-06-01T00:00:00.000Z",
+    "updatedAt": "2026-08-17T00:00:00.000Z",
     "metas": [
       {
         "id": "meta_germany_7lT0",
@@ -38501,7 +38501,7 @@
         "country": "Germany",
         "section": "Step 2",
         "title": "Slavic Place Names (-ow/-itz)",
-        "description": "These are some of the more useful and common suffixes for regionguessing Germany. Due to their Slavic origins, endings like -ow and -itz are primarily found in the east, whereas place names ending in -weiler and -ach are mainly located in the southern half.",
+        "description": "These are some of the more useful and common place name suffixes. Due to their Slavic origins, endings like -ow and -itz are primarily found in the east, whereas place names ending in -weiler and -ach are mainly located in the southern half.",
         "note": "",
         "imageUrl": "https://www.plonkit.net/images/germany/German_Suffixes_Map.png",
         "scope": "region",
@@ -40349,7 +40349,7 @@
       "Europe"
     ],
     "url": "https://www.plonkit.net/iceland",
-    "updatedAt": "2025-04-08T00:00:00.000Z",
+    "updatedAt": "2026-07-30T00:00:00.000Z",
     "metas": [
       {
         "id": "meta_iceland_0vwU",
@@ -41502,7 +41502,7 @@
       "Europe"
     ],
     "url": "https://www.plonkit.net/italy",
-    "updatedAt": "2025-12-27T00:00:00.000Z",
+    "updatedAt": "2026-08-29T00:00:00.000Z",
     "metas": [
       {
         "id": "meta_italy_sYKL",
@@ -42140,7 +42140,7 @@
         "country": "Italy",
         "section": "Step 3",
         "title": "Fucino Plain",
-        "description": "Plana del F\u00f9cino is a small plain surrounded by mountains in the middle of Italy with a grid of roads going completely north-to-south.",
+        "description": "Piana del F\u00f9cino is a small plain surrounded by mountains in the middle of Italy with a grid of roads going completely north-to-south.",
         "note": "",
         "imageUrl": "https://www.plonkit.net/images/italy/it_planadelfucino.png",
         "scope": "region",
@@ -42556,7 +42556,7 @@
         "country": "Latvia",
         "section": "Step 1",
         "title": "Angled Bollards",
-        "description": "Latvian bollards have a thin, slightly curved shape.\nThey have a rectangular reflector on the front, and two circular reflectors on the back. The reflectors can be white or orange. The black strip is slightly angled. Bollards often have numbers below the front reflector.\n!!This infographic shows the main similarities and differences between the bollards of the Baltic and Nordic countries.",
+        "description": "Latvian bollards have a thin, slightly curved shape.\nThey have a rectangular reflector on the front, and two circular reflectors on the back. The reflectors can be white or orange. The black strip is slightly angled. Bollards often have numbers below the front reflector.\nThis infographic shows the main similarities and differences between the bollards of the Baltic and Nordic countries.",
         "note": "Estonian and Lithuanian bollards look different.",
         "imageUrl": "https://www.plonkit.net/images/latvia/Bollard.png",
         "scope": "countrywide",
@@ -42584,7 +42584,7 @@
         "country": "Latvia",
         "section": "Step 1",
         "title": "Red-White Chevrons",
-        "description": "Latvia uses white chevrons with red arrows.\n!!However, Estonia, Russia and Ukraine use chevrons with the opposite colour scheme: red with white arrows.",
+        "description": "Latvia uses white chevrons with red arrows.\nHowever, Estonia, Russia and Ukraine use chevrons with the opposite colour scheme: red with white arrows.",
         "note": "Many other European countries, including Lithuania and Poland, use the same chevrons.",
         "imageUrl": "https://www.plonkit.net/images/latvia/Chevron.png",
         "scope": "countrywide",
@@ -43288,7 +43288,7 @@
         "country": "Lithuania",
         "section": "Step 1",
         "title": "Red-White Chevrons",
-        "description": "Lithuania uses white chevrons with red arrows. The small single chevrons (pictured here) usually have a red outline on the edge of the sign.\n!!However, Estonia, Russia and Ukraine use chevrons with the opposite colour scheme: red with white arrows.",
+        "description": "Lithuania uses white chevrons with red arrows. The small single chevrons (pictured here) usually have a red outline on the edge of the sign.\nHowever, Estonia, Russia and Ukraine use chevrons with the opposite colour scheme: red with white arrows.",
         "note": "Many other European countries, including Latvia and Poland, use the same chevrons (though without the red outline).",
         "imageUrl": "https://www.plonkit.net/images/lithuania/Chevron_Lithuania.png",
         "scope": "countrywide",
@@ -43343,7 +43343,7 @@
         "country": "Lithuania",
         "section": "Step 1",
         "title": "Lithuanian Pedestrian Signs",
-        "description": "Lithuanian pedestrian signs have 3 stripes. The shape of the pedestrian has a relatively low level of detail.\n!!Latvian pedestrian signs have 5 stripes.",
+        "description": "Lithuanian pedestrian signs have 3 stripes. The shape of the pedestrian has a relatively low level of detail.\nLatvian pedestrian signs have 5 stripes.",
         "note": "Both Russia and Ukraine share the same design. Estonian signs also have 3 stripes, but the pedestrian looks more detailed.",
         "imageUrl": "https://www.plonkit.net/images/lithuania/Pedestrian_sign_Lithuania.png",
         "scope": "countrywide",
@@ -43467,7 +43467,7 @@
         "country": "Lithuania",
         "section": "Step 1",
         "title": "License Plates",
-        "description": "In Generation 3 coverage, you will often see random small blurs. These blurs look similar to the ones that are used to blur out licence plates or faces, but instead they cover seemingly random parts of the image \u2013 often on direction signs.\n!!These random blurs are not typically found in Estonia or Latvia.",
+        "description": "In Generation 3 coverage, you will often see random small blurs. These blurs look similar to the ones that are used to blur out licence plates or faces, but instead they cover seemingly random parts of the image \u2013 often on direction signs.\nThese random blurs are not typically found in Estonia or Latvia.",
         "note": "This is also common in the Russian oblast of Kaliningrad, just to the southwest of Lithuania.",
         "imageUrl": "https://www.plonkit.net/images/lithuania/Random_blurs_Lithuania.png",
         "scope": "countrywide",
@@ -47328,7 +47328,7 @@
       "Europe"
     ],
     "url": "https://www.plonkit.net/poland",
-    "updatedAt": "2026-03-30T00:00:00.000Z",
+    "updatedAt": "2026-08-15T00:00:00.000Z",
     "metas": [
       {
         "id": "meta_poland_y2jz",
@@ -47493,7 +47493,7 @@
         "country": "Poland",
         "section": "Step 1",
         "title": "Language Characters",
-        "description": "Polish is a Slavic language. In contrast to other slavic languages, the Polish alphabet includes:\n- \u0141 with a stroke through it (unique to Polish)\n- \u0104 and \u0118 with a small hook (also found in Lithuanian)\n- \u0106, \u0143, \u00d3, \u015a, \u0179 with an acute accent. Of these, \u0143 is unique to Polish. In addition, the only other language with \u015a and \u0179 is Montenegrin.\n- \u017b with a small dot (unique to Polish)\nPolish is very consonant-heavy, with lots of consonant clusters. Polish does not use V. Instead, it uses W a lot, the only Slavic language to do so. Other unusually common consonants are the Z, K, and C.",
+        "description": "Polish is a Slavic language. In contrast to other Slavic languages, the Polish alphabet includes:\n- \u0141 with a stroke through it (unique to Polish)\n- \u0104 and \u0118 with a small hook (also found in Lithuanian)\n- \u0106, \u0143, \u00d3, \u015a, \u0179 with an acute accent. Of these, \u0143 is unique to Polish. In addition, the only other language with \u015a and \u0179 is Montenegrin.\n- \u017b with a small dot (unique to Polish)\nPolish is very consonant-heavy, with lots of consonant clusters. Polish does not use V. Instead, it uses W a lot, the only Slavic language to do so. Other unusually common consonants are the Z, K, and C.",
         "note": "",
         "imageUrl": "https://www.plonkit.net/images/poland/pl_language.png",
         "scope": "unique",
@@ -48379,7 +48379,7 @@
       "Europe"
     ],
     "url": "https://www.plonkit.net/romania",
-    "updatedAt": "2025-12-27T00:00:00.000Z",
+    "updatedAt": "2026-07-16T00:00:00.000Z",
     "metas": [
       {
         "id": "meta_romania_Xgv2",
@@ -48401,7 +48401,7 @@
         "country": "Romania",
         "section": "Step 1",
         "title": "Language Characters",
-        "description": "Romanian is a Romance language similar to Italian, containing the following special letters:\n- \u0102 \u0103\n- \u0218 \u0219\n- \u021a \u021b\nThese letters are also found in some other European languages:\n- \u00c2 \u00e2, used in French, Portuguese and Turkish\n- \u00ce \u00ee, used in French, Turkish and Italian",
+        "description": "Romanian is a Romance language similar to Italian, containing the following special letters:\n- \u0102 \u0103\n- \u0218 \u0219\n- \u021a \u021b\nThese letters are also found in some other European languages:\n- \u00c2 \u00e2, used in French, Portuguese and Turkish\n- \u00ce \u00ee, used in French, Turkish and Italian\nAdditionally, in Turkish you can find the letter \u015e, which can be confused with the Romanian \u0218.",
         "note": "",
         "imageUrl": "https://www.plonkit.net/images/romania/ro_language.png",
         "scope": "countrywide",
@@ -48894,7 +48894,7 @@
       "Europe"
     ],
     "url": "https://www.plonkit.net/russia",
-    "updatedAt": "2026-06-27T00:00:00.000Z",
+    "updatedAt": "2026-08-08T00:00:00.000Z",
     "metas": [
       {
         "id": "meta_russia_B27i",
@@ -49818,8 +49818,8 @@
         "country": "Russia",
         "section": "Step 2",
         "title": "Red Brick Buildings",
-        "description": "Buildings built almost entirely of red brick are mostly found south, but other notable exceptions include Magnitogorsk, Orsk, and Omsk.",
-        "note": "Brick architecture is more consistent the more brick structures you can see in the round.",
+        "description": "Buildings made almost entirely of red brick are mostly found in the south, with Magnitogorsk, Orsk, and Omsk being notable exceptions.",
+        "note": "This clue is more consistent the more brick structures you can see in the round.",
         "imageUrl": "https://www.plonkit.net/images/russia/redbrick.png",
         "scope": "region",
         "tags": [
@@ -50857,7 +50857,7 @@
       "Europe"
     ],
     "url": "https://www.plonkit.net/serbia",
-    "updatedAt": "2026-07-05T00:00:00.000Z",
+    "updatedAt": "2026-08-04T00:00:00.000Z",
     "metas": [
       {
         "id": "meta_serbia_qGEx",
@@ -50980,7 +50980,7 @@
         "country": "Serbia",
         "section": "Step 1",
         "title": "Gen 3 Coverage",
-        "description": "Most of the generation 3 coverage in Serbia was taken by a Google car with no antenna.",
+        "description": "Most of the Generation 3 coverage in Serbia was taken by a Google car with no antenna.",
         "note": "Other than North Macedonia, almost all of central and eastern Europe has antenna coverage in Generation 3.",
         "imageUrl": "https://www.plonkit.net/images/serbia/image.png",
         "scope": "countrywide",
@@ -50994,7 +50994,7 @@
         "country": "Serbia",
         "section": "Step 2",
         "title": "Gen 3 Coverage",
-        "description": "This is a generation 3 coverage map of Serbia. Most of the coverage is in the north in Vojvodina, around Belgrade and in the southeast around Ni\u0161. Kosovo does not have any coverage.",
+        "description": "This is a Generation 3 coverage map of Serbia. Most of the coverage is in the north in Vojvodina, around Belgrade and in the southeast around Ni\u0161. Kosovo does not have any Generation 3 coverage.",
         "note": "",
         "imageUrl": "https://www.plonkit.net/images/serbia/Serbia_Coverage_Map_.png",
         "scope": "region",
@@ -51244,7 +51244,7 @@
       "Europe"
     ],
     "url": "https://www.plonkit.net/slovakia",
-    "updatedAt": "2025-11-06T00:00:00.000Z",
+    "updatedAt": "2026-07-21T00:00:00.000Z",
     "metas": [
       {
         "id": "meta_slovakia_3quH",
@@ -58704,7 +58704,7 @@
       "North America"
     ],
     "url": "https://www.plonkit.net/canada",
-    "updatedAt": "2026-06-20T00:00:00.000Z",
+    "updatedAt": "2026-08-08T00:00:00.000Z",
     "metas": [
       {
         "id": "meta_canada_DqvA",
@@ -61662,7 +61662,7 @@
       "North America"
     ],
     "url": "https://www.plonkit.net/greenland",
-    "updatedAt": "2025-04-08T00:00:00.000Z",
+    "updatedAt": "2026-09-12T00:00:00.000Z",
     "metas": [
       {
         "id": "meta_greenland_EyQH",
@@ -63347,7 +63347,7 @@
       "North America"
     ],
     "url": "https://www.plonkit.net/mexico",
-    "updatedAt": "2026-06-21T00:00:00.000Z",
+    "updatedAt": "2026-07-14T00:00:00.000Z",
     "metas": [
       {
         "id": "meta_mexico_5mCi",
@@ -64473,7 +64473,7 @@
         "country": "Mexico",
         "section": "Step 3",
         "title": "Pink Lakes",
-        "description": "The town of Los Coloradas is famously known for the pink lakes around the area.",
+        "description": "The town of Las Coloradas is famously known for the pink lakes around the area.",
         "note": "",
         "imageUrl": "https://www.plonkit.net/images/mexico/mx_loscoloradaspinklake.png",
         "scope": "10km",
@@ -64692,7 +64692,7 @@
       "North America"
     ],
     "url": "https://www.plonkit.net/panama",
-    "updatedAt": "2026-06-03T00:00:00.000Z",
+    "updatedAt": "2026-08-03T00:00:00.000Z",
     "metas": [
       {
         "id": "meta_panama_482T",
@@ -65068,7 +65068,7 @@
         "title": "Panama City Skyline",
         "description": "Panama City can be recognised by the large number of white high-rise buildings.",
         "note": "",
-        "imageUrl": "https://www.plonkit.net/images/panama/31.png",
+        "imageUrl": "https://www.plonkit.net/images/panama/panamacity_new.png",
         "scope": "10km",
         "tags": [
           "architecture"
@@ -66029,7 +66029,7 @@
       "North America"
     ],
     "url": "https://www.plonkit.net/united-states",
-    "updatedAt": "2026-07-05T00:00:00.000Z",
+    "updatedAt": "2026-07-28T00:00:00.000Z",
     "metas": [
       {
         "id": "meta_united_states_a9Az",
@@ -66051,7 +66051,7 @@
         "country": "United States of America",
         "section": "Step 1",
         "title": "Road Signs Us",
-        "description": "Road signs in the US tend to use more words compared to their Canadian counterparts. A good example are railway crossing signs, which feature the literal words \u2018railway crossing\u2019 on them. In Canada, these signs are typically blank.\nThis tendency is also noticeable on yellow diamond warning signs. In Canada, the words will usually be on a rectangular sign below the yellow diamond, which would have a diagram on it instead.",
+        "description": "Road signs in the US tend to use more words compared to their Canadian counterparts. A good example are railway crossing signs, which feature the literal words \u2018railroad crossing\u2019 on them. In Canada, these signs are typically blank.\nThis tendency is also noticeable on yellow diamond warning signs. In Canada, the words will usually be on a rectangular sign below the yellow diamond, which would have a diagram on it instead.",
         "note": "",
         "imageUrl": "https://www.plonkit.net/images/united-states/wordysigns.png",
         "scope": "countrywide",
@@ -68383,7 +68383,7 @@
         "title": "Whataburger Hamburger Restaurant",
         "description": "\u2018Whataburger\u2019 is a hamburger restaurant with locations across the South Central US. The State that is home to the most locations, by far, is Texas.",
         "note": "",
-        "imageUrl": "https://www.plonkit.net/images/united-states/9whataburger_locs.png",
+        "imageUrl": "https://www.plonkit.net/images/united-states/9whataburger_locs_updated.png",
         "scope": "region",
         "tags": [
           "architecture"
@@ -69009,7 +69009,7 @@
       "Oceania"
     ],
     "url": "https://www.plonkit.net/australia",
-    "updatedAt": "2026-06-27T00:00:00.000Z",
+    "updatedAt": "2026-08-09T00:00:00.000Z",
     "metas": [
       {
         "id": "meta_australia_cP3a",
@@ -69100,8 +69100,8 @@
         "section": "Step 1",
         "title": "Chevron Colors",
         "description": "Australia uses white on black and black on yellow chevrons.",
-        "note": "",
-        "imageUrl": "https://www.plonkit.net/images/australia/au_chevrons.png",
+        "note": "Chevrons in New Zealand use the same colours, but the yellow ones will have a thin black border and often, a speed limit.",
+        "imageUrl": "https://www.plonkit.net/images/australia/au_chevrons_new",
         "scope": "countrywide",
         "tags": [
           "signs"
@@ -69114,7 +69114,7 @@
         "section": "Step 1",
         "title": "Distance Signs",
         "description": "Green signs with white arrows on either side can be seen at intersections which show nearby towns or cities. A number indicating the number of kilometres away the town can sometimes be seen.",
-        "note": "",
+        "note": "Whereas Australian highways have alphanumeric names (e.g. A2, C222), highways in New Zealand are represented as a number on a red crest.",
         "imageUrl": "https://www.plonkit.net/images/australia/au_green_signs.webp",
         "scope": "countrywide",
         "tags": [
@@ -69875,7 +69875,7 @@
         "country": "Australia",
         "section": "Step 3",
         "title": "Kangaroo Island Gen 2",
-        "description": "Kangaroo Island in South Australia tends to have a distinct look. The vegetation mostly consists of bushes and low, stubby eucalyptus trees with puffy clusters of leaves. The orange soil colour is reminiscent of Western Australia.\nIn addition, the island only has Generation 2 and Generation 4 coverage.",
+        "description": "Kangaroo Island in South Australia tends to have a distinct look. The vegetation mostly consists of bushes and low, stubby eucalyptus trees with puffy clusters of leaves. The orange soil colour is reminiscent of Western Australia.\nIn addition, the island only has Generation 2, and Generation 4 coverage.",
         "note": "",
         "imageUrl": "https://www.plonkit.net/images/australia/Kangaroo_Island.png",
         "scope": "10km",
@@ -70710,7 +70710,7 @@
       "Oceania"
     ],
     "url": "https://www.plonkit.net/new-zealand",
-    "updatedAt": "2026-05-31T00:00:00.000Z",
+    "updatedAt": "2026-08-02T00:00:00.000Z",
     "metas": [
       {
         "id": "meta_new_zealand_uxAD",
@@ -71669,10 +71669,10 @@
         "plonkitId": "ljyw",
         "country": "New Zealand",
         "section": "Step 3",
-        "title": "Arthur's Pass Pickup",
-        "description": "State Highway 73, located near Arthur\u2019s Pass, can be recognised by the almost dried out river with an abundance of gravel on the river bed. Additionally, the Street View car in Arthur\u2019s Pass drove behind a black pickup truck with two ladders on its roof.",
+        "title": "Arthur's Pass Riverbed",
+        "description": "State Highway 73, located near Arthur\u2019s Pass, can be recognised by the almost dried out river with an abundance of gravel on the river bed.",
         "note": "",
-        "imageUrl": "https://www.plonkit.net/images/new-zealand/nz_arthurspass.png",
+        "imageUrl": "https://www.plonkit.net/images/new-zealand/nz_arthurspass_new.png",
         "scope": "countrywide",
         "tags": [
           "cars",
@@ -72269,7 +72269,7 @@
       "South America"
     ],
     "url": "https://www.plonkit.net/argentina",
-    "updatedAt": "2026-06-24T00:00:00.000Z",
+    "updatedAt": "2026-08-08T00:00:00.000Z",
     "metas": [
       {
         "id": "meta_argentina_RNbN",
@@ -72866,7 +72866,7 @@
         "title": "Salta Red Mountains",
         "description": "These red mountains are unique to the RN68 valley in southern Salta.",
         "note": "",
-        "imageUrl": "https://www.plonkit.net/images/argentina/ar_red_mountains.png",
+        "imageUrl": "https://www.plonkit.net/images/argentina/salta_canyon_gen4.png",
         "scope": "unique",
         "tags": [
           "soil"
@@ -72965,7 +72965,7 @@
         "title": "Buenos Aires Hills",
         "description": "Semi-coastal grass hills are seen in southern Buenos Aires, especially northeast of Bah\u00eda Blanca.",
         "note": "",
-        "imageUrl": "https://www.plonkit.net/images/argentina/arg_hills.png",
+        "imageUrl": "https://www.plonkit.net/images/argentina/arg_hills_gen4.png",
         "scope": "region",
         "tags": [
           "plants"
@@ -72984,34 +72984,6 @@
         "tags": [
           "plants",
           "road"
-        ]
-      },
-      {
-        "id": "meta_argentina_fm7F",
-        "plonkitId": "fm7F",
-        "country": "Argentina",
-        "section": "Step 3",
-        "title": "Neuquen Degraded Sunrise",
-        "description": "Sunrise coverage with degraded image quality is found on the RN40 just south of the Mendoza border with Neuqu\u00e9n.",
-        "note": "The quality of the coverage improves closer to the border.",
-        "imageUrl": "https://www.plonkit.net/images/argentina/neuquensunset.png",
-        "scope": "region",
-        "tags": [
-          "camera"
-        ]
-      },
-      {
-        "id": "meta_argentina_QfJU",
-        "plonkitId": "QfJU",
-        "country": "Argentina",
-        "section": "Step 3",
-        "title": "Rio Colorado Sunrise",
-        "description": "Sunrise coverage with bad image quality and multiple blurs is found on a short part of the RN251 and RN22, west of R\u00edo Colorado.",
-        "note": "",
-        "imageUrl": "https://www.plonkit.net/images/argentina/Sunset_251-22_1.png",
-        "scope": "region",
-        "tags": [
-          "camera"
         ]
       },
       {
@@ -73053,18 +73025,6 @@
         "tags": []
       },
       {
-        "id": "meta_argentina_9qq2",
-        "plonkitId": "9qq2",
-        "country": "Argentina",
-        "section": "Step 3",
-        "title": "Eastern Santa Cruz Snow",
-        "description": "This snow coverage is found on the eastern RP25 in eastern Santa Cruz.",
-        "note": "",
-        "imageUrl": "https://www.plonkit.net/images/argentina/rp25.png",
-        "scope": "10km",
-        "tags": []
-      },
-      {
         "id": "meta_argentina_tuz2",
         "plonkitId": "tuz2",
         "country": "Argentina",
@@ -73072,7 +73032,7 @@
         "title": "Southwestern Santa Cruz Snow",
         "description": "Melting snow coverage is seen on the eastern RN293 close to the Chilean border in southwestern Santa Cruz.",
         "note": "",
-        "imageUrl": "https://www.plonkit.net/images/argentina/rn293.png",
+        "imageUrl": "https://www.plonkit.net/images/argentina/rn293_gen4.png",
         "scope": "10km",
         "tags": []
       },
@@ -73085,6 +73045,46 @@
         "description": "These snowy mountains to the north can only be found in Ushuaia.",
         "note": "Ushuaia is the southernmost city of Argentina and the province capital of Tierra del Fuego.",
         "imageUrl": "https://www.plonkit.net/images/argentina/ushuaia.png",
+        "scope": "10km",
+        "tags": []
+      },
+      {
+        "id": "meta_argentina_fm7F",
+        "plonkitId": "fm7F",
+        "country": "Argentina",
+        "section": "Step 3",
+        "title": "Neuquen Degraded Sunrise",
+        "description": "Sunrise coverage with degraded image quality is found on the RN40 just south of the Mendoza border with Neuqu\u00e9n.",
+        "note": "The quality of the coverage improves closer to the border.",
+        "imageUrl": "https://www.plonkit.net/images/argentina/neuquensunset.png",
+        "scope": "region",
+        "tags": [
+          "camera"
+        ]
+      },
+      {
+        "id": "meta_argentina_QfJU",
+        "plonkitId": "QfJU",
+        "country": "Argentina",
+        "section": "Step 3",
+        "title": "Rio Colorado Sunrise",
+        "description": "Sunrise coverage with bad image quality and multiple blurs is found on a short part of the RN251 and RN22, west of R\u00edo Colorado.",
+        "note": "",
+        "imageUrl": "https://www.plonkit.net/images/argentina/Sunset_251-22_1.png",
+        "scope": "region",
+        "tags": [
+          "camera"
+        ]
+      },
+      {
+        "id": "meta_argentina_9qq2",
+        "plonkitId": "9qq2",
+        "country": "Argentina",
+        "section": "Step 3",
+        "title": "Eastern Santa Cruz Snow",
+        "description": "This snow coverage is found on the eastern RP25 in eastern Santa Cruz.",
+        "note": "",
+        "imageUrl": "https://www.plonkit.net/images/argentina/rp25.png",
         "scope": "10km",
         "tags": []
       },
@@ -74006,7 +74006,7 @@
       "South America"
     ],
     "url": "https://www.plonkit.net/brazil",
-    "updatedAt": "2026-07-02T00:00:00.000Z",
+    "updatedAt": "2026-09-08T00:00:00.000Z",
     "metas": [
       {
         "id": "meta_brazil_1lVl",
@@ -74464,7 +74464,7 @@
         "country": "Brazil",
         "section": "Step 2",
         "title": "Moriche Palms Have",
-        "description": "Moriche palms have leaves with a rounded fan shape, and often the bottom leaves can be seen dead and drooping down. They are most common in Roraima, Amazonas, Tocatins, Goias, and the Amazonian states, but random clusters can be found quite far away from this region.",
+        "description": "Moriche palms have leaves with a rounded fan shape, and often the bottom leaves can be seen dead and drooping down. They are most common in Roraima, Amazonas, Tocantins, Goias, and the Amazonian states, but random clusters can be found quite far away from this region.",
         "note": "These palms can additionally be found very commonly in the Amazonian parts of Colombia and Peru.",
         "imageUrl": "https://www.plonkit.net/images/brazil/Moriche_2.png",
         "scope": "region",
@@ -75427,20 +75427,6 @@
         ]
       },
       {
-        "id": "meta_brazil_uTkv",
-        "plonkitId": "uTkv",
-        "country": "Brazil",
-        "section": "Step 3",
-        "title": "NW Rio Grande glitch",
-        "description": "Northwest Rio Grande do Sul has coverage with this camera glitch in Generation 3.",
-        "note": "",
-        "imageUrl": "https://www.plonkit.net/images/brazil/rgds_glitch.png",
-        "scope": "10km",
-        "tags": [
-          "camera"
-        ]
-      },
-      {
         "id": "meta_brazil_GV3p",
         "plonkitId": "GV3p",
         "country": "Brazil",
@@ -75481,6 +75467,20 @@
         "scope": "region",
         "tags": [
           "plants"
+        ]
+      },
+      {
+        "id": "meta_brazil_uTkv",
+        "plonkitId": "uTkv",
+        "country": "Brazil",
+        "section": "Step 3",
+        "title": "NW Rio Grande glitch",
+        "description": "Northwest Rio Grande do Sul has coverage with this camera glitch in Generation 3.",
+        "note": "",
+        "imageUrl": "https://www.plonkit.net/images/brazil/rgds_glitch.png",
+        "scope": "10km",
+        "tags": [
+          "camera"
         ]
       },
       {
@@ -76470,7 +76470,7 @@
       "South America"
     ],
     "url": "https://www.plonkit.net/colombia",
-    "updatedAt": "2026-01-08T00:00:00.000Z",
+    "updatedAt": "2026-08-15T00:00:00.000Z",
     "metas": [
       {
         "id": "meta_colombia_ay1W",
