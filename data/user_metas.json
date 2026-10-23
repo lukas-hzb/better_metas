@@ -1,1 +1,22 @@
-[]
+[
+  {
+    "id": "meta_1792759838075_nqtom",
+    "lat": 41.98071,
+    "lng": 44.11817,
+    "country": "Georgia",
+    "nominatimCountry": "Georgia",
+    "region": "Shida Kartli",
+    "city": "Gori",
+    "road": "Ilia Chavchavadze Avenue",
+    "section": "User Submitted",
+    "title": "Center Car - No Antenna",
+    "description": "This blurred car without an antenna is common in the center of the country\n",
+    "note": "",
+    "imageUrl": "https://learnablemeta.com/images/9509/1786547961130-8TO.avif",
+    "scope": "region",
+    "tags": [
+      "cars"
+    ],
+    "addedAt": "2026-10-23"
+  }
+]
