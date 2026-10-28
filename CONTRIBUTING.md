@@ -27,12 +27,12 @@ For a correction to an existing clue or removal of an incorrect link, open an or
 
 Only provide text and images you have permission to contribute. Link to third-party sources instead of assuming their content can be redistributed. Do not include credentials or private account information in the generated JSON, screenshots, or issue text.
 
-The existing issue workflow can apply supported submissions directly to `main_v4` without human approval. Opening or editing an automatically generated submission may trigger processing; do not use live issues to test payloads or assume that a closed issue proves a manual review occurred.
+The existing issue workflow can apply supported submissions directly to `main` without human approval. Opening or editing an automatically generated submission may trigger processing; do not use live issues to test payloads or assume that a closed issue proves a manual review occurred.
 
 ## Submit an Authorized Change
 
 1. Obtain written authorization for the proposed contribution and any public fork.
-2. Create a focused branch from the latest `main_v4`.
+2. Create a focused branch from the latest `main`.
 3. Follow [docs/DEVELOPMENT.md](docs/DEVELOPMENT.md) for setup and checks.
 4. Keep code changes separate from bulk data refreshes, and describe how you tested the change.
 5. Use concise English [Conventional Commits](https://www.conventionalcommits.org/), for example `docs: clarify userscript installation`.

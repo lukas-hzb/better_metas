@@ -2,7 +2,7 @@
 
 ## Scope
 
-Please reproduce suspected problems against the current official userscript on `main_v4`. Reports should identify the affected version or commit; older branches, private modifications, and third-party copies may behave differently.
+Please reproduce suspected problems against the current official userscript on `main`. Reports should identify the affected version or commit; older branches, private modifications, and third-party copies may behave differently.
 
 Relevant reports include exposed maintainer tokens, unsafe repository writes, injection through meta content, and unintended disclosure of game or account data. Problems confined to a third-party service should be reported to that provider.
 

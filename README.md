@@ -5,8 +5,8 @@
 </p>
 
 <p align="center">
-  <a href="data"><img src="https://img.shields.io/badge/dynamic/json?url=https%3A%2F%2Fraw.githubusercontent.com%2Flukas-hzb%2Fbetter_metas%2Fmain_v4%2Fdata%2Fstats.json&amp;query=%24.metas&amp;label=Metas&amp;color=blue" alt="Current number of unique metas" /></a>
-  <a href="data"><img src="https://img.shields.io/badge/dynamic/json?url=https%3A%2F%2Fraw.githubusercontent.com%2Flukas-hzb%2Fbetter_metas%2Fmain_v4%2Fdata%2Fstats.json&amp;query=%24.locations&amp;label=Locations&amp;color=brightgreen" alt="Current number of unique locations" /></a>
+  <a href="data"><img src="https://img.shields.io/badge/dynamic/json?url=https%3A%2F%2Fraw.githubusercontent.com%2Flukas-hzb%2Fbetter_metas%2Fmain%2Fdata%2Fstats.json&amp;query=%24.metas&amp;label=Metas&amp;color=blue" alt="Current number of unique metas" /></a>
+  <a href="data"><img src="https://img.shields.io/badge/dynamic/json?url=https%3A%2F%2Fraw.githubusercontent.com%2Flukas-hzb%2Fbetter_metas%2Fmain%2Fdata%2Fstats.json&amp;query=%24.locations&amp;label=Locations&amp;color=brightgreen" alt="Current number of unique locations" /></a>
 </p>
 
 BetterMetas combines a large Plonk It–based database with smart location predictions to eliminate the need for manual location classification. Explore suggested clues through descriptions and images, then add new findings or link existing metas to the current panorama.
@@ -36,12 +36,12 @@ There is no separate website or hosted application; install the userscript direc
 
 1. Install a compatible userscript manager such as [Tampermonkey](https://www.tampermonkey.net/).
 2. If your browser requires it, enable the manager's [permission to execute userscripts](https://www.tampermonkey.net/faq.php?locale=en&q=Q209).
-3. Open the official [`geoguessr-meta.user.js`](https://raw.githubusercontent.com/lukas-hzb/better_metas/main_v4/geoguessr-meta.user.js) installation URL.
+3. Open the official [`geoguessr-meta.user.js`](https://raw.githubusercontent.com/lukas-hzb/better_metas/main/geoguessr-meta.user.js) installation URL.
 4. Review the requested permissions, confirm installation, and reload [GeoGuessr](https://www.geoguessr.com/).
 
 Normal use requires no Node.js installation, terminal commands, or GitHub token. Leave the optional token field in Settings empty.
 
-The userscript's update metadata points to the official `main_v4` branch. Use your userscript manager's update check, or enable its automatic updates. Forks and copied files are not official update channels.
+The userscript's update metadata points to the official `main` branch. Use your userscript manager's update check, or enable its automatic updates. Forks and copied files are not official update channels.
 
 ## Usage
 

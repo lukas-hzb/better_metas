@@ -9,7 +9,7 @@ Use a supported [Node.js LTS release](https://nodejs.org/en/about/previous-relea
 From a terminal, clone the official branch and install the locked npm metadata:
 
 ```sh
-git clone --branch main_v4 https://github.com/lukas-hzb/better_metas.git
+git clone --branch main https://github.com/lukas-hzb/better_metas.git
 cd better_metas
 npm ci
 ```
@@ -29,13 +29,13 @@ better_metas/
 └── .github/workflows/     Existing community-issue automation
 ```
 
-The userscript handles location detection, result-screen visibility, geographic matching, browser caching, the HUD, and GitHub-backed contributions in one file. It loads the four JSON data files from `main_v4`; changing a local JSON file alone does not change what an installed script downloads.
+The userscript handles location detection, result-screen visibility, geographic matching, browser caching, the HUD, and GitHub-backed contributions in one file. It loads the four JSON data files from `main`; changing a local JSON file alone does not change what an installed script downloads.
 
 ## README Database Counts
 
 The README badges read `data/stats.json` through Shields.io. Counts include unique meta IDs and unique panorama IDs across the Plonk It and community files, so entries shared by both sources are counted once. Local browser-only contributions are not included.
 
-The `Update README Stats` workflow regenerates this file after data changes reach `main_v4`. The issue submission workflow also regenerates it in its own commit, because pushes made with GitHub Actions' token do not trigger another push workflow. Actions needs permission to push to `main_v4`; branch protection must allow these automated updates. Shields.io and GitHub image caches can delay visible badge updates.
+The `Update README Stats` workflow regenerates this file after data changes reach `main`. The issue submission workflow also regenerates it in its own commit, because pushes made with GitHub Actions' token do not trigger another push workflow. Actions needs permission to push to `main`; branch protection must allow these automated updates. Shields.io and GitHub image caches can delay visible badge updates.
 
 To regenerate the counts locally, run `node scripts/update_stats.js`. Do not edit `data/stats.json` by hand.
 
@@ -82,6 +82,6 @@ If the HUD does not appear, check userscript-manager execution permissions, conf
 
 Cached data can delay visible changes. A fresh test profile avoids mixing old cached data with a new test. **Delete Saved User Data** is a maintainer repository operation, not a local cache reset.
 
-Before publishing a userscript change, review its `@version`, `@match`, `@grant`, `@connect`, `@updateURL`, and `@downloadURL` metadata. Increment `@version` for a new userscript update. Keep the official `main_v4` distribution URLs intact; changing the branch or file path requires a deliberate migration. Documentation-only changes do not need a userscript-version bump.
+Before publishing a userscript change, review its `@version`, `@match`, `@grant`, `@connect`, `@updateURL`, and `@downloadURL` metadata. Increment `@version` for a new userscript update. Keep the official `main` distribution URLs intact; changing the branch or file path requires a deliberate migration. Documentation-only changes do not need a userscript-version bump.
 
 README images should use meaningful captions and alt text. For related screenshots, use HTML `<img>` elements inside Markdown tables with matching widths, as in the current README.

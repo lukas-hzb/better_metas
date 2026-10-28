@@ -16,7 +16,7 @@ jobs:
       - name: Checkout Code
         uses: actions/checkout@v3
         with:
-          ref: main_v4
+          ref: main
 
       - name: Setup Node
         uses: actions/setup-node@v3
@@ -155,8 +155,8 @@ jobs:
           git config user.email "actions@github.com"
           git add data/user_locations.json data/user_metas.json data/stats.json
           git commit -m "feat(data): add meta from issue #${{ github.event.issue.number }}" || echo "No changes to commit"
-          git pull --rebase origin main_v4
-          git push origin HEAD:main_v4
+          git pull --rebase origin main
+          git push origin HEAD:main
 
       - name: Close Issue
         uses: actions/github-script@v6
